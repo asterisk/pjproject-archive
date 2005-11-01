@@ -172,7 +172,6 @@ pjlib/src/pj/stun.c -text
 pjlib/src/pj/stun_client.c -text
 pjlib/src/pj/symbols.c -text
 pjlib/src/pj/timer.c -text
-pjlib/src/pj/tounix -text
 pjlib/src/pj/types.c -text
 pjlib/src/pj/xml.c -text
 pjlib/src/pjlib-samples/except.c -text
