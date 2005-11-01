@@ -1,0 +1,6 @@
+pjlib/bin/*
+pjlib/build/.pjlib*
+pjlib/build/core
+pjlib/build/output/*
+pjlib/include/pj/config_site.h
+pjlib/lib/*

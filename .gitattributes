@@ -11,9 +11,11 @@ build/host-win32.mak -text
 build/m-alpha.mak -text
 build/m-i386.mak -text
 build/m-m68k.mak -text
+build/m-sparc.mak -text
 build/os-linux-kernel.mak -text
 build/os-linux.mak -text
 build/os-palmos.mak -text
+build/os-sunos.mak -text
 build/os-win32.mak -text
 build/pjproject.dsw -text
 build/pjproject.sln -text
@@ -23,6 +25,7 @@ pjlib/LGPL.TXT -text
 pjlib/build/Makefile -text
 pjlib/build/os-linux-kernel.mak -text
 pjlib/build/os-linux.mak -text
+pjlib/build/os-sunos.mak -text
 pjlib/build/os-win32.mak -text
 pjlib/build/pjlib.dsp -text
 pjlib/build/pjlib.dsw -text
@@ -50,10 +53,12 @@ pjlib/include/pj/compat/high_precision.h -text
 pjlib/include/pj/compat/m_alpha.h -text
 pjlib/include/pj/compat/m_i386.h -text
 pjlib/include/pj/compat/m_m68k.h -text
+pjlib/include/pj/compat/m_sparc.h -text
 pjlib/include/pj/compat/malloc.h -text
 pjlib/include/pj/compat/os_linux.h -text
 pjlib/include/pj/compat/os_linux_kernel.h -text
 pjlib/include/pj/compat/os_palmos.h -text
+pjlib/include/pj/compat/os_sunos.h -text
 pjlib/include/pj/compat/os_win32.h -text
 pjlib/include/pj/compat/rand.h -text
 pjlib/include/pj/compat/setjmp.h -text
