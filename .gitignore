@@ -1,10 +1,11 @@
 pjlib/bin/*
+pjlib/build/*.ncb
+pjlib/build/*.opt
+pjlib/build/*.plg
+pjlib/build/*.suo
 pjlib/build/.pjlib*
 pjlib/build/core
 pjlib/build/output/*
-pjlib/build/pjlib.ncb
-pjlib/build/pjlib.opt
-pjlib/build/pjlib.suo
 pjlib/docs/html
 pjlib/docs/latex
 pjlib/include/pj/config_site.h
