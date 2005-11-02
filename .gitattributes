@@ -33,6 +33,7 @@ pjlib/build/pjlib.sln -text
 pjlib/build/pjlib.vcproj -text
 pjlib/build/pjlib_samples.dsp -text
 pjlib/build/pjlib_samples.mak -text
+pjlib/build/pjlib_samples.vcproj -text
 pjlib/build/pjlib_test.dsp -text
 pjlib/build/pjlib_test.vcproj -text
 pjlib/build/pjlibpp.dsp -text
