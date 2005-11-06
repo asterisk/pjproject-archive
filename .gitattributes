@@ -182,7 +182,6 @@ pjlib/src/pjlib-samples/list.c -text
 pjlib/src/pjlib-samples/log.c -text
 pjlib/src/pjlib-test/atomic.c -text
 pjlib/src/pjlib-test/echo_clt.c -text
-pjlib/src/pjlib-test/echo_srv.c -text
 pjlib/src/pjlib-test/errno.c -text
 pjlib/src/pjlib-test/exception.c -text
 pjlib/src/pjlib-test/fifobuf.c -text
