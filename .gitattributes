@@ -134,6 +134,8 @@ pjlib/src/pj/guid.c -text
 pjlib/src/pj/guid_simple.c -text
 pjlib/src/pj/guid_win32.c -text
 pjlib/src/pj/hash.c -text
+pjlib/src/pj/ioqueue_common_abs.c -text
+pjlib/src/pj/ioqueue_common_abs.h -text
 pjlib/src/pj/ioqueue_dummy.c -text
 pjlib/src/pj/ioqueue_epoll.c -text
 pjlib/src/pj/ioqueue_linux_kernel.c -text
