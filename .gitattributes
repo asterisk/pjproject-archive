@@ -2,7 +2,7 @@
 /INSTALL.txt -text
 /Makefile -text
 /RELNOTES.txt -text
-/build.mak -text
+/build.mak.txt -text
 build/cc-gcc.mak -text
 build/cc-vc.mak -text
 build/host-mingw.mak -text
@@ -20,6 +20,7 @@ build/os-win32.mak -text
 build/pjproject.dsw -text
 build/pjproject.sln -text
 build/rules.mak -text
+/configure -text
 docs/pjproject-0.2.8.html -text
 pjlib/LGPL.TXT -text
 pjlib/build/Makefile -text
