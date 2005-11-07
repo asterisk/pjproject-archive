@@ -1,4 +1,5 @@
 /build.mak
+/build.mak.old
 pjlib/bin/*
 pjlib/build/*.ncb
 pjlib/build/*.opt
