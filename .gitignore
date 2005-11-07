@@ -6,6 +6,7 @@ pjlib/build/*.suo
 pjlib/build/.pjlib*
 pjlib/build/core
 pjlib/build/output/*
+pjlib/build/test*.txt
 pjlib/docs/html
 pjlib/docs/latex
 pjlib/include/pj/config_site.h

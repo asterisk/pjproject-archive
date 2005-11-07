@@ -78,6 +78,8 @@ pjlib/include/pj/equeue.h -text
 pjlib/include/pj/errno.h -text
 pjlib/include/pj/except.h -text
 pjlib/include/pj/fifobuf.h -text
+pjlib/include/pj/file_access.h -text
+pjlib/include/pj/file_io.h -text
 pjlib/include/pj/guid.h -text
 pjlib/include/pj/hash.h -text
 pjlib/include/pj/ioqueue.h -text
@@ -130,6 +132,9 @@ pjlib/src/pj/errno.c -text
 pjlib/src/pj/except.c -text
 pjlib/src/pj/extra-exports.c -text
 pjlib/src/pj/fifobuf.c -text
+pjlib/src/pj/file_access_win32.c -text
+pjlib/src/pj/file_io_ansi.c -text
+pjlib/src/pj/file_io_win32.c -text
 pjlib/src/pj/guid.c -text
 pjlib/src/pj/guid_simple.c -text
 pjlib/src/pj/guid_win32.c -text
@@ -185,6 +190,7 @@ pjlib/src/pjlib-test/echo_clt.c -text
 pjlib/src/pjlib-test/errno.c -text
 pjlib/src/pjlib-test/exception.c -text
 pjlib/src/pjlib-test/fifobuf.c -text
+pjlib/src/pjlib-test/file.c -text
 pjlib/src/pjlib-test/ioq_perf.c -text
 pjlib/src/pjlib-test/ioq_tcp.c -text
 pjlib/src/pjlib-test/ioq_udp.c -text
