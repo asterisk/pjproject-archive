@@ -132,6 +132,7 @@ pjlib/src/pj/errno.c -text
 pjlib/src/pj/except.c -text
 pjlib/src/pj/extra-exports.c -text
 pjlib/src/pj/fifobuf.c -text
+pjlib/src/pj/file_access_unistd.c -text
 pjlib/src/pj/file_access_win32.c -text
 pjlib/src/pj/file_io_ansi.c -text
 pjlib/src/pj/file_io_win32.c -text
