@@ -5,6 +5,7 @@
 /build.mak.txt -text
 build/cc-gcc.mak -text
 build/cc-vc.mak -text
+build/common.mak -text
 build/host-mingw.mak -text
 build/host-unix.mak -text
 build/host-win32.mak -text
@@ -23,10 +24,14 @@ build/rules.mak -text
 /configure -text
 docs/pjproject-0.2.8.html -text
 pjlib-util/build/Makefile -text
+pjlib-util/build/pjlib_util.dsp -text
+pjlib-util/build/pjlib_util.dsw -text
+pjlib-util/build/pjlib_util_test.dsp -text
 pjlib-util/docs/doxygen.cfg -text
 pjlib-util/docs/doxygen.css -text
 pjlib-util/docs/footer.html -text
 pjlib-util/docs/header.html -text
+pjlib-util/include/pjlib-util.h -text
 pjlib-util/include/pjlib-util/md5.h -text
 pjlib-util/include/pjlib-util/scanner.h -text
 pjlib-util/include/pjlib-util/stun.h -text
@@ -39,6 +44,7 @@ pjlib-util/src/pjlib-util/md5.c -text
 pjlib-util/src/pjlib-util/scanner.c -text
 pjlib-util/src/pjlib-util/stun.c -text
 pjlib-util/src/pjlib-util/stun_client.c -text
+pjlib-util/src/pjlib-util/symbols.c -text
 pjlib-util/src/pjlib-util/xml.c -text
 pjlib/LGPL.TXT -text
 pjlib/build/Makefile -text
