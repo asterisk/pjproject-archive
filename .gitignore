@@ -1,5 +1,12 @@
 /build.mak
 /build.mak.old
+pjlib-util/bin/*
+pjlib-util/build/.pjlib*
+pjlib-util/build/output/*
+pjlib-util/docs/html
+pjlib-util/docs/latex
+pjlib-util/docs/rtf
+pjlib-util/lib/*
 pjlib/bin/*
 pjlib/build/*.ncb
 pjlib/build/*.opt
