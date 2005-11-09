@@ -350,6 +350,9 @@ pjsip/include/pjsip-simple/xpidf.h -text
 pjsip/include/pjsip-ua/sip_dialog.h -text
 pjsip/include/pjsip-ua/sip_regc.h -text
 pjsip/include/pjsip-ua/sip_ua.h -text
+pjsip/include/pjsip/sip_auth.h -text
+pjsip/include/pjsip/sip_auth_msg.h -text
+pjsip/include/pjsip/sip_auth_parser.h -text
 pjsip/include/pjsip/sip_config.h -text
 pjsip/include/pjsip/sip_endpoint.h -text
 pjsip/include/pjsip/sip_event.h -text
@@ -364,9 +367,10 @@ pjsip/include/pjsip/sip_transaction.h -text
 pjsip/include/pjsip/sip_transport.h -text
 pjsip/include/pjsip/sip_types.h -text
 pjsip/include/pjsip/sip_uri.h -text
-pjsip/include/sip_auth.h -text
-pjsip/include/sip_auth_msg.h -text
-pjsip/include/sip_auth_parser.h -text
+pjsip/include/pjsip_auth.h -text
+pjsip/include/pjsip_core.h -text
+pjsip/include/pjsip_simple.h -text
+pjsip/include/pjsip_ua.h -text
 pjsip/src/pjsip-simple/event_notify.c -text
 pjsip/src/pjsip-simple/event_notify_msg.c -text
 pjsip/src/pjsip-simple/messaging.c -text
