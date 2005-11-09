@@ -393,8 +393,8 @@ pjsip/src/pjsua/getopt.c -text
 pjsip/src/pjsua/getopt.h -text
 pjsip/src/pjsua/main.c -text
 pjsip/src/pjsua/misc.c -text
-pjsip/src/tests/pjsip_core/main.c -text
-pjsip/src/tests/pjsip_core/test.h -text
-pjsip/src/tests/pjsip_core/test_msg.c -text
-pjsip/src/tests/pjsip_core/test_uri.c -text
+pjsip/src/tests/pjsip-core/main.c -text
+pjsip/src/tests/pjsip-core/test.h -text
+pjsip/src/tests/pjsip-core/test_msg.c -text
+pjsip/src/tests/pjsip-core/test_uri.c -text
 /user.mak -text
