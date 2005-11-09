@@ -52,6 +52,9 @@ pjlib/build/os-linux-kernel.mak -text
 pjlib/build/os-linux.mak -text
 pjlib/build/os-sunos.mak -text
 pjlib/build/os-win32.mak -text
+pjlib/build/pjlib++-test.dsp -text
+pjlib/build/pjlib++.dsp -text
+pjlib/build/pjlib++.vcproj -text
 pjlib/build/pjlib.dsp -text
 pjlib/build/pjlib.dsw -text
 pjlib/build/pjlib.sln -text
@@ -61,15 +64,14 @@ pjlib/build/pjlib_samples.mak -text
 pjlib/build/pjlib_samples.vcproj -text
 pjlib/build/pjlib_test.dsp -text
 pjlib/build/pjlib_test.vcproj -text
-pjlib/build/pjlibpp.dsp -text
-pjlib/build/pjlibpp.vcproj -text
 pjlib/docs/doxygen.cfg -text
 pjlib/docs/doxygen.css -text
 pjlib/docs/footer.html -text
 pjlib/docs/header.html -text
+pjlib/include/pj++/file.hpp -text
 pjlib/include/pj++/hash.hpp -text
-pjlib/include/pj++/ioqueue.hpp -text
 pjlib/include/pj++/list.hpp -text
+pjlib/include/pj++/lock.hpp -text
 pjlib/include/pj++/os.hpp -text
 pjlib/include/pj++/pool.hpp -text
 pjlib/include/pj++/proactor.hpp -text
@@ -137,9 +139,6 @@ pjlib/include/pj/timer.h -text
 pjlib/include/pj/types.h -text
 pjlib/include/pjlib++.hpp -text
 pjlib/include/pjlib.h -text
-pjlib/src/pj++/compiletest.cpp -text
-pjlib/src/pj++/pj++.cpp -text
-pjlib/src/pj++/proactor.cpp -text
 pjlib/src/pj/addr_resolv_linux_kernel.c -text
 pjlib/src/pj/addr_resolv_sock.c -text
 pjlib/src/pj/array.c -text
@@ -199,6 +198,7 @@ pjlib/src/pj/string.c -text
 pjlib/src/pj/symbols.c -text
 pjlib/src/pj/timer.c -text
 pjlib/src/pj/types.c -text
+pjlib/src/pjlib++-test/main.cpp -text
 pjlib/src/pjlib-samples/except.c -text
 pjlib/src/pjlib-samples/list.c -text
 pjlib/src/pjlib-samples/log.c -text
