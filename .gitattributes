@@ -373,10 +373,6 @@ pjsip/src/pjsip-simple/messaging.c -text
 pjsip/src/pjsip-simple/pidf.c -text
 pjsip/src/pjsip-simple/presence.c -text
 pjsip/src/pjsip-simple/xpidf.c -text
-pjsip/src/pjsip-tests/pjsip_core/main.c -text
-pjsip/src/pjsip-tests/pjsip_core/test.h -text
-pjsip/src/pjsip-tests/pjsip_core/test_msg.c -text
-pjsip/src/pjsip-tests/pjsip_core/test_uri.c -text
 pjsip/src/pjsip-ua/sip_dialog.c -text
 pjsip/src/pjsip-ua/sip_reg.c -text
 pjsip/src/pjsip-ua/sip_ua.c -text
@@ -397,4 +393,8 @@ pjsip/src/pjsua/getopt.c -text
 pjsip/src/pjsua/getopt.h -text
 pjsip/src/pjsua/main.c -text
 pjsip/src/pjsua/misc.c -text
+pjsip/src/tests/pjsip_core/main.c -text
+pjsip/src/tests/pjsip_core/test.h -text
+pjsip/src/tests/pjsip_core/test_msg.c -text
+pjsip/src/tests/pjsip_core/test_uri.c -text
 /user.mak -text
