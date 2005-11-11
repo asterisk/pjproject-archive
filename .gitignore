@@ -25,6 +25,13 @@ pjlib/docs/html
 pjlib/docs/latex
 pjlib/include/pj/config_site.h
 pjlib/lib/*
+pjsip/bin/*
 pjsip/build/*.ncb
 pjsip/build/*.opt
 pjsip/build/*.plg
+pjsip/build/TODO-LIST.TXT
+pjsip/build/output/*
+pjsip/docs/html
+pjsip/docs/latex
+pjsip/docs/rtf
+pjsip/lib/*

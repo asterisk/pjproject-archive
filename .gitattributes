@@ -318,7 +318,6 @@ pjmedia/src/test/sdptest.c -text
 pjmedia/src/test/session_test.c -text
 pjsip/LGPL.TXT -text
 pjsip/build/Makefile -text
-pjsip/build/TODO.txt -text
 pjsip/build/make-linux-i386.inc -text
 pjsip/build/make-mingw.inc -text
 pjsip/build/make-optimize.inc -text
@@ -338,7 +337,6 @@ pjsip/build/pjsip_ua.dsp -text
 pjsip/build/pjsip_ua.vcproj -text
 pjsip/build/pjsua.dsp -text
 pjsip/build/pjsua.vcproj -text
-pjsip/build/tounix -text
 pjsip/docs/PJSIP-Testing.doc -text
 pjsip/docs/doxygen.cfg -text
 pjsip/include/pjsip-simple/event_notify.h -text
@@ -350,11 +348,13 @@ pjsip/include/pjsip-simple/xpidf.h -text
 pjsip/include/pjsip-ua/sip_dialog.h -text
 pjsip/include/pjsip-ua/sip_regc.h -text
 pjsip/include/pjsip-ua/sip_ua.h -text
+pjsip/include/pjsip/print_util.h -text
 pjsip/include/pjsip/sip_auth.h -text
 pjsip/include/pjsip/sip_auth_msg.h -text
 pjsip/include/pjsip/sip_auth_parser.h -text
 pjsip/include/pjsip/sip_config.h -text
 pjsip/include/pjsip/sip_endpoint.h -text
+pjsip/include/pjsip/sip_errno.h -text
 pjsip/include/pjsip/sip_event.h -text
 pjsip/include/pjsip/sip_misc.h -text
 pjsip/include/pjsip/sip_module.h -text
@@ -381,7 +381,6 @@ pjsip/src/pjsip-ua/sip_dialog.c -text
 pjsip/src/pjsip-ua/sip_reg.c -text
 pjsip/src/pjsip-ua/sip_ua.c -text
 pjsip/src/pjsip-ua/sip_ua_private.h -text
-pjsip/src/pjsip/print.h -text
 pjsip/src/pjsip/sip_auth.c -text
 pjsip/src/pjsip/sip_auth_msg.c -text
 pjsip/src/pjsip/sip_auth_parser.c -text
