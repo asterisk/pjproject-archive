@@ -1,6 +1,8 @@
 * text=auto !eol
+/COPYING -text
 /INSTALL.txt -text
 /Makefile -text
+/README.txt -text
 /RELNOTES.txt -text
 /build.mak.txt -text
 build/cc-gcc.mak -text
@@ -46,7 +48,6 @@ pjlib-util/src/pjlib-util/stun.c -text
 pjlib-util/src/pjlib-util/stun_client.c -text
 pjlib-util/src/pjlib-util/symbols.c -text
 pjlib-util/src/pjlib-util/xml.c -text
-pjlib/LGPL.TXT -text
 pjlib/build/Makefile -text
 pjlib/build/os-linux-kernel.mak -text
 pjlib/build/os-linux.mak -text
@@ -233,7 +234,6 @@ pjlib/src/pjlib-test/timestamp.c -text
 pjlib/src/pjlib-test/udp_echo_srv_ioqueue.c -text
 pjlib/src/pjlib-test/udp_echo_srv_sync.c -text
 pjlib/src/pjlib-test/util.c -text
-pjmedia/LGPL.TXT -text
 pjmedia/build/Jbtest.dat -text
 pjmedia/build/Makefile -text
 pjmedia/build/make-linux-i386.inc -text
@@ -316,7 +316,6 @@ pjmedia/src/test/main.c -text
 pjmedia/src/test/rtp_test.c -text
 pjmedia/src/test/sdptest.c -text
 pjmedia/src/test/session_test.c -text
-pjsip/LGPL.TXT -text
 pjsip/build/Makefile -text
 pjsip/build/make-linux-i386.inc -text
 pjsip/build/make-mingw.inc -text
