@@ -148,6 +148,7 @@ pjlib/src/pj/compat/setjmp_i386.S -text
 pjlib/src/pj/compat/sigjmp.c -text
 pjlib/src/pj/compat/string.c -text
 pjlib/src/pj/config.c -text
+pjlib/src/pj/ctype.c -text
 pjlib/src/pj/equeue_winnt.c -text
 pjlib/src/pj/errno.c -text
 pjlib/src/pj/except.c -text
