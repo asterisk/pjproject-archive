@@ -391,7 +391,8 @@ pjsip/src/pjsua/getopt.h -text
 pjsip/src/pjsua/main.c -text
 pjsip/src/pjsua/misc.c -text
 pjsip/src/test-pjsip/main.c -text
+pjsip/src/test-pjsip/parse_msg.c -text
+pjsip/src/test-pjsip/parse_uri.c -text
+pjsip/src/test-pjsip/test.c -text
 pjsip/src/test-pjsip/test.h -text
-pjsip/src/test-pjsip/test_msg.c -text
-pjsip/src/test-pjsip/test_uri.c -text
 /user.mak -text
