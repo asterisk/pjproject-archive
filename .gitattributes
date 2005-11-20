@@ -351,7 +351,6 @@ pjsip/include/pjsip/sip_config.h -text
 pjsip/include/pjsip/sip_endpoint.h -text
 pjsip/include/pjsip/sip_errno.h -text
 pjsip/include/pjsip/sip_event.h -text
-pjsip/include/pjsip/sip_misc.h -text
 pjsip/include/pjsip/sip_module.h -text
 pjsip/include/pjsip/sip_msg.h -text
 pjsip/include/pjsip/sip_msg_i.h -text
@@ -363,6 +362,7 @@ pjsip/include/pjsip/sip_transport.h -text
 pjsip/include/pjsip/sip_transport_udp.h -text
 pjsip/include/pjsip/sip_types.h -text
 pjsip/include/pjsip/sip_uri.h -text
+pjsip/include/pjsip/sip_util.h -text
 pjsip/include/pjsip_auth.h -text
 pjsip/include/pjsip_core.h -text
 pjsip/include/pjsip_simple.h -text
@@ -381,7 +381,7 @@ pjsip/src/pjsip/sip_auth.c -text
 pjsip/src/pjsip/sip_auth_msg.c -text
 pjsip/src/pjsip/sip_auth_parser.c -text
 pjsip/src/pjsip/sip_endpoint.c -text
-pjsip/src/pjsip/sip_misc.c -text
+pjsip/src/pjsip/sip_errno.c -text
 pjsip/src/pjsip/sip_msg.c -text
 pjsip/src/pjsip/sip_parser.c -text
 pjsip/src/pjsip/sip_resolve.c -text
@@ -389,13 +389,14 @@ pjsip/src/pjsip/sip_transaction.c -text
 pjsip/src/pjsip/sip_transport.c -text
 pjsip/src/pjsip/sip_transport_udp.c -text
 pjsip/src/pjsip/sip_uri.c -text
+pjsip/src/pjsip/sip_util.c -text
 pjsip/src/pjsua/getopt.c -text
 pjsip/src/pjsua/getopt.h -text
 pjsip/src/pjsua/main.c -text
 pjsip/src/pjsua/misc.c -text
 pjsip/src/test-pjsip/main.c -text
-pjsip/src/test-pjsip/parse_msg.c -text
-pjsip/src/test-pjsip/parse_uri.c -text
+pjsip/src/test-pjsip/msg.c -text
 pjsip/src/test-pjsip/test.c -text
 pjsip/src/test-pjsip/test.h -text
+pjsip/src/test-pjsip/uri.c -text
 /user.mak -text
