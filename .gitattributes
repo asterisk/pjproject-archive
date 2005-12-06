@@ -43,8 +43,11 @@ pjsip/build/pjsip_simple.dsp eol=crlf
 pjsip/build/pjsip_ua.dsp eol=crlf
 pjsip/build/pjsua.dsp eol=crlf
 pjsip/build/test_pjsip.dsp eol=crlf
-pjsip/docs/Flow-Existing-Dialog.vsd -text
-pjsip/docs/Flow-New-Dialog.vsd -text
+pjsip/docs/Arch-Class-Diagram.vsd -text
+pjsip/docs/Arch.vsd -text
+pjsip/docs/Callback-Design-Msg-Inside-Dialog.vsd -text
+pjsip/docs/Callback-Design-Msg-Inside-Transaction.vsd -text
+pjsip/docs/Callback-Design-Msg-Outside-Transaction-Outside-Dialog.vsd -text
 pjsip/docs/PJSIP-Testing.doc -text
 pjsip/docs/PJSIP-Users-Guide.doc -text
 pjsip/docs/doxygen.cfg -text
