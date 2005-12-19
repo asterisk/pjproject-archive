@@ -43,7 +43,4 @@ pjsip/build/pjsip_simple.dsp eol=crlf
 pjsip/build/pjsip_ua.dsp eol=crlf
 pjsip/build/pjsua.dsp eol=crlf
 pjsip/build/test_pjsip.dsp eol=crlf
-pjsip/docs/Callback-Design-Msg-Outside-Transaction-Outside-Dialog.vsd -text
-pjsip/docs/Dialog-Base.vsd -text
-pjsip/docs/PJSIP-Users-Guide.doc -text
 pjsip/docs/doxygen.cfg -text
