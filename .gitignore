@@ -25,6 +25,9 @@ pjlib/docs/html
 pjlib/docs/latex
 pjlib/include/pj/config_site.h
 pjlib/lib/*
+pjmedia/build/*.ncb
+pjmedia/build/*.opt
+pjmedia/build/output/*
 pjsip/bin/*
 pjsip/build/*.ncb
 pjsip/build/*.opt

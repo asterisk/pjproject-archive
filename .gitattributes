@@ -26,14 +26,10 @@ pjlib/docs/doxygen.cfg -text
 pjlib/docs/doxygen.css -text
 pjlib/docs/footer.html -text
 pjlib/docs/header.html -text
+pjmedia/build/pjaut.dsp eol=crlf
 pjmedia/build/pjmedia.dsp eol=crlf
 pjmedia/build/pjmedia.dsw eol=crlf
-pjmedia/build/pjmedia.sln eol=crlf
-pjmedia/build/pjmedia.vcproj eol=crlf
-pjmedia/build/pjmedia_audio_tool.dsp eol=crlf
-pjmedia/build/pjmedia_audio_tool.vcproj eol=crlf
 pjmedia/build/pjmedia_test.dsp eol=crlf
-pjmedia/build/pjmedia_test.vcproj eol=crlf
 pjmedia/docs/doxygen.cfg -text
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip.sln eol=crlf
