@@ -12,6 +12,7 @@ pjlib-util/docs/doxygen.css -text
 pjlib-util/docs/footer.html -text
 pjlib-util/docs/header.html -text
 pjlib/build/pjlib++-test.dsp eol=crlf
+pjlib/build/pjlib++-test.vcproj eol=crlf
 pjlib/build/pjlib++.dsp eol=crlf
 pjlib/build/pjlib++.vcproj eol=crlf
 pjlib/build/pjlib.dsp eol=crlf
