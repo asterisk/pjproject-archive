@@ -23,6 +23,9 @@ pjlib/build/pjlib_samples.dsp eol=crlf
 pjlib/build/pjlib_samples.vcproj eol=crlf
 pjlib/build/pjlib_test.dsp eol=crlf
 pjlib/build/pjlib_test.vcproj eol=crlf
+pjlib/build/wince-evc4/pjlib_test_wince.vcp -text
+pjlib/build/wince-evc4/pjlib_wince.vcp -text
+pjlib/build/wince-evc4/pjlib_wince.vcw -text
 pjlib/docs/doxygen.cfg -text
 pjlib/docs/doxygen.css -text
 pjlib/docs/footer.html -text

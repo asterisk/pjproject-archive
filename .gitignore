@@ -21,6 +21,9 @@ pjlib/build/.pjlib*
 pjlib/build/core
 pjlib/build/output/*
 pjlib/build/test*.txt
+pjlib/build/wince-evc4/*.vcb
+pjlib/build/wince-evc4/*.vco
+pjlib/build/wince-evc4/output/*
 pjlib/docs/html
 pjlib/docs/latex
 pjlib/include/pj/config_site.h
