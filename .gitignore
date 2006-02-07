@@ -38,6 +38,8 @@ pjsip/bin/*
 pjsip/build/*.ncb
 pjsip/build/*.opt
 pjsip/build/*.plg
+pjsip/build/*.swp
+pjsip/build/.pj*
 pjsip/build/TODO-LIST.TXT
 pjsip/build/output/*
 pjsip/docs/html
