@@ -35,6 +35,7 @@ pjmedia/build/.pjmedia*
 pjmedia/build/output/*
 pjmedia/lib/*
 pjsip/bin/*
+pjsip/build/*.log
 pjsip/build/*.ncb
 pjsip/build/*.opt
 pjsip/build/*.plg
