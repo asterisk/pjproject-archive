@@ -35,6 +35,9 @@ pjmedia/build/pjmedia.dsp eol=crlf
 pjmedia/build/pjmedia.dsw eol=crlf
 pjmedia/build/pjmedia_test.dsp eol=crlf
 pjmedia/docs/doxygen.cfg -text
+pjmedia/src/pjmedia-codec/gsm/code.c -text
+pjmedia/src/pjmedia-codec/gsm/config.h -text
+pjmedia/src/pjmedia-codec/gsm/proto.h -text
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip.sln eol=crlf
 pjsip/build/pjsip_auth_lib.dsp eol=crlf
