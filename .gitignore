@@ -8,6 +8,9 @@ pjlib-util/build/*.opt
 pjlib-util/build/*.suo
 pjlib-util/build/.pjlib*
 pjlib-util/build/output/*
+pjlib-util/build/wince-evc4/*.vcb
+pjlib-util/build/wince-evc4/*.vco
+pjlib-util/build/wince-evc4/output/*
 pjlib-util/docs/html
 pjlib-util/docs/latex
 pjlib-util/docs/rtf
