@@ -49,10 +49,14 @@ pjsip/build/*.swp
 pjsip/build/.pj*
 pjsip/build/TODO-LIST.TXT
 pjsip/build/output/*
+pjsip/build/pjsip++.dsp
 pjsip/build/wince-evc4/*.vcb
 pjsip/build/wince-evc4/*.vco
 pjsip/build/wince-evc4/output/*
 pjsip/docs/html
 pjsip/docs/latex
 pjsip/docs/rtf
+pjsip/include/pjsip++
 pjsip/lib/*
+pjsip/src/pjsip++
+/python
