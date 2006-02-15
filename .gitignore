@@ -39,6 +39,9 @@ pjmedia/build/output/*
 pjmedia/build/wince-evc4/*.vcb
 pjmedia/build/wince-evc4/*.vco
 pjmedia/build/wince-evc4/output/*
+pjmedia/docs/html
+pjmedia/docs/latex
+pjmedia/docs/rtf
 pjmedia/lib/*
 pjsip/bin/*
 pjsip/build/*.log
