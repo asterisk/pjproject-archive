@@ -34,6 +34,7 @@ pjlib/lib/*
 pjmedia/bin/*
 pjmedia/build/*.ncb
 pjmedia/build/*.opt
+pjmedia/build/*.plg
 pjmedia/build/.pjmedia*
 pjmedia/build/output/*
 pjmedia/build/wince-evc4/*.vcb
