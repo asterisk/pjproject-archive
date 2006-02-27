@@ -39,7 +39,6 @@ pjmedia/src/pjmedia-codec/gsm/code.c -text
 pjmedia/src/pjmedia-codec/gsm/config.h -text
 pjmedia/src/pjmedia-codec/gsm/proto.h -text
 pjsip/build/pjsip.dsw eol=crlf
-pjsip/build/pjsip.sln eol=crlf
 pjsip/build/pjsip_auth_lib.dsp eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_simple.dsp eol=crlf
