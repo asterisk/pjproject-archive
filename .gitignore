@@ -47,6 +47,7 @@ pjmedia/lib/*
 pjsip-apps/bin/*
 pjsip-apps/build/*.ncb
 pjsip-apps/build/*.opt
+pjsip-apps/build/*.plg
 pjsip-apps/build/.*
 pjsip-apps/build/output/*
 pjsip/bin/*
