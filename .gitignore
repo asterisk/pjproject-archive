@@ -44,6 +44,11 @@ pjmedia/docs/html
 pjmedia/docs/latex
 pjmedia/docs/rtf
 pjmedia/lib/*
+pjsip-apps/bin/*
+pjsip-apps/build/*.ncb
+pjsip-apps/build/*.opt
+pjsip-apps/build/.*
+pjsip-apps/build/output/*
 pjsip/bin/*
 pjsip/build/*.log
 pjsip/build/*.ncb
