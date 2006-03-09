@@ -1,7 +1,6 @@
 * text=auto !eol
 /COPYING -text
 /configure -text
-docs/pjproject-0.2.8.html -text
 pjlib-util/build/pjlib_util.dsp eol=crlf
 pjlib-util/build/pjlib_util.dsw eol=crlf
 pjlib-util/build/pjlib_util_test.dsp eol=crlf
