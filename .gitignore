@@ -85,3 +85,4 @@ pjsip/include/pjsip++
 pjsip/lib/*
 pjsip/src/pjsip++
 /python
+/user.mak
