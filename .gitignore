@@ -7,7 +7,9 @@ pjlib-util/build/*.bsc
 pjlib-util/build/*.lpg
 pjlib-util/build/*.ncb
 pjlib-util/build/*.opt
+pjlib-util/build/*.sln
 pjlib-util/build/*.suo
+pjlib-util/build/*vcproj*
 pjlib-util/build/.pjlib*
 pjlib-util/build/output/*
 pjlib-util/build/wince-evc4/*.vcb
@@ -22,6 +24,7 @@ pjlib/build/*.ncb
 pjlib/build/*.opt
 pjlib/build/*.plg
 pjlib/build/*.suo
+pjlib/build/*.vcproj*
 pjlib/build/.pjlib*
 pjlib/build/core
 pjlib/build/output/*
@@ -37,6 +40,9 @@ pjmedia/bin/*
 pjmedia/build/*.ncb
 pjmedia/build/*.opt
 pjmedia/build/*.plg
+pjmedia/build/*.sln
+pjmedia/build/*.suo
+pjmedia/build/*.vcproj*
 pjmedia/build/.pjmedia*
 pjmedia/build/output/*
 pjmedia/build/wince-evc4/*.vcb
@@ -51,6 +57,9 @@ pjsip-apps/build/*.log
 pjsip-apps/build/*.ncb
 pjsip-apps/build/*.opt
 pjsip-apps/build/*.plg
+pjsip-apps/build/*.sln
+pjsip-apps/build/*.suo
+pjsip-apps/build/*.vcproj*
 pjsip-apps/build/.*
 pjsip-apps/build/output/*
 pjsip/bin/*
@@ -58,7 +67,10 @@ pjsip/build/*.log
 pjsip/build/*.ncb
 pjsip/build/*.opt
 pjsip/build/*.plg
+pjsip/build/*.sln
+pjsip/build/*.suo
 pjsip/build/*.swp
+pjsip/build/*.vcproj*
 pjsip/build/.pj*
 pjsip/build/TODO-LIST.TXT
 pjsip/build/output/*

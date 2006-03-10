@@ -9,17 +9,12 @@ pjlib-util/docs/doxygen.css -text
 pjlib-util/docs/footer.html -text
 pjlib-util/docs/header.html -text
 pjlib/build/pjlib++-test.dsp eol=crlf
-pjlib/build/pjlib++-test.vcproj eol=crlf
 pjlib/build/pjlib++.dsp eol=crlf
-pjlib/build/pjlib++.vcproj eol=crlf
 pjlib/build/pjlib.dsp eol=crlf
 pjlib/build/pjlib.dsw eol=crlf
-pjlib/build/pjlib.sln eol=crlf
-pjlib/build/pjlib.vcproj eol=crlf
 pjlib/build/pjlib_samples.dsp eol=crlf
 pjlib/build/pjlib_samples.vcproj eol=crlf
 pjlib/build/pjlib_test.dsp eol=crlf
-pjlib/build/pjlib_test.vcproj eol=crlf
 pjlib/build/wince-evc4/pjlib_test_wince.vcp -text
 pjlib/build/wince-evc4/pjlib_wince.vcp -text
 pjlib/build/wince-evc4/pjlib_wince.vcw -text
