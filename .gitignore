@@ -25,6 +25,7 @@ pjlib/build/*.opt
 pjlib/build/*.plg
 pjlib/build/*.suo
 pjlib/build/*.vcproj*
+pjlib/build/.gdb*
 pjlib/build/.pjlib*
 pjlib/build/core
 pjlib/build/output/*
