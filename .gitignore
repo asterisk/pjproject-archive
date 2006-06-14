@@ -67,14 +67,6 @@ pjsip-apps/build/.*
 pjsip-apps/build/activex-pjsua_p.c
 pjsip-apps/build/dlldata.c
 pjsip-apps/build/output/*
-pjsip-apps/src/activex-pjsua/*.aps
-pjsip-apps/src/activex-pjsua/*.tlb
-pjsip-apps/src/activex-pjsua/activex-pjsua.h
-pjsip-apps/src/activex-pjsua/activex-pjsua_i.c
-pjsip-apps/src/activex-pjsua/backup*
-pjsip-apps/src/activex-pjsua/old*
-pjsip-apps/src/activex-pjsua/pjsua-structs.h
-pjsip-apps/src/activex-pjsua/resource.h
 pjsip/bin/*
 pjsip/build/*.log
 pjsip/build/*.ncb
