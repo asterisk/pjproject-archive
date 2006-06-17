@@ -39,3 +39,6 @@ pjsip/build/test_pjsip.dsp eol=crlf
 pjsip/docs/PJSIP-Dev-Guide.pdf -text
 pjsip/docs/PJSIP-Testing.pdf -text
 pjsip/docs/doxygen.cfg -text
+pjsip/docs/footer.html -text
+pjsip/docs/header.html -text
+pjsip/docs/pjsip-arch.jpg -text svneol=unset#image/jpeg
