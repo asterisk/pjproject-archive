@@ -27,6 +27,8 @@ pjmedia/build/pjmedia.dsp eol=crlf
 pjmedia/build/pjmedia.dsw eol=crlf
 pjmedia/build/pjmedia_test.dsp eol=crlf
 pjmedia/docs/doxygen.cfg -text
+pjmedia/docs/master-port.jpg -text svneol=unset#image/jpeg
+pjmedia/docs/sample-manual-resampling.jpg -text svneol=unset#image/jpeg
 pjmedia/src/pjmedia-codec/gsm/code.c -text
 pjmedia/src/pjmedia-codec/gsm/config.h -text
 pjmedia/src/pjmedia-codec/gsm/proto.h -text
