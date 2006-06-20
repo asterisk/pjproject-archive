@@ -29,6 +29,8 @@ pjmedia/build/pjmedia_test.dsp eol=crlf
 pjmedia/docs/doxygen.cfg -text
 pjmedia/docs/master-port.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/sample-manual-resampling.jpg -text svneol=unset#image/jpeg
+pjmedia/docs/siprtp.jpg -text svneol=unset#image/jpeg
+pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
 pjmedia/src/pjmedia-codec/gsm/code.c -text
 pjmedia/src/pjmedia-codec/gsm/config.h -text
 pjmedia/src/pjmedia-codec/gsm/proto.h -text
@@ -44,3 +46,4 @@ pjsip/docs/doxygen.cfg -text
 pjsip/docs/footer.html -text
 pjsip/docs/header.html -text
 pjsip/docs/pjsip-arch.jpg -text svneol=unset#image/jpeg
+pjsip/docs/pjsua.jpg -text svneol=unset#image/jpeg
