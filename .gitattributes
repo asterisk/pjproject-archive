@@ -40,8 +40,6 @@ pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_simple.dsp eol=crlf
 pjsip/build/pjsip_ua.dsp eol=crlf
 pjsip/build/test_pjsip.dsp eol=crlf
-pjsip/docs/PJSIP-Dev-Guide.pdf -text
-pjsip/docs/PJSIP-Testing.pdf -text
 pjsip/docs/doxygen.cfg -text
 pjsip/docs/footer.html -text
 pjsip/docs/header.html -text
