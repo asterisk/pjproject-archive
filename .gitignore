@@ -68,6 +68,8 @@ pjsip-apps/build/activex-pjsua_p.c
 pjsip-apps/build/dlldata.c
 pjsip-apps/build/output/*
 pjsip/bin/*
+pjsip/build/*.htm
+pjsip/build/*.html
 pjsip/build/*.log
 pjsip/build/*.ncb
 pjsip/build/*.opt
