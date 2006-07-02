@@ -7,6 +7,7 @@ pjlib-util/build/*.bsc
 pjlib-util/build/*.lpg
 pjlib-util/build/*.ncb
 pjlib-util/build/*.opt
+pjlib-util/build/*.plg
 pjlib-util/build/*.sln
 pjlib-util/build/*.suo
 pjlib-util/build/*vcproj*
