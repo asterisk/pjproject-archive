@@ -67,6 +67,8 @@ pjsip-apps/build/*.vcproj*
 pjsip-apps/build/.*
 pjsip-apps/build/activex-pjsua_p.c
 pjsip-apps/build/dlldata.c
+pjsip-apps/build/footprint.htm
+pjsip-apps/build/footprint.txt
 pjsip-apps/build/output/*
 pjsip/bin/*
 pjsip/build/*.htm
