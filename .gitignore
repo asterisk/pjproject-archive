@@ -1,7 +1,11 @@
+/*.cache
+/*.log
 /build.mak
 /build.mak.old
 build/*.ncb
 build/*.opt
+/config.log
+/config.status
 pjlib-util/bin/*
 pjlib-util/build/*.bsc
 pjlib-util/build/*.lpg
@@ -36,6 +40,7 @@ pjlib/build/wince-evc4/*.vco
 pjlib/build/wince-evc4/output/*
 pjlib/docs/html
 pjlib/docs/latex
+pjlib/include/pj/compat/os_auto.h
 pjlib/include/pj/config_site.h
 pjlib/lib/*
 pjmedia/bin/*
