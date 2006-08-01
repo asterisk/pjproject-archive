@@ -18,6 +18,7 @@ pjlib-util/build/*vcproj*
 pjlib-util/build/.pjlib*
 pjlib-util/build/output/*
 pjlib-util/build/wince-evc4/*.vcb
+pjlib-util/build/wince-evc4/*.vcl
 pjlib-util/build/wince-evc4/*.vco
 pjlib-util/build/wince-evc4/output/*
 pjlib-util/docs/html
@@ -54,6 +55,7 @@ pjmedia/build/*.vcproj*
 pjmedia/build/.pjmedia*
 pjmedia/build/output/*
 pjmedia/build/wince-evc4/*.vcb
+pjmedia/build/wince-evc4/*.vcl
 pjmedia/build/wince-evc4/*.vco
 pjmedia/build/wince-evc4/output/*
 pjmedia/docs/html
@@ -92,6 +94,7 @@ pjsip/build/TODO-LIST.TXT
 pjsip/build/output/*
 pjsip/build/pjsip++.dsp
 pjsip/build/wince-evc4/*.vcb
+pjsip/build/wince-evc4/*.vcl
 pjsip/build/wince-evc4/*.vco
 pjsip/build/wince-evc4/output/*
 pjsip/docs/html

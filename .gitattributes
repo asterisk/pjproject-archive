@@ -35,6 +35,10 @@ pjmedia/src/pjmedia-codec/gsm/code.c -text
 pjmedia/src/pjmedia-codec/gsm/config.h -text
 pjmedia/src/pjmedia-codec/gsm/proto.h -text
 pjsip-apps/build/pjsua.dsp eol=crlf
+pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
+pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
+pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
+pjsip-apps/src/pjsua_wince/resource.h -text
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_simple.dsp eol=crlf
