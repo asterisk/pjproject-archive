@@ -79,6 +79,10 @@ pjsip-apps/build/dlldata.c
 pjsip-apps/build/footprint.htm
 pjsip-apps/build/footprint.txt
 pjsip-apps/build/output/*
+pjsip-apps/build/wince-evc4/*.vcb
+pjsip-apps/build/wince-evc4/*.vcl
+pjsip-apps/build/wince-evc4/*.vco
+pjsip-apps/build/wince-evc4/output/*
 pjsip/bin/*
 pjsip/build/*.htm
 pjsip/build/*.html
