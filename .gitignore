@@ -72,6 +72,7 @@ pjsip-apps/build/*.plg
 pjsip-apps/build/*.sln
 pjsip-apps/build/*.suo
 pjsip-apps/build/*.vcproj*
+pjsip-apps/build/*.wav
 pjsip-apps/build/.*
 pjsip-apps/build/activex-pjsua_p.c
 pjsip-apps/build/dlldata.c
