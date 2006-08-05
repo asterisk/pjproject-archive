@@ -83,6 +83,7 @@ pjsip-apps/build/wince-evc4/*.vcb
 pjsip-apps/build/wince-evc4/*.vcl
 pjsip-apps/build/wince-evc4/*.vco
 pjsip-apps/build/wince-evc4/output/*
+pjsip-apps/src/pjsua_wince/*.vcl
 pjsip/bin/*
 pjsip/build/*.htm
 pjsip/build/*.html
