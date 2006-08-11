@@ -53,6 +53,7 @@ pjmedia/build/*.sln
 pjmedia/build/*.suo
 pjmedia/build/*.vcproj*
 pjmedia/build/.pjmedia*
+pjmedia/build/.pjsdp*
 pjmedia/build/output/*
 pjmedia/build/wince-evc4/*.vcb
 pjmedia/build/wince-evc4/*.vcl
