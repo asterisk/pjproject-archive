@@ -4,6 +4,7 @@
 /build.mak.old
 build/*.ncb
 build/*.opt
+build/os-auto.mak
 /config.log
 /config.status
 pjlib-util/bin/*
@@ -16,6 +17,7 @@ pjlib-util/build/*.sln
 pjlib-util/build/*.suo
 pjlib-util/build/*vcproj*
 pjlib-util/build/.pjlib*
+pjlib-util/build/os-auto.mak
 pjlib-util/build/output/*
 pjlib-util/build/wince-evc4/*.vcb
 pjlib-util/build/wince-evc4/*.vcl
@@ -34,6 +36,7 @@ pjlib/build/*.vcproj*
 pjlib/build/.gdb*
 pjlib/build/.pjlib*
 pjlib/build/core
+pjlib/build/os-auto.mak
 pjlib/build/output/*
 pjlib/build/test*.txt
 pjlib/build/wince-evc4/*.vcb
@@ -42,6 +45,7 @@ pjlib/build/wince-evc4/*.vco
 pjlib/build/wince-evc4/output/*
 pjlib/docs/html
 pjlib/docs/latex
+pjlib/include/pj/compat/m_auto.h
 pjlib/include/pj/compat/os_auto.h
 pjlib/include/pj/config_site.h
 pjlib/lib/*
@@ -54,6 +58,7 @@ pjmedia/build/*.suo
 pjmedia/build/*.vcproj*
 pjmedia/build/.pjmedia*
 pjmedia/build/.pjsdp*
+pjmedia/build/os-auto.mak
 pjmedia/build/output/*
 pjmedia/build/wince-evc4/*.vcb
 pjmedia/build/wince-evc4/*.vcl
@@ -98,6 +103,7 @@ pjsip/build/*.swp
 pjsip/build/*.vcproj*
 pjsip/build/.pj*
 pjsip/build/TODO-LIST.TXT
+pjsip/build/os-auto.mak
 pjsip/build/output/*
 pjsip/build/pjsip++.dsp
 pjsip/build/wince-evc4/*.vcb
