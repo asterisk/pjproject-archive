@@ -1,5 +1,6 @@
 * text=auto !eol
 /COPYING -text
+/aconfigure.ac eol=lf
 /configure-legacy -text
 pjlib-util/build/pjlib_util.dsp eol=crlf
 pjlib-util/build/pjlib_util.dsw eol=crlf
