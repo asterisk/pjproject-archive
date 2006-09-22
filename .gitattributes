@@ -49,4 +49,6 @@ pjsip/docs/doxygen.cfg -text
 pjsip/docs/footer.html -text
 pjsip/docs/header.html -text
 pjsip/docs/pjsip-arch.jpg -text svneol=unset#image/jpeg
+pjsip/docs/pjsip-perf.jpg -text
 pjsip/docs/pjsua.jpg -text svneol=unset#image/jpeg
+pjsip/docs/siprtp.jpg -text
