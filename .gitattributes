@@ -26,6 +26,7 @@ pjlib/docs/header.html -text
 pjmedia/build/pjaut.dsp eol=crlf
 pjmedia/build/pjmedia.dsp eol=crlf
 pjmedia/build/pjmedia.dsw eol=crlf
+pjmedia/build/pjmedia_codec.dsp eol=crlf
 pjmedia/build/pjmedia_test.dsp eol=crlf
 pjmedia/docs/doxygen.cfg -text
 pjmedia/docs/master-port.jpg -text svneol=unset#image/jpeg
@@ -35,7 +36,10 @@ pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
 pjmedia/src/pjmedia-codec/gsm/code.c -text
 pjmedia/src/pjmedia-codec/gsm/config.h -text
 pjmedia/src/pjmedia-codec/gsm/proto.h -text
+pjsip-apps/build/pjsip_apps.dsw eol=crlf
 pjsip-apps/build/pjsua.dsp eol=crlf
+pjsip-apps/build/sample_debug.dsp eol=crlf
+pjsip-apps/build/samples.dsp eol=crlf
 pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
@@ -44,6 +48,7 @@ pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_simple.dsp eol=crlf
 pjsip/build/pjsip_ua.dsp eol=crlf
+pjsip/build/pjsua_lib.dsp eol=crlf
 pjsip/build/test_pjsip.dsp eol=crlf
 pjsip/docs/doxygen.cfg -text
 pjsip/docs/footer.html -text
