@@ -1,7 +1,10 @@
 * text=auto !eol
 /COPYING -text
+/aconfigure eol=lf
 /aconfigure.ac eol=lf
-/configure-legacy -text
+/config.guess eol=lf
+/configure eol=lf
+/configure-legacy eol=lf
 pjlib-util/build/pjlib_util.dsp eol=crlf
 pjlib-util/build/pjlib_util.dsw eol=crlf
 pjlib-util/build/pjlib_util_test.dsp eol=crlf
@@ -57,3 +60,5 @@ pjsip/docs/pjsip-arch.jpg -text svneol=unset#image/jpeg
 pjsip/docs/pjsip-perf.jpg -text
 pjsip/docs/pjsua.jpg -text svneol=unset#image/jpeg
 pjsip/docs/siprtp.jpg -text
+/svn_add eol=lf
+/svn_pset eol=lf
