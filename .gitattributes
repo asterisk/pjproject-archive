@@ -41,6 +41,7 @@ pjmedia/src/pjmedia-codec/gsm/config.h -text
 pjmedia/src/pjmedia-codec/gsm/proto.h -text
 pjsip-apps/build/pjsip_apps.dsw eol=crlf
 pjsip-apps/build/pjsua.dsp eol=crlf
+pjsip-apps/build/py_pjsua.dsp eol=crlf
 pjsip-apps/build/sample_debug.dsp eol=crlf
 pjsip-apps/build/samples.dsp eol=crlf
 pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
