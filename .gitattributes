@@ -33,6 +33,8 @@ pjmedia/build/pjmedia_codec.dsp eol=crlf
 pjmedia/build/pjmedia_test.dsp eol=crlf
 pjmedia/docs/doxygen.cfg -text
 pjmedia/docs/master-port.jpg -text svneol=unset#image/jpeg
+pjmedia/docs/media-flow.jpg -text
+pjmedia/docs/media-flow.vsd -text
 pjmedia/docs/sample-manual-resampling.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/siprtp.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
