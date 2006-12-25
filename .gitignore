@@ -117,6 +117,7 @@ pjsip/docs/html
 pjsip/docs/latex
 pjsip/docs/rtf
 pjsip/include/pjsip++
+pjsip/include/pjsip/sip_autoconf.h
 pjsip/lib/*
 pjsip/src/pjsip++
 /python
