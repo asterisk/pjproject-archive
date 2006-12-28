@@ -50,6 +50,8 @@ pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
 pjsip-apps/src/pjsua_wince/resource.h -text
+pjsip-apps/src/py_pjsua/pjsua.py -text
+pjsip-apps/src/py_pjsua/py_pjsua.c -text
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_simple.dsp eol=crlf
