@@ -1,5 +1,8 @@
 /*.cache
 /*.log
+/*.ncb
+/*.opt
+/*.suo
 /build.mak
 /build.mak.old
 build/*.ncb
@@ -15,7 +18,7 @@ pjlib-util/build/*.opt
 pjlib-util/build/*.plg
 pjlib-util/build/*.sln
 pjlib-util/build/*.suo
-pjlib-util/build/*vcproj*
+pjlib-util/build/*vcproj*.user
 pjlib-util/build/.pjlib*
 pjlib-util/build/os-auto.mak
 pjlib-util/build/output/*
@@ -32,12 +35,12 @@ pjlib/build/*.ncb
 pjlib/build/*.opt
 pjlib/build/*.plg
 pjlib/build/*.suo
-pjlib/build/*.vcproj*
 pjlib/build/.gdb*
 pjlib/build/.pjlib*
 pjlib/build/core
 pjlib/build/os-auto.mak
 pjlib/build/output/*
+pjlib/build/pj*.user
 pjlib/build/test*.txt
 pjlib/build/wince-evc4/*.vcb
 pjlib/build/wince-evc4/*.vcl
@@ -55,7 +58,7 @@ pjmedia/build/*.opt
 pjmedia/build/*.plg
 pjmedia/build/*.sln
 pjmedia/build/*.suo
-pjmedia/build/*.vcproj*
+pjmedia/build/*.vcproj*user
 pjmedia/build/.pjmedia*
 pjmedia/build/.pjsdp*
 pjmedia/build/os-auto.mak
@@ -77,7 +80,7 @@ pjsip-apps/build/*.pdb
 pjsip-apps/build/*.plg
 pjsip-apps/build/*.sln
 pjsip-apps/build/*.suo
-pjsip-apps/build/*.vcproj*
+pjsip-apps/build/*.vcproj*user
 pjsip-apps/build/*.wav
 pjsip-apps/build/.*
 pjsip-apps/build/activex-pjsua_p.c
@@ -103,7 +106,7 @@ pjsip/build/*.plg
 pjsip/build/*.sln
 pjsip/build/*.suo
 pjsip/build/*.swp
-pjsip/build/*.vcproj*
+pjsip/build/*.vcproj*user
 pjsip/build/.pj*
 pjsip/build/TODO-LIST.TXT
 pjsip/build/os-auto.mak
