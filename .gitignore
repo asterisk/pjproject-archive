@@ -70,6 +70,8 @@ pjmedia/build/wince-evc4/output/*
 pjmedia/docs/html
 pjmedia/docs/latex
 pjmedia/docs/rtf
+pjmedia/include/pjmedia-codec/config_auto.h
+pjmedia/include/pjmedia/config_auto.h
 pjmedia/lib/*
 pjsip-apps/bin/*
 pjsip-apps/bin/samples/*
