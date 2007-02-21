@@ -10,6 +10,7 @@ pjlib-util/build/pjlib_util.dsw eol=crlf
 pjlib-util/build/pjlib_util.vcproj -text
 pjlib-util/build/pjlib_util_test.dsp eol=crlf
 pjlib-util/build/pjlib_util_test.vcproj -text
+pjlib-util/build/pjstun_srv.dsp -text
 pjlib-util/docs/doxygen.cfg -text
 pjlib-util/docs/doxygen.css -text
 pjlib-util/docs/footer.html -text
