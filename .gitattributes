@@ -47,6 +47,7 @@ pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
 pjmedia/src/pjmedia-codec/gsm/code.c -text
 pjmedia/src/pjmedia-codec/gsm/config.h -text
 pjmedia/src/pjmedia-codec/gsm/proto.h -text
+pjnath/build/pjnath.dsp eol=crlf
 pjnath/build/pjnath.dsw eol=crlf
 pjnath/build/pjstun_client.dsp -text
 pjnath/build/pjstun_srv_test.dsp -text
