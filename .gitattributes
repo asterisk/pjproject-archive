@@ -49,9 +49,13 @@ pjmedia/src/pjmedia-codec/gsm/config.h -text
 pjmedia/src/pjmedia-codec/gsm/proto.h -text
 pjnath/build/pjnath.dsp eol=crlf
 pjnath/build/pjnath.dsw eol=crlf
+pjnath/build/pjnath.vcproj eol=crlf
 pjnath/build/pjnath_test.dsp -text
+pjnath/build/pjnath_test.vcproj eol=crlf
 pjnath/build/pjstun_client.dsp -text
+pjnath/build/pjstun_client.vcproj eol=crlf
 pjnath/build/pjstun_srv_test.dsp -text
+pjnath/build/pjstun_srv_test.vcproj eol=crlf
 /pjproject-vs8.sln -text
 /pjproject.dsw -text
 pjsip-apps/build/pjsip_apps.dsw eol=crlf
