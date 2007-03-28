@@ -56,10 +56,13 @@ pjnath/build/pjstun_client.dsp -text
 pjnath/build/pjstun_client.vcproj eol=crlf
 pjnath/build/pjstun_srv_test.dsp -text
 pjnath/build/pjstun_srv_test.vcproj eol=crlf
+pjnath/build/wince-evc4/pjnath_wince.vcp -text
 pjnath/docs/doxygen.cfg -text
 pjnath/docs/doxygen.css -text
 pjnath/docs/footer.html -text
 pjnath/docs/header.html -text
+pjnath/docs/ice-arch.jpg -text svneol=unset#image/jpeg
+pjnath/docs/stun-arch.jpg -text svneol=unset#image/jpeg
 /pjproject-vs8.sln -text
 /pjproject.dsw -text
 pjsip-apps/build/pjsip_apps.dsw eol=crlf
