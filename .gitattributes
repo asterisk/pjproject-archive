@@ -44,9 +44,6 @@ pjmedia/docs/media-flow.vsd -text
 pjmedia/docs/sample-manual-resampling.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/siprtp.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
-pjmedia/src/pjmedia-codec/gsm/code.c -text
-pjmedia/src/pjmedia-codec/gsm/config.h -text
-pjmedia/src/pjmedia-codec/gsm/proto.h -text
 pjnath/build/pjnath.dsp eol=crlf
 pjnath/build/pjnath.dsw eol=crlf
 pjnath/build/pjnath.vcproj eol=crlf
@@ -98,6 +95,7 @@ pjsip/docs/siprtp.jpg -text
 /svn_add eol=lf
 /svn_pset eol=lf
 third_party/build/gsm/libgsmcodec.dsp eol=crlf
+third_party/build/ilbc/libilbccodec.dsp eol=crlf
 third_party/build/portaudio/libportaudio.dsp eol=crlf
 third_party/build/speex/libspeex.dsp eol=crlf
 third_party/gsm/add-test/add_test.dta -text

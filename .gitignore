@@ -147,6 +147,7 @@ pjsip/lib/*
 pjsip/src/pjsip++
 /python
 third_party/build/gsm/output/*
+third_party/build/ilbc/output/*
 third_party/build/portaudio/output/*
 third_party/build/speex/output/*
 third_party/lib/*
