@@ -97,3 +97,17 @@ pjsip/docs/pjsua.jpg -text svneol=unset#image/jpeg
 pjsip/docs/siprtp.jpg -text
 /svn_add eol=lf
 /svn_pset eol=lf
+third_party/build/gsm/libgsmcodec.dsp eol=crlf
+third_party/build/portaudio/libportaudio.dsp eol=crlf
+third_party/build/speex/libspeex.dsp eol=crlf
+third_party/gsm/add-test/add_test.dta -text
+third_party/gsm/man/bitter.1 -text
+third_party/gsm/man/gsm.3 -text
+third_party/gsm/man/gsm_explode.3 -text
+third_party/gsm/man/gsm_option.3 -text
+third_party/gsm/man/gsm_print.3 -text
+third_party/gsm/man/toast.1 -text
+third_party/gsm/tls/bitter.dta -text
+third_party/gsm/tls/sour1.dta -text
+third_party/gsm/tls/sour2.dta -text
+third_party/gsm/tst/run -text
