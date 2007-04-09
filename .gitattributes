@@ -144,6 +144,7 @@ third_party/build/portaudio/src/pa_util.h -text
 third_party/build/portaudio/src/pa_win_hostapis.c -text
 third_party/build/portaudio/src/pa_win_util.c -text
 third_party/build/portaudio/src/pa_win_wmme.c -text
+third_party/build/portaudio/src/portaudio.h -text
 third_party/build/resample/libresample.dsp eol=crlf
 third_party/build/resample/libresample.vcp -text
 third_party/build/resample/libresample.vcproj eol=crlf
