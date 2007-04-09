@@ -97,6 +97,7 @@ pjsip/docs/siprtp.jpg -text
 third_party/build/gsm/libgsmcodec.dsp eol=crlf
 third_party/build/ilbc/libilbccodec.dsp eol=crlf
 third_party/build/portaudio/libportaudio.dsp eol=crlf
+third_party/build/resample/libresample.dsp eol=crlf
 third_party/build/speex/libspeex.dsp eol=crlf
 third_party/gsm/add-test/add_test.dta -text
 third_party/gsm/man/bitter.1 -text
