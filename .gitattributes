@@ -100,10 +100,11 @@ third_party/build/gsm/libgsmcodec.vcproj eol=crlf
 third_party/build/ilbc/libilbccodec.dsp eol=crlf
 third_party/build/ilbc/libilbccodec.vcp -text
 third_party/build/ilbc/libilbccodec.vcproj eol=crlf
-third_party/build/portaudio/Makefile.in -text
+third_party/build/portaudio/Makefile -text
 third_party/build/portaudio/libportaudio.dsp eol=crlf
 third_party/build/portaudio/libportaudio.vcp -text
 third_party/build/portaudio/libportaudio.vcproj eol=crlf
+third_party/build/portaudio/os-auto.mak.in -text
 third_party/build/portaudio/src/pa_allocation.c -text
 third_party/build/portaudio/src/pa_allocation.h -text
 third_party/build/portaudio/src/pa_converters.c -text
