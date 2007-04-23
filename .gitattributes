@@ -119,6 +119,7 @@ third_party/build/portaudio/src/pa_endianness.h -text
 third_party/build/portaudio/src/pa_front.c -text
 third_party/build/portaudio/src/pa_hostapi.h -text
 third_party/build/portaudio/src/pa_linux_alsa.c -text
+third_party/build/portaudio/src/pa_linux_alsa.h -text svneol=native#unset
 third_party/build/portaudio/src/pa_mac_core.c -text
 third_party/build/portaudio/src/pa_mac_core_blocking.c -text
 third_party/build/portaudio/src/pa_mac_core_blocking.h -text
