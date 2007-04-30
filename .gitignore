@@ -5,6 +5,12 @@
 /*.suo
 /build.mak
 /build.mak.old
+build.symbian/*.cwlink
+build.symbian/*.mcp
+build.symbian/*.xml
+build.symbian/*_Data
+build.symbian/*_UID_.cpp
+build.symbian/ABLD.BAT
 build/*.ncb
 build/*.opt
 build/os-auto.mak
