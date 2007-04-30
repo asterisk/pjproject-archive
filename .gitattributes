@@ -108,6 +108,8 @@ third_party/build/portaudio/os-auto.mak.in -text
 third_party/build/resample/libresample.dsp eol=crlf
 third_party/build/resample/libresample.vcp -text
 third_party/build/resample/libresample.vcproj eol=crlf
+third_party/build/resample/libresample_dll.dsp eol=crlf
+third_party/build/resample/libresample_dll.vcproj eol=crlf
 third_party/build/speex/libspeex.dsp eol=crlf
 third_party/build/speex/libspeex.vcp -text
 third_party/build/speex/libspeex.vcproj eol=crlf
