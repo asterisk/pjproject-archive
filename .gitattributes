@@ -2,6 +2,10 @@
 /COPYING -text
 /aconfigure eol=lf
 /aconfigure.ac eol=lf
+build.symbian/pjmedia.mmp -text
+build.symbian/pjproject.cww -text
+build.symbian/pjsua_lib.mmp -text
+build.symbian/symbian_ua.mmp -text
 /config.guess eol=lf
 /configure eol=lf
 /configure-legacy eol=lf
