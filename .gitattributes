@@ -2,6 +2,7 @@
 /COPYING -text
 /aconfigure eol=lf
 /aconfigure.ac eol=lf
+build.symbian/makedef.sh -text
 build.symbian/pjmedia.mmp -text
 build.symbian/pjproject.cww -text
 build.symbian/pjsua_lib.mmp -text
