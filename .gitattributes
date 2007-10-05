@@ -15,6 +15,8 @@ pjlib-util/build/pjlib_util.dsw eol=crlf
 pjlib-util/build/pjlib_util.vcproj -text
 pjlib-util/build/pjlib_util_test.dsp eol=crlf
 pjlib-util/build/pjlib_util_test.vcproj -text
+pjlib-util/build/wince-evc4/pjlib_util_wince.vcp eol=crlf
+pjlib-util/build/wince-evc4/pjlib_util_wince.vcw eol=crlf
 pjlib-util/docs/doxygen.cfg -text
 pjlib-util/docs/doxygen.css -text
 pjlib-util/docs/footer.html -text
@@ -42,6 +44,9 @@ pjmedia/build/pjmedia.vcproj -text
 pjmedia/build/pjmedia_codec.dsp eol=crlf
 pjmedia/build/pjmedia_codec.vcproj -text
 pjmedia/build/pjmedia_test.dsp eol=crlf
+pjmedia/build/wince-evc4/pjmedia_codec_wince.vcp eol=crlf
+pjmedia/build/wince-evc4/pjmedia_wince.vcp eol=crlf
+pjmedia/build/wince-evc4/pjmedia_wince.vcw eol=crlf
 pjmedia/docs/doxygen.cfg -text
 pjmedia/docs/master-port.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/media-flow.jpg -text
@@ -76,6 +81,7 @@ pjsip-apps/build/sample_debug.dsp eol=crlf
 pjsip-apps/build/sample_debug.vcproj -text
 pjsip-apps/build/samples.dsp eol=crlf
 pjsip-apps/build/samples.vcproj -text
+pjsip-apps/build/wince-evc4/wince_demos.vcw eol=crlf
 pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
@@ -91,6 +97,11 @@ pjsip/build/pjsua_lib.dsp eol=crlf
 pjsip/build/pjsua_lib.vcproj -text
 pjsip/build/test_pjsip.dsp eol=crlf
 pjsip/build/test_pjsip.vcproj -text
+pjsip/build/wince-evc4/pjsip_core_wince.vcp eol=crlf
+pjsip/build/wince-evc4/pjsip_simple_wince.vcp eol=crlf
+pjsip/build/wince-evc4/pjsip_ua_wince.vcp eol=crlf
+pjsip/build/wince-evc4/pjsip_wince.vcw eol=crlf
+pjsip/build/wince-evc4/pjsua_lib_wince.vcp eol=crlf
 pjsip/docs/doxygen.cfg -text
 pjsip/docs/footer.html -text
 pjsip/docs/header.html -text
