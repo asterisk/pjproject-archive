@@ -160,6 +160,10 @@ third_party/build/gsm/output/*
 third_party/build/ilbc/*.user
 third_party/build/ilbc/.*
 third_party/build/ilbc/output/*
+third_party/build/milenage/*.user
+third_party/build/milenage/*.vcl
+third_party/build/milenage/*.vco
+third_party/build/milenage/output/*
 third_party/build/os-auto.mak
 third_party/build/portaudio/*.user
 third_party/build/portaudio/.*

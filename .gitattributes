@@ -117,6 +117,9 @@ third_party/build/gsm/libgsmcodec.vcproj eol=crlf
 third_party/build/ilbc/libilbccodec.dsp eol=crlf
 third_party/build/ilbc/libilbccodec.vcp -text
 third_party/build/ilbc/libilbccodec.vcproj eol=crlf
+third_party/build/milenage/libmilenage.dsp -text
+third_party/build/milenage/libmilenage.vcp -text
+third_party/build/milenage/libmilenage.vcproj -text
 third_party/build/portaudio/Makefile -text
 third_party/build/portaudio/libportaudio.dsp eol=crlf
 third_party/build/portaudio/libportaudio.vcp -text
