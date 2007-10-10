@@ -102,6 +102,7 @@ pjnath/docs/latex
 pjnath/lib/*
 pjsip-apps/bin/*
 pjsip-apps/bin/samples/*
+pjsip-apps/build/*.htm
 pjsip-apps/build/*.log
 pjsip-apps/build/*.ncb
 pjsip-apps/build/*.opt
@@ -160,6 +161,7 @@ third_party/build/gsm/output/*
 third_party/build/ilbc/*.user
 third_party/build/ilbc/.*
 third_party/build/ilbc/output/*
+third_party/build/milenage/*.depend
 third_party/build/milenage/*.user
 third_party/build/milenage/*.vcl
 third_party/build/milenage/*.vco
