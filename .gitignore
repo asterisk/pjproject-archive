@@ -174,6 +174,9 @@ third_party/build/portaudio/output/*
 third_party/build/resample/*.user
 third_party/build/resample/.*
 third_party/build/resample/output/*
+third_party/build/samplerate/*.plg
+third_party/build/samplerate/*.vco
+third_party/build/samplerate/output/*
 third_party/build/speex/*.user
 third_party/build/speex/.*
 third_party/build/speex/output/*
