@@ -96,6 +96,7 @@ pjnath/build/TODO-LIST.TXT
 pjnath/build/os-auto.mak
 pjnath/build/output/*
 pjnath/build/pjsip++.dsp
+pjnath/build/wince-evc4/*.vcl
 pjnath/build/wince-evc4/output/*
 pjnath/docs/html
 pjnath/docs/latex
