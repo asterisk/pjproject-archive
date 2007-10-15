@@ -163,6 +163,7 @@ third_party/build/ilbc/*.user
 third_party/build/ilbc/.*
 third_party/build/ilbc/output/*
 third_party/build/milenage/*.depend
+third_party/build/milenage/*.plg
 third_party/build/milenage/*.user
 third_party/build/milenage/*.vcl
 third_party/build/milenage/*.vco
