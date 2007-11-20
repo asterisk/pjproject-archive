@@ -8,6 +8,7 @@ build.symbian/pjproject.cww -text
 build.symbian/pjsua_lib.mmp -text
 build.symbian/symbian_ua.mmp -text
 /config.guess eol=lf
+/config.sub eol=lf
 /configure eol=lf
 /configure-legacy eol=lf
 pjlib-util/build/pjlib_util.dsp eol=crlf
