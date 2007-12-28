@@ -3,6 +3,9 @@
 /*.ncb
 /*.opt
 /*.suo
+/.cdtproject
+/.project
+/.settings
 /build.mak
 /build.mak.old
 build.symbian/*.cer
