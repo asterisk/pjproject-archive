@@ -5,8 +5,13 @@
 /*.suo
 /build.mak
 /build.mak.old
+build.symbian/*.cer
 build.symbian/*.cwlink
+build.symbian/*.key
 build.symbian/*.mcp
+build.symbian/*.rnd
+build.symbian/*.sis
+build.symbian/*.sisx
 build.symbian/*.xml
 build.symbian/*_Data
 build.symbian/*_UID_.cpp

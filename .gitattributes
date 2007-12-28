@@ -7,6 +7,8 @@ build.symbian/pjmedia.mmp -text
 build.symbian/pjproject.cww -text
 build.symbian/pjsua_lib.mmp -text
 build.symbian/symbian_ua.mmp -text
+build.symbian/symbian_ua.pkg -text
+build.symbian/symsndtest.pkg -text
 /config.guess eol=lf
 /config.sub eol=lf
 /configure eol=lf
@@ -87,6 +89,8 @@ pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
 pjsip-apps/src/pjsua_wince/resource.h -text
+pjsip-apps/src/symbian_ua/symbian_ua_reg.rss -text
+pjsip-apps/src/symsndtest/symsndtest_reg.rss -text
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_core.vcproj -text
