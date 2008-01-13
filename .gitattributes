@@ -7,7 +7,8 @@ build.symbian/pjmedia.mmp -text
 build.symbian/pjproject.cww -text
 build.symbian/pjsua_lib.mmp -text
 build.symbian/symbian_ua.mmp -text
-build.symbian/symbian_ua.pkg -text
+build.symbian/symbian_ua_udeb.pkg -text
+build.symbian/symbian_ua_urel.pkg -text
 build.symbian/symsndtest.pkg -text
 /config.guess eol=lf
 /config.sub eol=lf
