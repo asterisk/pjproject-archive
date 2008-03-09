@@ -134,6 +134,9 @@ pjsip-apps/build/wince-evc4/output/*
 pjsip-apps/lib/*
 pjsip-apps/src/pjsua_wince/*.aps
 pjsip-apps/src/pjsua_wince/*.vcl
+pjsip-apps/src/pocketpj/*.aps
+pjsip-apps/src/pocketpj/*.vcb
+pjsip-apps/src/pocketpj/*.vco
 pjsip-apps/src/pocketpj/ARMV4Dbg
 pjsip-apps/src/pocketpj/ARMV4Rel
 pjsip-apps/src/pocketpj/RCa04364
