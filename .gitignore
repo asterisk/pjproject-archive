@@ -144,6 +144,9 @@ pjsip-apps/src/pocketpj/emulatorDbg
 pjsip-apps/src/pocketpj/emulatorRel
 pjsip-apps/src/pocketpj/unused
 pjsip-apps/src/py_pjsua/build
+pjsip-apps/src/test-pjsua/*.pyc
+pjsip-apps/src/test-pjsua/scripts-call/*.pyc
+pjsip-apps/src/test-pjsua/scripts-run/*.pyc
 pjsip/bin/*
 pjsip/build/*.htm
 pjsip/build/*.html
