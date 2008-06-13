@@ -158,6 +158,7 @@ pjsip-apps/src/symbian_ua_gui/sis/ABLD.BAT
 pjsip-apps/src/symbian_ua_gui/sis/_resolved*.pkg
 pjsip-apps/src/symbian_ua_gui/sis/tmpnames.def
 pjsip-apps/src/test-pjsua/*.pyc
+pjsip-apps/src/test-pjsua/*log
 pjsip-apps/src/test-pjsua/scripts-call/*.pyc
 pjsip-apps/src/test-pjsua/scripts-run/*.pyc
 pjsip/bin/*
