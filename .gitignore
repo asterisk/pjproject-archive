@@ -160,6 +160,7 @@ pjsip-apps/src/symbian_ua_gui/sis/tmpnames.def
 pjsip-apps/src/test-pjsua/*.pyc
 pjsip-apps/src/test-pjsua/*log
 pjsip-apps/src/test-pjsua/scripts-call/*.pyc
+pjsip-apps/src/test-pjsua/scripts-pres/*.pyc
 pjsip-apps/src/test-pjsua/scripts-run/*.pyc
 pjsip/bin/*
 pjsip/build/*.htm
