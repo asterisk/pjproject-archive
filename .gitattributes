@@ -159,6 +159,7 @@ pjsip-apps/src/symbian_ua_gui/symbian_ua_guiContainer.uidesign -text
 pjsip-apps/src/symbian_ua_gui/symbian_ua_guiSettingItemList.uidesign -text
 pjsip-apps/src/symsndtest/symsndtest_reg.rss -text
 pjsip-apps/src/test-pjsua/README.TXT -text
+pjsip-apps/src/test-pjsua/tools/cmp_wav.exe -text
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_core.vcproj -text
