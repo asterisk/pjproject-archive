@@ -43,6 +43,7 @@ pjlib-util/build/wince-evc4/*.vco
 pjlib-util/build/wince-evc4/output/*
 pjlib-util/docs/html
 pjlib-util/docs/latex
+pjlib-util/docs/pjlib-util.tag
 pjlib-util/docs/rtf
 pjlib-util/lib/*
 pjlib/bin/*
@@ -63,6 +64,7 @@ pjlib/build/wince-evc4/*.vco
 pjlib/build/wince-evc4/output/*
 pjlib/docs/html
 pjlib/docs/latex
+pjlib/docs/pjlib.tag
 pjlib/include/pj/compat/m_auto.h
 pjlib/include/pj/compat/os_auto.h
 pjlib/include/pj/config_site.h
@@ -84,6 +86,7 @@ pjmedia/build/wince-evc4/*.vco
 pjmedia/build/wince-evc4/output/*
 pjmedia/docs/html
 pjmedia/docs/latex
+pjmedia/docs/pjmedia.tag
 pjmedia/docs/rtf
 pjmedia/include/pjmedia-codec/config_auto.h
 pjmedia/include/pjmedia/config_auto.h
@@ -108,6 +111,7 @@ pjnath/build/wince-evc4/*.vcl
 pjnath/build/wince-evc4/output/*
 pjnath/docs/html
 pjnath/docs/latex
+pjnath/docs/pjnath.tag
 pjnath/lib/*
 pjsip-apps/bin/*
 pjsip-apps/bin/samples/*
@@ -186,6 +190,7 @@ pjsip/build/wince-evc4/*.vco
 pjsip/build/wince-evc4/output/*
 pjsip/docs/html
 pjsip/docs/latex
+pjsip/docs/pjsip.tag
 pjsip/docs/rtf
 pjsip/include/pjsip++
 pjsip/include/pjsip/sip_autoconf.h
