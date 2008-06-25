@@ -160,6 +160,9 @@ pjsip-apps/src/symbian_ua_gui/symbian_ua_guiSettingItemList.uidesign -text
 pjsip-apps/src/symsndtest/symsndtest_reg.rss -text
 pjsip-apps/src/test-pjsua/README.TXT -text
 pjsip-apps/src/test-pjsua/tools/cmp_wav.exe -text
+pjsip-apps/src/test-pjsua/wavs/input.11.wav -text
+pjsip-apps/src/test-pjsua/wavs/input.16.wav -text
+pjsip-apps/src/test-pjsua/wavs/input.8.wav -text
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_core.vcproj -text
