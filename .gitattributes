@@ -162,6 +162,10 @@ pjsip-apps/src/test-pjsua/README.TXT -text
 pjsip-apps/src/test-pjsua/tools/cmp_wav.exe -text
 pjsip-apps/src/test-pjsua/wavs/input.11.wav -text
 pjsip-apps/src/test-pjsua/wavs/input.16.wav -text
+pjsip-apps/src/test-pjsua/wavs/input.22.wav -text
+pjsip-apps/src/test-pjsua/wavs/input.32.wav -text
+pjsip-apps/src/test-pjsua/wavs/input.44.wav -text
+pjsip-apps/src/test-pjsua/wavs/input.48.wav -text
 pjsip-apps/src/test-pjsua/wavs/input.8.wav -text
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
