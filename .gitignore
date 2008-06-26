@@ -163,6 +163,7 @@ pjsip-apps/src/symbian_ua_gui/sis/_resolved*.pkg
 pjsip-apps/src/symbian_ua_gui/sis/tmpnames.def
 pjsip-apps/src/test-pjsua/*.pyc
 pjsip-apps/src/test-pjsua/*log
+pjsip-apps/src/test-pjsua/p*.txt
 pjsip-apps/src/test-pjsua/scripts-call/*.pyc
 pjsip-apps/src/test-pjsua/scripts-media-playrec/*.pyc
 pjsip-apps/src/test-pjsua/scripts-pesq/*.pyc
