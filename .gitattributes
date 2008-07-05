@@ -48,6 +48,7 @@ pjmedia/build/pjmedia.vcproj -text
 pjmedia/build/pjmedia_codec.dsp eol=crlf
 pjmedia/build/pjmedia_codec.vcproj -text
 pjmedia/build/pjmedia_test.dsp eol=crlf
+pjmedia/build/pjmedia_test.vcproj eol=crlf
 pjmedia/build/wince-evc4/pjmedia_codec_wince.vcp eol=crlf
 pjmedia/build/wince-evc4/pjmedia_wince.vcp eol=crlf
 pjmedia/build/wince-evc4/pjmedia_wince.vcw eol=crlf
