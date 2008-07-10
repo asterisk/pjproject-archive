@@ -148,6 +148,8 @@ pjsip-apps/src/pocketpj/emulatorDbg
 pjsip-apps/src/pocketpj/emulatorRel
 pjsip-apps/src/pocketpj/unused
 pjsip-apps/src/py_pjsua/build
+pjsip-apps/src/python/*.pyc
+pjsip-apps/src/python/samples/*.pyc
 pjsip-apps/src/symbian_ua_gui/sis/*.cer
 pjsip-apps/src/symbian_ua_gui/sis/*.cwlink
 pjsip-apps/src/symbian_ua_gui/sis/*.key
