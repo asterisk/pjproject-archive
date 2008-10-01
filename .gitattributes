@@ -19,6 +19,7 @@ pjlib-util/build/pjlib_util.dsw eol=crlf
 pjlib-util/build/pjlib_util.vcproj -text
 pjlib-util/build/pjlib_util_test.dsp eol=crlf
 pjlib-util/build/pjlib_util_test.vcproj -text
+pjlib-util/build/wince-evc4/pjlib_util_test_wince.vcp -text
 pjlib-util/build/wince-evc4/pjlib_util_wince.vcp eol=crlf
 pjlib-util/build/wince-evc4/pjlib_util_wince.vcw eol=crlf
 pjlib-util/docs/doxygen.cfg -text
