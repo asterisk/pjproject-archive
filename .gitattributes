@@ -191,6 +191,7 @@ pjsip/build/wince-evc4/pjsip_simple_wince.vcp eol=crlf
 pjsip/build/wince-evc4/pjsip_ua_wince.vcp eol=crlf
 pjsip/build/wince-evc4/pjsip_wince.vcw eol=crlf
 pjsip/build/wince-evc4/pjsua_lib_wince.vcp eol=crlf
+pjsip/build/wince-evc4/test_pjsip_wince.vcp -text
 pjsip/docs/doxygen.cfg -text
 pjsip/docs/footer.html -text
 pjsip/docs/header.html -text
