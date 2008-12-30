@@ -197,6 +197,7 @@ pjsip/lib/*
 pjsip/src/pjsip++
 /python
 tests/cdash/*.pyc
+tests/cdash/build.log
 tests/cdash/cfg_site.py
 tests/cdash/out.xml
 tests/pjsua/*.pyc
