@@ -197,6 +197,7 @@ tests/cdash/cfg_site_sample.py -text
 tests/cdash/cfg_symbian.py -text
 tests/cdash/inc_test.py -text
 tests/cdash/main.py -text
+tests/cdash/starttest_sample.bat -text
 tests/pjsua/README.TXT -text
 tests/pjsua/tools/cmp_wav.exe -text
 tests/pjsua/wavs/input.11.wav -text
