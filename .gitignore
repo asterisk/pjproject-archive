@@ -211,7 +211,7 @@ tests/pjsua/scripts-pres/*.pyc
 tests/pjsua/scripts-recvfrom/*.pyc
 tests/pjsua/scripts-run/*.pyc
 tests/pjsua/scripts-sendto/*.pyc
-tests/pjsua/tools/p*.exe
+tests/pjsua/tools/pe*
 tests/pjsua/wavs/tmp*.wav
 third_party/bin/*
 third_party/build/gsm/*.user
