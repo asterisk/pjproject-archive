@@ -46,6 +46,7 @@ pjmedia/build/pjaut.dsp eol=crlf
 pjmedia/build/pjmedia.dsp eol=crlf
 pjmedia/build/pjmedia.dsw eol=crlf
 pjmedia/build/pjmedia.vcproj -text
+pjmedia/build/pjmedia_audiodev.dsp -text
 pjmedia/build/pjmedia_codec.dsp eol=crlf
 pjmedia/build/pjmedia_codec.vcproj -text
 pjmedia/build/pjmedia_test.dsp eol=crlf
