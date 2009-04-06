@@ -201,6 +201,7 @@ tests/cdash/inc_test.py -text
 tests/cdash/main.py -text
 tests/cdash/starttest_sample.bat -text
 tests/pjsua/README.TXT -text
+tests/pjsua/scripts-sipp/prack_fork.xml -text
 tests/pjsua/scripts-sipp/strict-route.xml -text
 tests/pjsua/scripts-sipp/uas-invite.xml -text
 tests/pjsua/scripts-sipp/uas.xml -text
