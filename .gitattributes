@@ -211,8 +211,8 @@ tests/pjsua/wavs/input.32.wav -text
 tests/pjsua/wavs/input.44.wav -text
 tests/pjsua/wavs/input.48.wav -text
 tests/pjsua/wavs/input.8.wav -text
-third_party/build/g7221/libg7221.dsp -text
-third_party/build/g7221/libg7221.vcproj -text
+third_party/build/g7221/libg7221codec.dsp -text
+third_party/build/g7221/libg7221codec.vcproj -text
 third_party/build/gsm/libgsmcodec.dsp eol=crlf
 third_party/build/gsm/libgsmcodec.vcp -text
 third_party/build/gsm/libgsmcodec.vcproj eol=crlf
