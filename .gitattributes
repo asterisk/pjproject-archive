@@ -10,6 +10,13 @@ build.symbian/symbian_ua.mmp -text
 build.symbian/symbian_ua_udeb.pkg -text
 build.symbian/symbian_ua_urel.pkg -text
 build.symbian/symsndtest.pkg -text
+build/vs/pjproject-vs8-common-defaults.vsprops -text
+build/vs/pjproject-vs8-debug-defaults.vsprops -text
+build/vs/pjproject-vs8-release-defaults.vsprops -text
+build/vs/pjproject-vs8-win32-common-defaults.vsprops -text
+build/vs/pjproject-vs8-win32-release-defaults.vsprops -text
+build/vs/pjproject-vs8-wm6-common-defaults.vsprops -text
+build/vs/pjproject-vs8-wm6-release-defaults.vsprops -text
 /config.guess eol=lf
 /config.sub eol=lf
 /configure eol=lf
