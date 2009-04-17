@@ -14,6 +14,7 @@ build/vs/pjproject-vs8-common-defaults.vsprops -text
 build/vs/pjproject-vs8-debug-defaults.vsprops -text
 build/vs/pjproject-vs8-release-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-common-defaults.vsprops -text
+build/vs/pjproject-vs8-win32-debug-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-release-defaults.vsprops -text
 build/vs/pjproject-vs8-wm6-common-defaults.vsprops -text
 build/vs/pjproject-vs8-wm6-release-defaults.vsprops -text
