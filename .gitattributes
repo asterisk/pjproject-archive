@@ -12,7 +12,11 @@ build.symbian/symbian_ua_urel.pkg -text
 build.symbian/symsndtest.pkg -text
 build/vs/pjproject-vs8-common-defaults.vsprops -text
 build/vs/pjproject-vs8-debug-defaults.vsprops -text
+build/vs/pjproject-vs8-debug-dynamic-defaults.vsprops -text
+build/vs/pjproject-vs8-debug-static-defaults.vsprops -text
 build/vs/pjproject-vs8-release-defaults.vsprops -text
+build/vs/pjproject-vs8-release-dynamic-defaults.vsprops -text
+build/vs/pjproject-vs8-release-static-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-common-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-debug-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-release-defaults.vsprops -text
