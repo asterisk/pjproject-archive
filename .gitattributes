@@ -106,6 +106,8 @@ pjnath/docs/doxygen.css -text
 pjnath/docs/footer.html -text
 pjnath/docs/header.html -text
 pjnath/docs/ice-arch.jpg -text svneol=unset#image/jpeg
+pjnath/docs/ice_demo.jpg -text svneol=unset#image/jpeg
+pjnath/docs/pjturn_client.jpg -text svneol=unset#image/jpeg
 pjnath/docs/stun-arch.jpg -text svneol=unset#image/jpeg
 /pjproject-vs8.sln -text
 /pjproject.dsw -text
