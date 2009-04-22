@@ -128,6 +128,7 @@ pjsip-apps/src/pjsua_wince/resource.h -text
 pjsip-apps/src/pocketpj/PocketPJ.rc -text
 pjsip-apps/src/pocketpj/PocketPJ.vcc -text
 pjsip-apps/src/pocketpj/PocketPJ.vcp -text
+pjsip-apps/src/pocketpj/PocketPJ.vcproj -text
 pjsip-apps/src/pocketpj/PocketPJ.vcw -text
 pjsip-apps/src/pocketpj/res/PocketPJ.ico -text
 pjsip-apps/src/pocketpj/res/PocketPJ.rc2 -text
