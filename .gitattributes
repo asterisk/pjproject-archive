@@ -19,6 +19,10 @@ build/vs/pjproject-vs8-release-dynamic-defaults.vsprops -text
 build/vs/pjproject-vs8-release-static-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-common-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-release-defaults.vsprops -text
+build/vs/pjproject-vs8-wm2003-common-defaults.vsprops -text
+build/vs/pjproject-vs8-wm2003-release-defaults.vsprops -text
+build/vs/pjproject-vs8-wm5-common-defaults.vsprops -text
+build/vs/pjproject-vs8-wm5-release-defaults.vsprops -text
 build/vs/pjproject-vs8-wm6-common-defaults.vsprops -text
 build/vs/pjproject-vs8-wm6-release-defaults.vsprops -text
 /config.guess eol=lf
