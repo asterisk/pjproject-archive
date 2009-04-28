@@ -19,6 +19,10 @@ build/vs/pjproject-vs8-release-dynamic-defaults.vsprops -text
 build/vs/pjproject-vs8-release-static-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-common-defaults.vsprops -text
 build/vs/pjproject-vs8-win32-release-defaults.vsprops -text
+build/vs/pjproject-vs8-wm2003-common-defaults.vsprops -text
+build/vs/pjproject-vs8-wm2003-release-defaults.vsprops -text
+build/vs/pjproject-vs8-wm5-common-defaults.vsprops -text
+build/vs/pjproject-vs8-wm5-release-defaults.vsprops -text
 build/vs/pjproject-vs8-wm6-common-defaults.vsprops -text
 build/vs/pjproject-vs8-wm6-release-defaults.vsprops -text
 /config.guess eol=lf
@@ -111,6 +115,7 @@ pjnath/docs/pjturn_client.jpg -text svneol=unset#image/jpeg
 pjnath/docs/stun-arch.jpg -text svneol=unset#image/jpeg
 /pjproject-vs8.sln -text
 /pjproject.dsw -text
+pjsip-apps/build/libpjproject.vcproj -text
 pjsip-apps/build/pjsip_apps.dsw eol=crlf
 pjsip-apps/build/pjsua.dsp eol=crlf
 pjsip-apps/build/pjsua.vcproj -text
