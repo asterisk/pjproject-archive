@@ -25,6 +25,7 @@ build/*.opt
 build/os-auto.mak
 /config.log
 /config.status
+lib/*
 pjlib-util/bin/*
 pjlib-util/build/*.bsc
 pjlib-util/build/*.lpg
