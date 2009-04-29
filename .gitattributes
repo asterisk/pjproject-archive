@@ -2,6 +2,7 @@
 /COPYING -text
 /aconfigure eol=lf
 /aconfigure.ac eol=lf
+build.symbian/libg7221codec.mmp -text
 build.symbian/makedef.sh -text
 build.symbian/pjmedia.mmp -text
 build.symbian/pjproject.cww -text
