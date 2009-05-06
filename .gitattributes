@@ -123,6 +123,7 @@ pjsip-apps/build/pjsua.vcproj -text
 pjsip-apps/build/py_pjsua.dsp eol=crlf
 pjsip-apps/build/py_pjsua.vcproj -text
 pjsip-apps/build/python_pjsua.dsp eol=crlf
+pjsip-apps/build/python_pjsua.vcproj -text
 pjsip-apps/build/sample_debug.dsp eol=crlf
 pjsip-apps/build/sample_debug.vcproj -text
 pjsip-apps/build/samples.dsp eol=crlf
