@@ -60,6 +60,7 @@ pjlib/docs/doxygen.cfg -text
 pjlib/docs/doxygen.css -text
 pjlib/docs/footer.html -text
 pjlib/docs/header.html -text
+pjlib/src/pjlib-test/pjlib_test_reg.rss -text
 pjmedia/build/pjaut.dsp eol=crlf
 pjmedia/build/pjmedia.dsp eol=crlf
 pjmedia/build/pjmedia.dsw eol=crlf
