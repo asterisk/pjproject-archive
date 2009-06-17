@@ -5,6 +5,7 @@
 build.symbian/libg7221codec.mmp -text
 build.symbian/libresample.mmp -text
 build.symbian/makedef.sh -text
+build.symbian/pjlib_test.pkg -text
 build.symbian/pjmedia.mmp -text
 build.symbian/pjproject.cww -text
 build.symbian/pjsua_lib.mmp -text
