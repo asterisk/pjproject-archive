@@ -239,6 +239,7 @@ tests/pjsua/README.TXT -text
 tests/pjsua/scripts-sipp/prack_fork.xml -text
 tests/pjsua/scripts-sipp/strict-route.xml -text
 tests/pjsua/scripts-sipp/uas-invite.xml -text
+tests/pjsua/scripts-sipp/uas-subscribe-late-notify.xml -text
 tests/pjsua/scripts-sipp/uas.xml -text
 tests/pjsua/tools/cmp_wav.exe -text
 tests/pjsua/wavs/input.11.wav -text
