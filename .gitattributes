@@ -123,6 +123,8 @@ pjsip-apps/build/libpjproject.vcproj -text
 pjsip-apps/build/pjsip_apps.dsw eol=crlf
 pjsip-apps/build/pjsua.dsp eol=crlf
 pjsip-apps/build/pjsua.vcproj -text
+pjsip-apps/build/pjsystest.dsp eol=crlf
+pjsip-apps/build/pjsystest.vcproj eol=crlf
 pjsip-apps/build/py_pjsua.dsp eol=crlf
 pjsip-apps/build/py_pjsua.vcproj -text
 pjsip-apps/build/python_pjsua.dsp eol=crlf
@@ -137,6 +139,8 @@ pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcproj -text
 pjsip-apps/src/pjsua_wince/resource.h -text
+pjsip-apps/src/pjsystest/pjsystest_wince.rc -text
+pjsip-apps/src/pjsystest/pjsystest_wince.rc2 -text
 pjsip-apps/src/pocketpj/PocketPJ.rc -text
 pjsip-apps/src/pocketpj/PocketPJ.vcc -text
 pjsip-apps/src/pocketpj/PocketPJ.vcp -text
@@ -252,6 +256,7 @@ tests/pjsua/wavs/input.32.wav -text
 tests/pjsua/wavs/input.44.wav -text
 tests/pjsua/wavs/input.48.wav -text
 tests/pjsua/wavs/input.8.wav -text
+tests/pjsua/wavs/tock8.wav -text
 third_party/build/g7221/libg7221codec.dsp -text
 third_party/build/g7221/libg7221codec.vcproj -text
 third_party/build/gsm/libgsmcodec.dsp eol=crlf
