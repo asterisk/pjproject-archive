@@ -118,6 +118,8 @@ pjnath/docs/pjnath.tag
 pjnath/lib/*
 pjsip-apps/bin/*
 pjsip-apps/bin/samples/*
+pjsip-apps/build/*.LOG
+pjsip-apps/build/*.WAV
 pjsip-apps/build/*.htm
 pjsip-apps/build/*.log
 pjsip-apps/build/*.ncb
@@ -129,6 +131,7 @@ pjsip-apps/build/*.suo
 pjsip-apps/build/*.vcproj*user
 pjsip-apps/build/*.wav
 pjsip-apps/build/.*
+pjsip-apps/build/PJSYSTEST*
 pjsip-apps/build/activex-pjsua_p.c
 pjsip-apps/build/dlldata.c
 pjsip-apps/build/footprint.htm
