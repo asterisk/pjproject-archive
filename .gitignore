@@ -142,6 +142,7 @@ pjsip-apps/build/wince-evc4/*.vcl
 pjsip-apps/build/wince-evc4/*.vco
 pjsip-apps/build/wince-evc4/output/*
 pjsip-apps/lib/*
+pjsip-apps/src/confbot/*.pyc
 pjsip-apps/src/pjsua_wince/*.aps
 pjsip-apps/src/pjsua_wince/*.pch
 pjsip-apps/src/pjsua_wince/*.vcl
