@@ -248,6 +248,8 @@ tests/pjsua/scripts-sipp/uac-subscribe.xml -text
 tests/pjsua/scripts-sipp/uas-invite.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-late-notify.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-notify-terminate.xml -text
+tests/pjsua/scripts-sipp/uas-subscribe-refresh-481.xml -text
+tests/pjsua/scripts-sipp/uas-subscribe-terminated-retry.xml -text
 tests/pjsua/scripts-sipp/uas.xml -text
 tests/pjsua/tools/cmp_wav.exe -text
 tests/pjsua/wavs/input.11.wav -text
