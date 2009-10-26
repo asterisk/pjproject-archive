@@ -246,6 +246,8 @@ tests/pjsua/scripts-sipp/uac-options.xml -text
 tests/pjsua/scripts-sipp/uac-reinvite-bad-via-branch.xml -text
 tests/pjsua/scripts-sipp/uac-subscribe.xml -text
 tests/pjsua/scripts-sipp/uas-invite.xml -text
+tests/pjsua/scripts-sipp/uas-mwi-0.xml -text
+tests/pjsua/scripts-sipp/uas-mwi.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-late-notify.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-notify-terminate.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-refresh-481.xml -text
