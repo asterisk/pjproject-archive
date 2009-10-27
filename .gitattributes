@@ -45,6 +45,7 @@ pjlib-util/docs/doxygen.css -text
 pjlib-util/docs/footer.html -text
 pjlib-util/docs/header.html -text
 pjlib-util/src/pjlib-util/sha1.c -text
+pjlib/build/cacert.pem -text
 pjlib/build/pjlib++-test.dsp eol=crlf
 pjlib/build/pjlib++.dsp eol=crlf
 pjlib/build/pjlib.dsp eol=crlf
@@ -53,6 +54,7 @@ pjlib/build/pjlib.vcproj -text
 pjlib/build/pjlib_samples.dsp eol=crlf
 pjlib/build/pjlib_test.dsp eol=crlf
 pjlib/build/pjlib_test.vcproj -text
+pjlib/build/privkey.pem -text
 pjlib/build/wince-evc4/pjlib_test_wince.vcp -text
 pjlib/build/wince-evc4/pjlib_wince.vcp -text
 pjlib/build/wince-evc4/pjlib_wince.vcw -text
