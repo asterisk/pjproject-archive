@@ -244,6 +244,7 @@ tests/cdash/starttest_sample.bat -text
 tests/pjsua/README.TXT -text
 tests/pjsua/scripts-sipp/prack_fork.xml -text
 tests/pjsua/scripts-sipp/strict-route.xml -text
+tests/pjsua/scripts-sipp/uac-inv-multiple-require.xml -text
 tests/pjsua/scripts-sipp/uac-options.xml -text
 tests/pjsua/scripts-sipp/uac-reinvite-bad-via-branch.xml -text
 tests/pjsua/scripts-sipp/uac-subscribe.xml -text
