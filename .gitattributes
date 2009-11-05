@@ -248,6 +248,7 @@ tests/pjsua/scripts-sipp/uac-inv-multiple-require.xml -text
 tests/pjsua/scripts-sipp/uac-options.xml -text
 tests/pjsua/scripts-sipp/uac-reinvite-bad-via-branch.xml -text
 tests/pjsua/scripts-sipp/uac-subscribe.xml -text
+tests/pjsua/scripts-sipp/uas-422-then-200-bad-se.xml -text
 tests/pjsua/scripts-sipp/uas-invite.xml -text
 tests/pjsua/scripts-sipp/uas-mwi-0.xml -text
 tests/pjsua/scripts-sipp/uas-mwi.xml -text
