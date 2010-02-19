@@ -86,6 +86,7 @@ pjmedia/docs/media-transport.PNG -text
 pjmedia/docs/sample-manual-resampling.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/siprtp.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
+pjmedia/src/pjmedia-audiodev/null_dev.c -text
 pjmedia/src/test/vectors/g722_1_dec_in_24000_fe.itu -text
 pjmedia/src/test/vectors/g722_1_dec_in_32000_fe.itu -text
 pjmedia/src/test/vectors/g722_1_dec_out_24000.pcm -text
