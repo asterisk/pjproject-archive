@@ -232,7 +232,9 @@ pjsip/docs/pjsip-perf.jpg -text
 pjsip/docs/pjsua.jpg -text svneol=unset#image/jpeg
 pjsip/docs/siprtp.jpg -text
 /svn_add eol=lf
+/svn_add.bat -text
 /svn_pset eol=lf
+/svn_pset.bat -text
 tests/cdash/builder.py -text
 tests/cdash/cfg_gnu.py -text
 tests/cdash/cfg_msvc.py -text
