@@ -207,6 +207,8 @@ pjsip/include/pjsip/sip_autoconf.h
 pjsip/lib/*
 pjsip/src/pjsip++
 /python
+tests/automated/*.xml
+tests/automated/tmp
 tests/cdash/*.pyc
 tests/cdash/build.log
 tests/cdash/cfg_site.py
