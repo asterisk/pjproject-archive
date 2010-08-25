@@ -2,6 +2,7 @@
 /COPYING -text
 /aconfigure eol=lf
 /aconfigure.ac eol=lf
+/build.mak.in eol=lf
 build.symbian/libg7221codec.mmp -text
 build.symbian/libresample.mmp -text
 build.symbian/makedef.sh -text
@@ -13,6 +14,8 @@ build.symbian/symbian_ua.mmp -text
 build.symbian/symbian_ua_udeb.pkg -text
 build.symbian/symbian_ua_urel.pkg -text
 build.symbian/symsndtest.pkg -text
+build/cc-auto.mak.in eol=lf
+build/os-auto.mak.in eol=lf
 build/vs/pjproject-vs8-common-defaults.vsprops -text
 build/vs/pjproject-vs8-debug-defaults.vsprops -text
 build/vs/pjproject-vs8-debug-dynamic-defaults.vsprops -text
@@ -32,6 +35,7 @@ build/vs/pjproject-vs8-wm6-release-defaults.vsprops -text
 /config.sub eol=lf
 /configure eol=lf
 /configure-legacy eol=lf
+pjlib-util/build/os-auto.mak.in eol=lf
 pjlib-util/build/pjlib_util.dsp eol=crlf
 pjlib-util/build/pjlib_util.dsw eol=crlf
 pjlib-util/build/pjlib_util.vcproj -text
@@ -46,6 +50,7 @@ pjlib-util/docs/footer.html -text
 pjlib-util/docs/header.html -text
 pjlib-util/src/pjlib-util/sha1.c -text
 pjlib/build/cacert.pem -text
+pjlib/build/os-auto.mak.in eol=lf
 pjlib/build/pjlib++-test.dsp eol=crlf
 pjlib/build/pjlib++.dsp eol=crlf
 pjlib/build/pjlib.dsp eol=crlf
@@ -62,7 +67,10 @@ pjlib/docs/doxygen.cfg -text
 pjlib/docs/doxygen.css -text
 pjlib/docs/footer.html -text
 pjlib/docs/header.html -text
+pjlib/include/pj/compat/m_auto.h.in eol=lf
+pjlib/include/pj/compat/os_auto.h.in eol=lf
 pjlib/src/pjlib-test/pjlib_test_reg.rss -text
+pjmedia/build/os-auto.mak.in eol=lf
 pjmedia/build/pjaut.dsp eol=crlf
 pjmedia/build/pjmedia.dsp eol=crlf
 pjmedia/build/pjmedia.dsw eol=crlf
@@ -86,6 +94,8 @@ pjmedia/docs/media-transport.PNG -text
 pjmedia/docs/sample-manual-resampling.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/siprtp.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
+pjmedia/include/pjmedia-codec/config_auto.h.in eol=lf
+pjmedia/include/pjmedia/config_auto.h.in eol=lf
 pjmedia/src/test/vectors/g722_1_dec_in_24000_fe.itu -text
 pjmedia/src/test/vectors/g722_1_dec_in_32000_fe.itu -text
 pjmedia/src/test/vectors/g722_1_dec_out_24000.pcm -text
@@ -235,6 +245,7 @@ pjsip-apps/src/symbian_ua_gui/src/symbian_ua_guiSettingItemListView.cpp -text
 pjsip-apps/src/symbian_ua_gui/symbian_ua_guiContainer.uidesign -text
 pjsip-apps/src/symbian_ua_gui/symbian_ua_guiSettingItemList.uidesign -text
 pjsip-apps/src/symsndtest/symsndtest_reg.rss -text
+pjsip/build/os-auto.mak.in eol=lf
 pjsip/build/pjsip.dsw eol=crlf
 pjsip/build/pjsip_core.dsp eol=crlf
 pjsip/build/pjsip_core.vcproj -text
@@ -259,6 +270,7 @@ pjsip/docs/pjsip-arch.jpg -text svneol=unset#image/jpeg
 pjsip/docs/pjsip-perf.jpg -text
 pjsip/docs/pjsua.jpg -text svneol=unset#image/jpeg
 pjsip/docs/siprtp.jpg -text
+pjsip/include/pjsip/sip_autoconf.h.in eol=lf
 /svn_add eol=lf
 /svn_add.bat -text
 /svn_pset eol=lf
@@ -311,11 +323,12 @@ third_party/build/ilbc/libilbccodec.vcproj eol=crlf
 third_party/build/milenage/libmilenage.dsp -text
 third_party/build/milenage/libmilenage.vcp -text
 third_party/build/milenage/libmilenage.vcproj -text
+third_party/build/os-auto.mak.in eol=lf
 third_party/build/portaudio/Makefile -text
 third_party/build/portaudio/libportaudio.dsp eol=crlf
 third_party/build/portaudio/libportaudio.vcp -text
 third_party/build/portaudio/libportaudio.vcproj eol=crlf
-third_party/build/portaudio/os-auto.mak.in -text
+third_party/build/portaudio/os-auto.mak.in eol=lf
 third_party/build/resample/libresample.dsp eol=crlf
 third_party/build/resample/libresample.vcp -text
 third_party/build/resample/libresample.vcproj eol=crlf
