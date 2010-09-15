@@ -155,6 +155,8 @@ pjsip-apps/src/ipjsua/Classes/TabBarController.m -text
 pjsip-apps/src/ipjsua/Classes/ipjsuaAppDelegate.h -text
 pjsip-apps/src/ipjsua/Classes/ipjsuaAppDelegate.m -text
 pjsip-apps/src/ipjsua/MainWindow.xib -text
+pjsip-apps/src/ipjsua/Resources-iPad/MainWindow-iPad.xib -text
+pjsip-apps/src/ipjsua/Resources-iPad/SecondView-iPad.xib -text
 pjsip-apps/src/ipjsua/SecondView.xib -text
 pjsip-apps/src/ipjsua/config.cfg -text
 pjsip-apps/src/ipjsua/ipjsua-Info.plist -text
