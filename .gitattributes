@@ -293,6 +293,7 @@ tests/pjsua/scripts-sipp/uac-inv-two-media-but-one-disabled-no-rtpmap.xml -text
 tests/pjsua/scripts-sipp/uac-options.xml -text
 tests/pjsua/scripts-sipp/uac-reinvite-bad-via-branch.xml -text
 tests/pjsua/scripts-sipp/uac-subscribe.xml -text
+tests/pjsua/scripts-sipp/uac-ticket-1148.xml -text
 tests/pjsua/scripts-sipp/uas-422-then-200-bad-se.xml -text
 tests/pjsua/scripts-sipp/uas-auth.xml -text
 tests/pjsua/scripts-sipp/uas-invite.xml -text
