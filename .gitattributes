@@ -115,6 +115,7 @@ pjsip-apps/build/py_pjsua.vcproj -text
 pjsip-apps/build/python_pjsua.vcproj -text
 pjsip-apps/build/sample_debug.vcproj -text
 pjsip-apps/build/samples.vcproj -text
+pjsip-apps/build/vidgui.vcproj -text
 pjsip-apps/build/wince-evc4/wince_demos.vcw eol=crlf
 pjsip-apps/src/ipjsua/MainWindow.xib -text
 pjsip-apps/src/ipjsua/Resources-iPad/MainWindow-iPad.xib -text
