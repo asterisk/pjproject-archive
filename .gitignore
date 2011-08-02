@@ -179,6 +179,11 @@ pjsip-apps/src/symbian_ua_gui/sis/*_UID_.cpp
 pjsip-apps/src/symbian_ua_gui/sis/ABLD.BAT
 pjsip-apps/src/symbian_ua_gui/sis/_resolved*.pkg
 pjsip-apps/src/symbian_ua_gui/sis/tmpnames.def
+pjsip-apps/src/vidgui/.cproject
+pjsip-apps/src/vidgui/.project
+pjsip-apps/src/vidgui/Makefile
+pjsip-apps/src/vidgui/moc_*
+pjsip-apps/src/vidgui/vidgui
 pjsip/bin/*
 pjsip/build/*.htm
 pjsip/build/*.html
