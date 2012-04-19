@@ -241,6 +241,7 @@ tests/pjsua/scripts-sendto/*.pyc
 tests/pjsua/tools/cmp_wav
 tests/pjsua/tools/pe*
 tests/pjsua/wavs/tmp*.wav
+third_party/BaseClasses/Debug
 third_party/bin/*
 third_party/build/g7221/*.plg
 third_party/build/g7221/*.user
