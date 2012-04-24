@@ -244,6 +244,7 @@ tests/pjsua/wavs/tmp*.wav
 third_party/bin/*
 third_party/build/baseclasses/*.user
 third_party/build/baseclasses/.*
+third_party/build/baseclasses/output/*
 third_party/build/g7221/*.plg
 third_party/build/g7221/*.user
 third_party/build/g7221/.*.depend
