@@ -252,7 +252,6 @@ third_party/BaseClasses/amfilter.cpp -text
 third_party/BaseClasses/amfilter.h -text
 third_party/BaseClasses/amvideo.cpp -text
 third_party/BaseClasses/arithutil.cpp -text
-third_party/BaseClasses/baseclasses.vcproj -text
 third_party/BaseClasses/combase.cpp -text
 third_party/BaseClasses/combase.h -text
 third_party/BaseClasses/ctlutil.cpp -text
