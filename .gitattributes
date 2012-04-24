@@ -274,6 +274,7 @@ third_party/BaseClasses/wxlist.cpp -text
 third_party/BaseClasses/wxlist.h -text
 third_party/BaseClasses/wxutil.cpp -text
 third_party/BaseClasses/wxutil.h -text
+third_party/build/baseclasses/libbaseclasses.vcproj -text
 third_party/build/g7221/libg7221codec.vcproj -text
 third_party/build/gsm/libgsmcodec.vcp -text
 third_party/build/gsm/libgsmcodec.vcproj eol=crlf
