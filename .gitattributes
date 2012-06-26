@@ -219,7 +219,6 @@ tests/cdash/inc_test.py -text
 tests/cdash/main.py -text
 tests/cdash/starttest_sample.bat -text
 tests/pjsua/README.TXT -text
-tests/pjsua/scripts-sipp/prack_fork.xml -text
 tests/pjsua/scripts-sipp/strict-route.xml -text
 tests/pjsua/scripts-sipp/uac-inv-multiple-require.xml -text
 tests/pjsua/scripts-sipp/uac-inv-two-media-but-one-disabled-no-rtpmap.xml -text
@@ -232,11 +231,11 @@ tests/pjsua/scripts-sipp/uas-auth.xml -text
 tests/pjsua/scripts-sipp/uas-invite.xml -text
 tests/pjsua/scripts-sipp/uas-mwi-0.xml -text
 tests/pjsua/scripts-sipp/uas-mwi.xml -text
+tests/pjsua/scripts-sipp/uas-prack_fork.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-late-notify.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-notify-terminate.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-refresh-481.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-terminated-retry.xml -text
-tests/pjsua/scripts-sipp/uas.xml -text
 tests/pjsua/tools/cmp_wav.exe -text
 tests/pjsua/wavs/input.11.wav -text
 tests/pjsua/wavs/input.16.wav -text
