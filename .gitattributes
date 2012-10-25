@@ -123,6 +123,8 @@ pjsip-apps/src/apjsua/AndroidManifest.xml -text
 pjsip-apps/src/apjsua/Makefile -text
 pjsip-apps/src/apjsua/gen/org/pjsip/pjsua/BuildConfig.java -text
 pjsip-apps/src/apjsua/gen/org/pjsip/pjsua/R.java -text
+pjsip-apps/src/apjsua/jni/Android.mk -text
+pjsip-apps/src/apjsua/jni/pjsua_app.i -text
 pjsip-apps/src/apjsua/lint.xml -text
 pjsip-apps/src/apjsua/project.properties -text
 pjsip-apps/src/apjsua/res/drawable-hdpi/ic_launcher.png -text
@@ -133,10 +135,6 @@ pjsip-apps/src/apjsua/res/layout/main.xml -text
 pjsip-apps/src/apjsua/res/raw/config.txt -text
 pjsip-apps/src/apjsua/res/values/strings.xml -text
 pjsip-apps/src/apjsua/src/org/pjsip/pjsua/ApjsuaActivity.java -text
-pjsip-apps/src/apjsua/src/org/pjsip/pjsua/pjsua_app.java -text
-pjsip-apps/src/apjsua/src/org/pjsip/pjsua/pjsua_appJNI.java -text
-pjsip-apps/src/apjsua/swig/pjsua_app.i -text
-pjsip-apps/src/apjsua/swig/pjsua_app_wrap.c -text
 pjsip-apps/src/ipjsua/MainWindow.xib -text
 pjsip-apps/src/ipjsua/Resources-iPad/MainWindow-iPad.xib -text
 pjsip-apps/src/ipjsua/Resources-iPad/SecondView-iPad.xib -text
