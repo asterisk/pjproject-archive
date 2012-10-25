@@ -120,7 +120,6 @@ pjsip-apps/build/wince-evc4/wince_demos.vcw eol=crlf
 pjsip-apps/src/apjsua/.classpath -text
 pjsip-apps/src/apjsua/.project -text
 pjsip-apps/src/apjsua/AndroidManifest.xml -text
-pjsip-apps/src/apjsua/Makefile -text
 pjsip-apps/src/apjsua/gen/org/pjsip/pjsua/BuildConfig.java -text
 pjsip-apps/src/apjsua/gen/org/pjsip/pjsua/R.java -text
 pjsip-apps/src/apjsua/jni/Android.mk -text
