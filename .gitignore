@@ -143,6 +143,13 @@ pjsip-apps/build/wince-evc4/*.vcl
 pjsip-apps/build/wince-evc4/*.vco
 pjsip-apps/build/wince-evc4/output/*
 pjsip-apps/lib/*
+pjsip-apps/src/apjloader/.*
+pjsip-apps/src/apjloader/bin
+pjsip-apps/src/apjloader/gen
+pjsip-apps/src/apjloader/jni/apjloader_wrap.c
+pjsip-apps/src/apjloader/libs
+pjsip-apps/src/apjloader/obj
+pjsip-apps/src/apjloader/src/org/pjsip/apjloader/apjloader*.java
 pjsip-apps/src/apjsua/.*
 pjsip-apps/src/apjsua/bin
 pjsip-apps/src/apjsua/bin/*
