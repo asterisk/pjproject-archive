@@ -109,7 +109,7 @@ prefix = $(ac_prefix)
 
 install:
 	mkdir -p $(DESTDIR)$(prefix)/lib
-	cp -f $(APP_LIB_FILES) $(DESTDIR)$(prefix)/lib/
+	cp -af $(APP_LIB_FILES) $(DESTDIR)$(prefix)/lib/
 	mkdir -p $(DESTDIR)$(prefix)/include
 	for d in pjlib pjlib-util pjnath pjmedia pjsip; do \
 		cp -RLf $$d/include/* $(DESTDIR)$(prefix)/include/; \

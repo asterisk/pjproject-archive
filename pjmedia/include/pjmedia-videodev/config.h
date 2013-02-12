@@ -26,7 +26,6 @@
 #include <pjmedia/types.h>
 #include <pj/pool.h>
 
-
 PJ_BEGIN_DECL
 
 /**
@@ -51,6 +50,8 @@ PJ_BEGIN_DECL
 #   define PJMEDIA_VID_DEV_INFO_FMT_CNT 16
 #endif
 
+
+#if defined(PJMEDIA_HAS_VIDEO) && (PJMEDIA_HAS_VIDEO != 0)
 
 /**
  * This setting controls whether SDL support should be included.
@@ -144,12 +145,13 @@ PJ_BEGIN_DECL
 #   undef PJMEDIA_SDL_LIB
 #endif
 
+#endif /* defined(PJMEDIA_HAS_VIDEO) && (PJMEDIA_HAS_VIDEO != 0) */
+
 /**
  * @}
  */
 
 PJ_END_DECL
-
 
 #endif	/* __PJMEDIA_VIDEODEV_CONFIG_H__ */
 
