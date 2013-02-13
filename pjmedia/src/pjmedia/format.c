@@ -72,6 +72,7 @@ PJ_DEF(pjmedia_format*) pjmedia_format_copy(pjmedia_format *dst,
 
 #if defined(PJMEDIA_HAS_VIDEO) && (PJMEDIA_HAS_VIDEO != 0)
 
+
 static pj_status_t apply_packed_fmt(const pjmedia_video_format_info *fi,
 	                            pjmedia_video_apply_fmt_param *aparam);
 

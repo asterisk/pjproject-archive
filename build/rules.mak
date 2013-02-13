@@ -78,42 +78,42 @@ print_common:
 	@echo RANLIB=$(RANLIB)
 
 print_bin: print_common
-	@echo EXE=$(BINDIR)/$(EXE)
+	@echo EXE=$(subst /,$(HOST_PSEP),$(BINDIR)/$(EXE))
  	@echo BINDIR=$(BINDIR)
  
 print_lib: print_common
 ifneq ($(LIB),)
-	@echo LIB=$(LIBDIR)/$(LIB)
+	@echo LIB=$(subst /,$(HOST_PSEP),$(LIBDIR)/$(LIB))
 endif
 ifneq ($(SHLIB),)
-	@echo SHLIB=$(LIBDIR)/$(SHLIB)
+	@echo SHLIB=$(subst /,$(HOST_PSEP),$(LIBDIR)/$(SHLIB))
 endif
 ifneq ($(SONAME),)
-	@echo SONAME=$(LIBDIR)/$(SONAME)
+	@echo SONAME=$(subst /,$(HOST_PSEP),$(LIBDIR)/$(SONAME))
 endif
 	@echo LIBDIR=$(LIBDIR)
 
 ifneq ($(LIB),)
-$(LIBDIR)/$(LIB): $(OBJDIRS) $(OBJS) $($(APP)_EXTRA_DEP)
+$(subst /,$(HOST_PSEP),$(LIBDIR)/$(LIB)): $(OBJDIRS) $(OBJS) $($(APP)_EXTRA_DEP)
 	if test ! -d $(LIBDIR); then $(subst @@,$(subst /,$(HOST_PSEP),$(LIBDIR)),$(HOST_MKDIR)); fi
 	$(AR) $(AR_FLAGS) $@ $(OBJS)
 	$(RANLIB) $@
 endif
 
 ifneq ($(SHLIB),)
-$(LIBDIR)/$(SHLIB): $(OBJDIRS) $(OBJS) $($(APP)_EXTRA_DEP)
+$(subst /,$(HOST_PSEP),$(LIBDIR)/$(SHLIB)): $(OBJDIRS) $(OBJS) $($(APP)_EXTRA_DEP)
 	if test ! -d $(LIBDIR); then $(subst @@,$(subst /,$(HOST_PSEP),$(LIBDIR)),$(HOST_MKDIR)); fi
 	$(LD) $(LDOUT)$(subst /,$(HOST_PSEP),$@) \
 	    $(subst /,$(HOST_PSEP),$(OBJS)) $($(APP)_LDFLAGS) $(SHLIB_OPT)
 endif
  
 ifneq ($(SONAME),)
-$(LIBDIR)/$(SONAME): $(LIBDIR)/$(SHLIB)
+$(subst /,$(HOST_PSEP),$(LIBDIR)/$(SONAME)): $(subst /,$(HOST_PSEP),$(LIBDIR)/$(SHLIB))
 	ln -sf $(SHLIB) $@
 endif
 
 ifneq ($(EXE),)
-$(BINDIR)/$(EXE): $(OBJDIRS) $(OBJS) $($(APP)_EXTRA_DEP)
+$(subst /,$(HOST_PSEP),$(BINDIR)/$(EXE)): $(OBJDIRS) $(OBJS) $($(APP)_EXTRA_DEP)
 	if test ! -d $(BINDIR); then $(subst @@,$(subst /,$(HOST_PSEP),$(BINDIR)),$(HOST_MKDIR)); fi
 	$(LD) $(LDOUT)$(subst /,$(HOST_PSEP),$(BINDIR)/$(EXE)) \
 	    $(subst /,$(HOST_PSEP),$(OBJS)) $($(APP)_LDFLAGS)

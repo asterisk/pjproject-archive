@@ -26,6 +26,7 @@
 #include <pjmedia/types.h>
 #include <pj/pool.h>
 
+
 PJ_BEGIN_DECL
 
 /**
@@ -152,6 +153,7 @@ PJ_BEGIN_DECL
  */
 
 PJ_END_DECL
+
 
 #endif	/* __PJMEDIA_VIDEODEV_CONFIG_H__ */
 
