@@ -26,6 +26,7 @@
 
 #if defined(PJMEDIA_HAS_VIDEO) && (PJMEDIA_HAS_VIDEO != 0)
 
+
 #define THIS_FILE 	"vid_dev_test.c"
 #define LOOP_DURATION	10
 

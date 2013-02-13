@@ -29,10 +29,7 @@ export TEST_LDFLAGS += @LDFLAGS@ @LIBS@
 # TARGETS are make targets in the Makefile, to be executed for this given
 # operating system.
 #
-export TARGETS	    =	$(PJLIB_LIB) $(TEST_EXE)
-ifneq ($(PJ_SHARED_LIBRARIES),)
-export TARGETS += $(PJLIB_SONAME)
-endif
+export TARGETS	    =	$(PJLIB_LIB) $(PJLIB_SONAME) $(TEST_EXE)
 
 
 
