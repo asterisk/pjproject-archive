@@ -5,9 +5,13 @@ export LIBDIR := ../../lib
 
 RULES_MAK := $(PJDIR)/build/rules.mak
 
+export ILBC_LIB := libilbccodec-$(TARGET_NAME)$(LIBEXT)
+
+ifeq ($(PJ_SHARED_LIBRARIES),)
+else
 export ILBC_SONAME := libilbccodec.$(SHLIB_SUFFIX)
 export ILBC_SHLIB := $(ILBC_SONAME).$(PJ_VERSION_MAJOR)
-export ILBC_LIB := libilbccodec-$(TARGET_NAME)$(LIBEXT)
+endif
 
 ###############################################################################
 # Gather all flags.
@@ -38,10 +42,7 @@ export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT
 #
 # $(TARGET) is defined in os-$(OS_NAME).mak file in current directory.
 #
-TARGETS := $(ILBC_LIB)
-ifneq ($(PJ_SHARED_LIBRARIES),)
-TARGETS += $(ILBC_SONAME)
-endif
+TARGETS := $(ILBC_LIB) $(ILBC_SONAME)
 
 all: $(TARGETS)
 
@@ -53,12 +54,11 @@ distclean: realclean
 
 .PHONY: all dep depend clean realclean distclean
 .PHONY: $(TARGETS)
-.PHONY: $(ILBC_LIB) $(ILBC_SHLIB) $(ILBC_SONAME)
+.PHONY: $(ILBC_LIB) $(ILBC_SONAME)
 
 libilbccodec: $(ILBC_LIB)
-$(ILBC_SHLIB): $(ILBC_SONAME)
 $(ILBC_SONAME): $(ILBC_LIB)
-$(ILBC_LIB) $(ILBC_SHLIB) $(ILBC_SONAME):
+$(ILBC_LIB) $(ILBC_SONAME):
 	$(MAKE) -f $(RULES_MAK) APP=ILBC app=libilbccodec $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 clean print_lib:

@@ -16,13 +16,9 @@ PJLIB_LIB:=$(PJDIR)/pjlib/lib/libpj-$(TARGET_NAME)$(LIBEXT)
 export PJLIB_UTIL_LIB := libpjlib-util-$(TARGET_NAME)$(LIBEXT)
 
 ifeq ($(PJ_SHARED_LIBRARIES),)
-PJLIB_LDLIB := -lpj-$(TARGET_NAME)
-PJLIB_UTIL_LDLIB := -lpjlib-util-$(TARGET_NAME)
 else
 export PJLIB_UTIL_SONAME := libpjlib-util.$(SHLIB_SUFFIX)
 export PJLIB_UTIL_SHLIB := $(PJLIB_UTIL_SONAME).$(PJ_VERSION_MAJOR)
-PJLIB_LDLIB := -lpj
-PJLIB_UTIL_LDLIB := -lpjlib-util
 endif
 
 ###############################################################################
@@ -45,6 +41,7 @@ export PJLIB_UTIL_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 		scanner.o sha1.o srv_resolver.o string.o stun_simple.o \
 		stun_simple_client.o xml.o
 export PJLIB_UTIL_CFLAGS += $(_CFLAGS)
+export PJLIB_UTIL_LDFLAGS += $(PJLIB_LDLIB) $(_LDFLAGS)
 
 ###############################################################################
 # Defines for building test application
@@ -83,13 +80,12 @@ distclean: realclean
 
 .PHONY: all dep depend clean realclean distclean
 .PHONY: $(TARGETS)
-.PHONY: $(PJLIB_UTIL_LIB) $(PJLIB_UTIL_SHLIB) $(PJLIB_UTIL_SONAME)
+.PHONY: $(PJLIB_UTIL_LIB) $(PJLIB_UTIL_SONAME)
 .PHONY: $(UTIL_TEST_EXE)
 
-pjlib-util: $(PJLIB_UTIL_LIB)
-$(PJLIB_UTIL_SHLIB): $(PJLIB_UTIL_SONAME)
+pjlib-util: $(PJLIB_UTIL_LIB) $(PJLIB_UTIL_SONAME)
 $(PJLIB_UTIL_SONAME): $(PJLIB_UTIL_LIB)
-$(PJLIB_UTIL_LIB) $(PJLIB_UTIL_SHLIB) $(PJLIB_UTIL_SONAME):
+$(PJLIB_UTIL_LIB) $(PJLIB_UTIL_SONAME): $(PJLIB_LIB) $(PJLIB_SONAME)
 	$(MAKE) -f $(RULES_MAK) APP=PJLIB_UTIL app=pjlib-util $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjlib-util-test: $(UTIL_TEST_EXE)

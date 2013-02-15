@@ -25,21 +25,7 @@ export PJMEDIA_AUDIODEV_LIB:=libpjmedia-audiodev-$(TARGET_NAME)$(LIBEXT)
 export PJMEDIA_VIDEODEV_LIB:=libpjmedia-videodev-$(TARGET_NAME)$(LIBEXT)
 
 ifeq ($(PJ_SHARED_LIBRARIES),)
-PJMEDIA_LDLIB := -lpjmedia-$(TARGET_NAME)
-PJMEDIA_CODEC_LDLIB := -lpjmedia-codec-$(TARGET_NAME)
-PJMEDIA_AUDIODEV_LDLIB := -lpjmedia-audiodev-$(TARGET_NAME)
-PJMEDIA_VIDEODEV_LDLIB := -lpjmedia-videodev-$(TARGET_NAME)
-PJLIB_LDLIB := -lpj-$(TARGET_NAME)
-PJLIB_UTIL_LDLIB := -lpjlib-util-$(TARGET_NAME)
-PJNATH_LDLIB := -lpjnath-$(TARGET_NAME)
 else
-PJMEDIA_LDLIB := -lpjmedia
-PJMEDIA_CODEC_LDLIB := -lpjmedia-codec
-PJMEDIA_AUDIODEV_LDLIB := -lpjmedia-audiodev
-PJMEDIA_VIDEODEV_LDLIB := -lpjmedia-videodev
-PJLIB_LDLIB := -lpj
-PJLIB_UTIL_LDLIB := -lpjlib-util
-PJNATH_LDLIB := -lpjnath
 export PJMEDIA_SONAME:=libpjmedia.$(SHLIB_SUFFIX)
 export PJMEDIA_SHLIB:=$(PJMEDIA_SONAME).$(PJ_VERSION_MAJOR)
 export PJMEDIA_CODEC_SONAME:=libpjmedia-codec.$(SHLIB_SUFFIX)
@@ -97,6 +83,12 @@ export PJMEDIA_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			wsola.o
 
 export PJMEDIA_CFLAGS += $(_CFLAGS)
+export PJMEDIA_LDFLAGS += $(PJMEDIA_VIDEODEV_LDLIB) \
+			  $(PJMEDIA_AUDIODEV_LDLIB) \
+			  $(PJLIB_LDLIB) \
+			  $(PJLIB_UTIL_LDLIB) \
+			  $(PJNATH_LDLIB) \
+			  $(_LDFLAGS)
 
 
 ###############################################################################
@@ -107,6 +99,8 @@ export PJMEDIA_AUDIODEV_OBJS +=  audiodev.o audiotest.o errno.o \
 				 coreaudio_dev.o legacy_dev.o null_dev.o pa_dev.o wmme_dev.o \
 				 alsa_dev.o bb10_dev.o
 export PJMEDIA_AUDIODEV_CFLAGS += $(_CFLAGS)
+export PJMEDIA_AUDIODEV_LDFLAGS += $(PJLIB_LDLIB) \
+				   $(_LDFLAGS)
 
 
 ###############################################################################
@@ -116,6 +110,8 @@ export PJMEDIA_VIDEODEV_SRCDIR = ../src/pjmedia-videodev
 export PJMEDIA_VIDEODEV_OBJS +=  errno.o videodev.o avi_dev.o ffmpeg_dev.o \
 				colorbar_dev.o v4l2_dev.o
 export PJMEDIA_VIDEODEV_CFLAGS += $(_CFLAGS)
+export PJMEDIA_VIDEODEV_LDFLAGS += $(PJLIB_LDLIB) \
+				   $(_LDFLAGS)
 
 
 ###############################################################################
@@ -128,6 +124,10 @@ export PJSDP_SRCDIR = ../src/pjmedia
 export PJSDP_OBJS += 	$(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			errno.o sdp.o sdp_cmp.o sdp_neg.o
 export PJSDP_CFLAGS += $(_CFLAGS)
+export PJSDP_LDFLAGS += $(PJMEDIA_LDLIB) \
+			$(PJLIB_LDLIB) \
+			$(PJLIB_UTIL_LDLIB) \
+			$(_LDFLAGS)
 
 
 ###############################################################################
@@ -141,7 +141,9 @@ export PJMEDIA_CODEC_OBJS += audio_codecs.o ffmpeg_vid_codecs.o \
                         g7221_sdp_match.o amr_sdp_match.o
 export PJMEDIA_CODEC_CFLAGS += $(_CFLAGS) $(GSM_CFLAGS) $(SPEEX_CFLAGS) \
 			$(ILBC_CFLAGS) $(IPP_CFLAGS) $(G7221_CFLAGS)
-
+export PJMEDIA_CODEC_LDFLAGS += $(PJMEDIA_LDLIB) \
+				$(PJLIB_LDLIB) \
+				$(_LDFLAGS)
 
 ###############################################################################
 # Defines for building test application
@@ -194,41 +196,36 @@ distclean: realclean
 
 .PHONY: all dep depend clean realclean distclean
 .PHONY: $(TARGETS)
-.PHONY: $(PJMEDIA_LIB) $(PJMEDIA_SHLIB) $(PJMEDIA_SONAME)
-.PHONY: $(PJMEDIA_CODEC_LIB) $(PJMEDIA_CODEC_SHLIB) $(PJMEDIA_CODEC_SONAME)
-.PHONY: $(PJMEDIA_VIDEODEV_LIB) $(PJMEDIA_VIDEODEV_SHLIB) $(PJMEDIA_VIDEODEV_SONAME)
-.PHONY: $(PJMEDIA_AUDIODEV_LIB) $(PJMEDIA_AUDIODEV_SHLIB) $(PJMEDIA_AUDIODEV_SONAME)
-.PHONY: $(PJSDP_LIB) $(PJSDP_SHLIB) $(PJSDP_SONAME)
+.PHONY: $(PJMEDIA_LIB) $(PJMEDIA_SONAME)
+.PHONY: $(PJMEDIA_CODEC_LIB) $(PJMEDIA_CODEC_SONAME)
+.PHONY: $(PJMEDIA_VIDEODEV_LIB) $(PJMEDIA_VIDEODEV_SONAME)
+.PHONY: $(PJMEDIA_AUDIODEV_LIB) $(PJMEDIA_AUDIODEV_SONAME)
+.PHONY: $(PJSDP_LIB) $(PJSDP_SONAME)
 .PHONY: $(PJMEDIA_TEST_EXE)
 
 pjmedia: $(PJMEDIA_LIB)
-$(PJMEDIA_SHLIB): $(PJMEDIA_SONAME)
 $(PJMEDIA_SONAME): $(PJMEDIA_LIB)
-$(PJMEDIA_LIB) $(PJMEDIA_SHLIB) $(PJMEDIA_SONAME):
+$(PJMEDIA_LIB) $(PJMEDIA_SONAME): $(PJMEDIA_AUDIODEV_LIB) $(PJMEDIA_AUDIODEV_SONAME) $(PJMEDIA_VIDEODEV_LIB) $(PJMEDIA_VIDEODEV_SONAME)
 	$(MAKE) -f $(RULES_MAK) APP=PJMEDIA app=pjmedia $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjmedia-codec: $(PJMEDIA_CODEC_LIB)
-$(PJMEDIA_CODEC_SHLIB): $(PJMEDIA_CODEC_SONAME)
 $(PJMEDIA_CODEC_SONAME): $(PJMEDIA_CODEC_LIB)
-$(PJMEDIA_CODEC_LIB) $(PJMEDIA_CODEC_SHLIB) $(PJMEDIA_CODEC_SONAME):
+$(PJMEDIA_CODEC_LIB) $(PJMEDIA_CODEC_SONAME): $(PJMEDIA_LIB) $(PJMEDIA_SONAME)
 	$(MAKE) -f $(RULES_MAK) APP=PJMEDIA_CODEC app=pjmedia-codec $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjmedia-videodev: $(PJMEDIA_VIDEODEV_LIB)
-$(PJMEDIA_VIDEODEV_SHLIB): $(PJMEDIA_VIDEODEV_SONAME)
 $(PJMEDIA_VIDEODEV_SONAME): $(PJMEDIA_VIDEODEV_LIB)
-$(PJMEDIA_VIDEODEV_LIB) $(PJMEDIA_VIDEODEV_SHLIB) $(PJMEDIA_VIDEODEV_SONAME):
+$(PJMEDIA_VIDEODEV_LIB) $(PJMEDIA_VIDEODEV_SONAME):
 	$(MAKE) -f $(RULES_MAK) APP=PJMEDIA_VIDEODEV app=pjmedia-videodev $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjmedia-audiodev: $(PJMEDIA_AUDIODEV_LIB)
-$(PJMEDIA_AUDIODEV_SHLIB): $(PJMEDIA_AUDIODEV_SONAME)
 $(PJMEDIA_AUDIODEV_SONAME): $(PJMEDIA_AUDIODEV_LIB)
-$(PJMEDIA_AUDIODEV_LIB) $(PJMEDIA_AUDIODEV_SHLIB) $(PJMEDIA_AUDIODEV_SONAME):
+$(PJMEDIA_AUDIODEV_LIB) $(PJMEDIA_AUDIODEV_SONAME):
 	$(MAKE) -f $(RULES_MAK) APP=PJMEDIA_AUDIODEV app=pjmedia-audiodev $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjsdp: $(PJSDP_LIB)
-$(PJSDP_SHLIB): $(PJSDP_SONAME)
 $(PJSDP_SONAME): $(PJSDP_LIB)
-$(PJSDP_LIB) $(PJSDP_SHLIB) $(PJSDP_SONAME):
+$(PJSDP_LIB) $(PJSDP_SONAME):
 	$(MAKE) -f $(RULES_MAK) APP=PJSDP app=pjsdp $(LIBDIR)/$@
 
 pjmedia-test: $(PJMEDIA_TEST_EXE)

@@ -17,13 +17,7 @@ PJLIB_UTIL_LIB:=../../pjlib-util/lib/libpjlib-util-$(TARGET_NAME)$(LIBEXT)
 export PJNATH_LIB:=libpjnath-$(TARGET_NAME)$(LIBEXT)
 
 ifeq ($(PJ_SHARED_LIBRARIES),)
-PJNATH_LDLIB := -lpjnath-$(TARGET_NAME)
-PJLIB_UTIL_LDLIB := -lpjlib-util-$(TARGET_NAME)
-PJLIB_LDLIB := -lpj-$(TARGET_NAME)
 else
-PJNATH_LDLIB := -lpjnath
-PJLIB_UTIL_LDLIB := -lpjlib-util
-PJLIB_LDLIB := -lpj
 export PJNATH_SONAME := libpjnath.$(SHLIB_SUFFIX)
 export PJNATH_SHLIB := $(PJNATH_SONAME).$(PJ_VERSION_MAJOR)
 endif
@@ -48,6 +42,7 @@ export PJNATH_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 		stun_msg.o stun_msg_dump.o stun_session.o stun_sock.o \
 		stun_transaction.o turn_session.o turn_sock.o
 export PJNATH_CFLAGS += $(_CFLAGS)
+export PJNATH_LDFLAGS += $(PJLIB_UTIL_LDLIB) $(PJLIB_LDLIB) $(_LDFLAGS)
 
 ###############################################################################
 # Defines for building test application
@@ -107,13 +102,12 @@ distclean: realclean
 
 .PHONY: all dep depend clean realclean distclean
 .PHONY: $(TARGETS)
-.PHONY: $(PJNATH_LIB) $(PJNATH_SHLIB) $(PJNATH_SONAME)
+.PHONY: $(PJNATH_LIB) $(PJNATH_SONAME)
 .PHONY: $(PJNATH_TEST_EXE) $(PJTURN_CLIENT_EXE) $(PJTURN_SRV_EXE)
 
 pjnath: $(PJNATH_LIB)
-$(PJNATH_SHLIB): $(PJNATH_SONAME)
 $(PJNATH_SONAME): $(PJNATH_LIB)
-$(PJNATH_LIB) $(PJNATH_SHLIB) $(PJNATH_SONAME):
+$(PJNATH_LIB) $(PJNATH_SONAME): $(PJLIB_LIB) $(PJLIB_SONAME) $(PJLIB_UTIL_LIB) $(PJLIB_UTIL_SONAME)
 	$(MAKE) -f $(RULES_MAK) APP=PJNATH app=pjnath $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjnath-test: $(PJNATH_TEST_EXE)

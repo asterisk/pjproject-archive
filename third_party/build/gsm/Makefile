@@ -5,9 +5,13 @@ export LIBDIR := ../../lib
 
 RULES_MAK := $(PJDIR)/build/rules.mak
 
+export GSM_CODEC_LIB := libgsmcodec-$(TARGET_NAME)$(LIBEXT)
+
+ifeq ($(PJ_SHARED_LIBRARIES),)
+else
 export GSM_CODEC_SONAME := libgsmcodec.$(SHLIB_SUFFIX)
 export GSM_CODEC_SHLIB := $(GSM_CODEC_SONAME).$(PJ_VERSION_MAJOR)
-export GSM_CODEC_LIB := libgsmcodec-$(TARGET_NAME)$(LIBEXT)
+endif
 
 ###############################################################################
 # Gather all flags.
@@ -37,10 +41,7 @@ export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT
 #
 # $(TARGET) is defined in os-$(OS_NAME).mak file in current directory.
 #
-TARGETS := $(GSM_CODEC_LIB)
-ifneq ($(PJ_SHARED_LIBRARIES),)
-TARGETS += $(GSM_CODEC_SONAME)
-endif
+TARGETS := $(GSM_CODEC_LIB) $(GSM_CODEC_SONAME)
 
 all: $(TARGETS)
 
@@ -52,12 +53,11 @@ distclean: realclean
 
 .PHONY: all dep depend clean realclean distclean
 .PHONY: $(TARGETS)
-.PHONE: $(GSM_CODEC_LIB) $(GSM_CODEC_SHLIB) $(GSM_CODEC_SONAME)
+.PHONE: $(GSM_CODEC_LIB) $(GSM_CODEC_SONAME)
 
 libgsmcodec: $(GSM_CODEC_LIB)
-$(GSM_CODEC_SHLIB): $(GSM_CODEC_SONAME)
 $(GSM_CODEC_SONAME): $(GSM_CODEC_LIB)
-$(GSM_CODEC_LIB) $(GSM_CODEC_SHLIB) $(GSM_CODEC_SONAME):
+$(GSM_CODEC_LIB) $(GSM_CODEC_SONAME):
 	$(MAKE) -f $(RULES_MAK) APP=GSM_CODEC app=libgsmcodec $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 clean print_lib:
