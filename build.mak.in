@@ -39,10 +39,10 @@ export PJ_RESAMPLE_DLL := 1
 APP_THIRD_PARTY_LIBS += -lresample
 APP_THIRD_PARTY_LIB_FILES += $(PJ_DIR)/third_party/lib/libresample.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/third_party/lib/libresample.$(SHLIB_SUFFIX)
 else
-APP_THIRD_PARTY_LIBS += -lresample-$(TARGET_NAME) $(APP_THIRD_PARTY_LIBS)
+APP_THIRD_PARTY_LIBS += -lresample-$(TARGET_NAME)
 endif
 else
-APP_THIRD_PARTY_LIBS += -lresample $(APP_THIRD_PARTY_LIBS)
+APP_THIRD_PARTY_LIBS += -lresample
 APP_THIRD_PARTY_LIB_FILES += $(PJ_DIR)/third_party/lib/libresample.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/third_party/lib/libresample.$(SHLIB_SUFFIX)
 endif
 
@@ -177,21 +177,30 @@ export APP_LIB_FILES = $(PJ_DIR)/pjsip/lib/libpjsua-$(LIB_SUFFIX) \
 	$(PJ_DIR)/pjlib/lib/libpj-$(LIB_SUFFIX)
 
 ifeq ($(PJ_SHARED_LIBRARIES),)
-export APP_LDLIBS := -lpjsua-$(TARGET_NAME)\
-	-lpjsip-ua-$(TARGET_NAME)\
-	-lpjsip-simple-$(TARGET_NAME)\
-	-lpjsip-$(TARGET_NAME)\
-	-lpjmedia-codec-$(TARGET_NAME)\
-	-lpjmedia-videodev-$(TARGET_NAME)\
-	-lpjmedia-$(TARGET_NAME)\
-	-lpjmedia-audiodev-$(TARGET_NAME)\
-	-lpjnath-$(TARGET_NAME)\
-	-lpjlib-util-$(TARGET_NAME)\
-	$(APP_THIRD_PARTY_LIBS)\
-	$(APP_THIRD_PARTY_EXT)\
-	-lpj-$(TARGET_NAME)\
-	@LIBS@
+export PJLIB_LDLIB := -lpj-$(TARGET_NAME)
+export PJLIB_UTIL_LDLIB := -lpjlib-util-$(TARGET_NAME)
+export PJNATH_LDLIB := -lpjnath-$(TARGET_NAME)
+export PJMEDIA_AUDIODEV_LDLIB := -lpjmedia-audiodev-$(TARGET_NAME)
+export PJMEDIA_VIDEODEV_LDLIB := -lpjmedia-videodev-$(TARGET_NAME)
+export PJMEDIA_LDLIB := -lpjmedia-$(TARGET_NAME)
+export PJMEDIA_CODEC_LDLIB := -lpjmedia-codec-$(TARGET_NAME)
+export PJSIP_LDLIB := -lpjsip-$(TARGET_NAME)
+export PJSIP_SIMPLE_LDLIB := -lpjsip-simple-$(TARGET_NAME)
+export PJSIP_UA_LDLIB := -lpjsip-ua-$(TARGET_NAME)
+export PJSUA_LIB_LDLIB := -lpjsua-$(TARGET_NAME)
 else
+export PJLIB_LDLIB := -lpj
+export PJLIB_UTIL_LDLIB := -lpjlib-util
+export PJNATH_LDLIB := -lpjnath
+export PJMEDIA_AUDIODEV_LDLIB := -lpjmedia-audiodev
+export PJMEDIA_VIDEODEV_LDLIB := -lpjmedia-videodev
+export PJMEDIA_LDLIB := -lpjmedia
+export PJMEDIA_CODEC_LDLIB := -lpjmedia-codec
+export PJSIP_LDLIB := -lpjsip
+export PJSIP_SIMPLE_LDLIB := -lpjsip-simple
+export PJSIP_UA_LDLIB := -lpjsip-ua
+export PJSUA_LIB_LDLIB := -lpjsua
+
 APP_LIB_FILES += $(PJ_DIR)/pjsip/lib/libpjsua.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/pjsip/lib/libpjsua.$(SHLIB_SUFFIX) \
 	$(PJ_DIR)/pjsip/lib/libpjsip-ua.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/pjsip/lib/libpjsip-ua.$(SHLIB_SUFFIX) \
 	$(PJ_DIR)/pjsip/lib/libpjsip-simple.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/pjsip/lib/libpjsip-simple.$(SHLIB_SUFFIX) \
@@ -203,21 +212,22 @@ APP_LIB_FILES += $(PJ_DIR)/pjsip/lib/libpjsua.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR
 	$(PJ_DIR)/pjnath/lib/libpjnath.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/pjnath/lib/libpjnath.$(SHLIB_SUFFIX) \
 	$(PJ_DIR)/pjlib-util/lib/libpjlib-util.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/pjlib-util/lib/libpjlib-util.$(SHLIB_SUFFIX) \
 	$(PJ_DIR)/pjlib/lib/libpj.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/pjlib/lib/libpj.$(SHLIB_SUFFIX)
-export APP_LDLIBS := -lpjsua\
-	-lpjsip-ua\
-	-lpjsip-simple\
-	-lpjsip\
-	-lpjmedia-codec\
-	-lpjmedia-videodev\
-	-lpjmedia\
-	-lpjmedia-audiodev\
-	-lpjnath\
-	-lpjlib-util\
+endif
+
+export APP_LDLIBS := $(PJSUA_LIB_LDLIB) \
+	$(PJSIP_UA_LDLIB) \
+	$(PJSIP_SIMPLE_LDLIB) \
+	$(PJSIP_LDLIB) \
+	$(PJMEDIA_CODEC_LDLIB) \
+	$(PJMEDIA_LDLIB) \
+	$(PJMEDIA_VIDEODEV_LDLIB) \
+	$(PJMEDIA_AUDIODEV_LDLIB) \
+	$(PJNATH_LDLIB) \
+	$(PJLIB_UTIL_LDLIB) \
 	$(APP_THIRD_PARTY_LIBS)\
 	$(APP_THIRD_PARTY_EXT)\
-	-lpj\
+	$(PJLIB_LDLIB) \
 	@LIBS@
-endif
 
 # Here are the variabels to use if application is using the library
 # from within the source distribution
