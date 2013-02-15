@@ -23,15 +23,7 @@ export PJSIP_SIMPLE_LIB:=libpjsip-simple-$(TARGET_NAME)$(LIBEXT)
 export PJSUA_LIB_LIB:=libpjsua-$(TARGET_NAME)$(LIBEXT)
 
 ifeq ($(PJ_SHARED_LIBRARIES),)
-PJSIP_LDLIB := -lpjsip-$(TARGET_NAME)
-PJSIP_UA_LDLIB := -lpjsip-ua-$(TARGET_NAME)
-PJSIP_SIMPLE_LDLIB := -lpjsip-simple-$(TARGET_NAME)
-PJSUA_LIB_LDLIB := -lpjsip-$(TARGET_NAME)
 else
-PJSIP_LDLIB := -lpjsip
-PJSIP_UA_LDLIB := -lpjsip-ua
-PJSIP_SIMPLE_LDLIB := -lpjsip-simple
-PJSUA_LIB_LDLIB := -lpjsip
 export PJSIP_SONAME := libpjsip.$(SHLIB_SUFFIX)
 export PJSIP_SHLIB := $(PJSIP_SONAME).$(PJ_VERSION_MAJOR)
 export PJSIP_UA_SONAME := libpjsip-ua.$(SHLIB_SUFFIX)
@@ -53,8 +45,10 @@ export _CFLAGS 	:= $(CC_CFLAGS) $(OS_CFLAGS) $(HOST_CFLAGS) $(M_CFLAGS) \
 		   $(CC_INC)../../pjmedia/include
 export _CXXFLAGS:= $(_CFLAGS) $(CC_CXXFLAGS) $(OS_CXXFLAGS) $(M_CXXFLAGS) \
 		   $(HOST_CXXFLAGS) $(CXXFLAGS)
-export _LDFLAGS := $(CC_LDFLAGS) $(OS_LDFLAGS) $(M_LDFLAGS) $(HOST_LDFLAGS) \
-		   $(APP_LDFLAGS) $(APP_LDLIBS) $(LDFLAGS) 
+export _LDFLAGS := $(APP_THIRD_PARTY_LIBS) \
+		   $(APP_THIRD_PARTY_EXT) \
+		   $(CC_LDFLAGS) $(OS_LDFLAGS) $(M_LDFLAGS) $(HOST_LDFLAGS) \
+		   $(APP_LDFLAGS) $(LDFLAGS) 
 
 ###############################################################################
 # Defines for building PJSIP core library
@@ -72,6 +66,9 @@ export PJSIP_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 		sip_transaction.o sip_util_statefull.o \
 		sip_dialog.o sip_ua_layer.o
 export PJSIP_CFLAGS += $(_CFLAGS)
+export PJSIP_LDFLAGS += $(PJLIB_UTIL_LDLIB) \
+			$(PJLIB_LDLIB) \
+			$(_LDFLAGS)
 
 ###############################################################################
 # Defines for building PJSIP UA library
@@ -81,6 +78,12 @@ export PJSIP_UA_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			sip_inv.o sip_reg.o sip_replaces.o sip_xfer.o \
 			sip_100rel.o sip_timer.o
 export PJSIP_UA_CFLAGS += $(_CFLAGS)
+export PJSIP_UA_LDFLAGS += $(PJSIP_SIMPLE_LDLIB) \
+			   $(PJSIP_LDLIB) \
+			   $(PJMEDIA_LDLIB) \
+			   $(PJLIB_UTIL_LDLIB) \
+			   $(PJLIB_LDLIB) \
+			   $(_LDFLAGS)
 
 
 ###############################################################################
@@ -92,6 +95,10 @@ export PJSIP_SIMPLE_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			mwi.o pidf.o presence.o presence_body.o publishc.o \
 			rpid.o xpidf.o
 export PJSIP_SIMPLE_CFLAGS += $(_CFLAGS)
+export PJSIP_SIMPLE_LDFLAGS += $(PJSIP_LDLIB) \
+			       $(PJLIB_UTIL_LDLIB) \
+			       $(PJLIB_LDLIB) \
+			       $(_LDFLAGS)
 
 
 ###############################################################################
@@ -103,6 +110,17 @@ export PJSUA_LIB_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			pjsua_im.o pjsua_media.o pjsua_pres.o \
 			pjsua_dump.o pjsua_aud.o pjsua_vid.o
 export PJSUA_LIB_CFLAGS += $(_CFLAGS) $(PJ_VIDEO_CFLAGS)
+export PJSUA_LIB_LDFLAGS += $(PJSIP_UA_LDLIB) \
+			    $(PJSIP_SIMPLE_LDLIB) \
+			    $(PJSIP_LDLIB) \
+			    $(PJMEDIA_AUDIODEV_LDLIB) \
+			    $(PJMEDIA_VIDEODEV_LDLIB) \
+			    $(PJMEDIA_CODEC_LDLIB) \
+			    $(PJMEDIA_LDLIB) \
+			    $(PJNATH_LDLIB) \
+			    $(PJLIB_UTIL_LDLIB) \
+			    $(PJLIB_LDLIB) \
+			    $(_LDFLAGS)
 
 
 export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT 
@@ -130,7 +148,6 @@ export TEST_LDFLAGS += $(PJSIP_LDLIB) \
 		       $(PJLIB_LDLIB) \
 		       $(PJLIB_UTIL_LDLIB) \
 		       $(PJNATH_LDLIB) \
-		       $(APP_LDFLAGS) \
 		       $(_LDFLAGS)
 export TEST_EXE := pjsip-test-$(TARGET_NAME)$(HOST_EXE)
 
@@ -141,8 +158,8 @@ export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT
 #
 #
 TARGETS := $(PJSIP_LIB) $(PJSIP_SONAME) \
-	   $(PJSIP_UA_LIB) $(PJSIP_UA_SONAME) \
 	   $(PJSIP_SIMPLE_LIB) $(PJSIP_SIMPLE_SONAME) \
+	   $(PJSIP_UA_LIB) $(PJSIP_UA_SONAME) \
 	   $(PJSUA_LIB_LIB) $(PJSUA_LIB_SONAME) \
 	   $(TEST_EXE)
 
@@ -164,34 +181,30 @@ distclean: realclean
 
 .PHONY: all dep depend clean realclean distclean
 .PHONY: $(TARGETS)
-.PHONY: $(PJSIP_LIB) $(PJSIP_SHLIB) $(PJSIP_SONAME)
-.PHONY: $(PJSIP_UA_LIB) $(PJSIP_UA_SHLIB) $(PJSIP_UA_SONAME)
-.PHONY: $(PJSIP_SIMPLE_LIB) $(PJSIP_SIMPLE_SHLIB) $(PJSIP_SIMPLE_SONAME)
-.PHONY: $(PJSUA_LIB_LIB) $(PJSUA_LIB_SHLIB) $(PJSUA_LIB_SONAME)
+.PHONY: $(PJSIP_LIB) $(PJSIP_SONAME)
+.PHONY: $(PJSIP_UA_LIB) $(PJSIP_UA_SONAME)
+.PHONY: $(PJSIP_SIMPLE_LIB) $(PJSIP_SIMPLE_SONAME)
+.PHONY: $(PJSUA_LIB_LIB) $(PJSUA_LIB_SONAME)
 .PHONY: $(TEST_EXE)
 
 pjsip: $(PJSIP_LIB)
-$(PJSIP_SHLIB): $(PJSIP_SONAME)
 $(PJSIP_SONAME): $(PJSIP_LIB)
-$(PJSIP_LIB) $(PJSIP_SHLIB) $(PJSIP_SONAME):
+$(PJSIP_LIB) $(PJSIP_SONAME):
 	$(MAKE) -f $(RULES_MAK) APP=PJSIP app=pjsip $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjsip-ua: $(PJSIP_UA_LIB)
-$(PJSIP_UA_SHLIB): $(PJSIP_UA_SONAME)
 $(PJSIP_UA_SONAME): $(PJSIP_UA_LIB)
-$(PJSIP_UA_LIB) $(PJSIP_UA_SHLIB) $(PJSIP_UA_SONAME):
+$(PJSIP_UA_LIB) $(PJSIP_UA_SONAME): $(PJSIP_LIB) $(PJSIP_SONAME) $(PJSIP_SIMPLE_LIB) $(PJSIP_SIMPLE_SONAME)
 	$(MAKE) -f $(RULES_MAK) APP=PJSIP_UA app=pjsip-ua $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjsip-simple: $(PJSIP_SIMPLE_LIB)
-$(PJSIP_SIMPLE_SHLIB): $(PJSIP_SIMPLE_SONAME)
 $(PJSIP_SIMPLE_SONAME): $(PJSIP_SIMPLE_LIB)
-$(PJSIP_SIMPLE_LIB) $(PJSIP_SIMPLE_SHLIB) $(PJSIP_SIMPLE_SONAME):
+$(PJSIP_SIMPLE_LIB) $(PJSIP_SIMPLE_SONAME): $(PJSIP_LIB) $(PJSIP_SONAME)
 	$(MAKE) -f $(RULES_MAK) APP=PJSIP_SIMPLE app=pjsip-simple $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjsua-lib: $(PJSUA_LIB_LIB)
-$(PJSUA_LIB_SHLIB): $(PJSUA_LIB_SONAME)
 $(PJSUA_LIB_SONAME): $(PJSUA_LIB_LIB)
-$(PJSUA_LIB_LIB) $(PJSUA_LIB_SHLIB) $(PJSUA_LIB_SONAME):
+$(PJSUA_LIB_LIB) $(PJSUA_LIB_SONAME): $(PJSIP_LIB) $(PJSIP_SONAME) $(PJSIP_SIMPLE_LIB) $(PJSIP_SIMPLE_SONAME) $(PJSIP_UA_LIB) $(PJSIP_UA_SONAME)
 	$(MAKE) -f $(RULES_MAK) APP=PJSUA_LIB app=pjsua-lib $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 pjsip-test: $(TEST_EXE)

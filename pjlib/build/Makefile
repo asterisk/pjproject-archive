@@ -10,9 +10,7 @@ RULES_MAK := $(PJDIR)/build/rules.mak
 export PJLIB_LIB := libpj-$(TARGET_NAME)$(LIBEXT)
 
 ifeq ($(PJ_SHARED_LIBRARIES),)
-PJLIB_LDLIB := -lpj-$(TARGET_NAME)
 else
-PJLIB_LDLIB := -lpj
 export PJLIB_SONAME := libpj.$(SHLIB_SUFFIX)
 export PJLIB_SHLIB := $(PJLIB_SONAME).$(PJ_VERSION_MAJOR)
 endif
@@ -40,6 +38,7 @@ export PJLIB_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 	ssl_sock_common.o ssl_sock_ossl.o ssl_sock_dump.o \
 	string.o timer.o types.o
 export PJLIB_CFLAGS += $(_CFLAGS)
+export PJLIB_LDFLAGS += $(_LDFLAGS)
 
 ###############################################################################
 # Defines for building test application
@@ -89,7 +88,7 @@ depend: ../include/pj/config_site.h
 
 .PHONY: all dep depend clean realclean distclean
 .PHONY: $(TARGETS)
-.PHONY: $(PJLIB_LIB) $(PJLIB_SHLIB) $(PJLIB_SONAME)
+.PHONY: $(PJLIB_LIB) $(PJLIB_SONAME)
 .PHONY: $(TEST_EXE)
 
 dep: depend
@@ -97,9 +96,8 @@ dep: depend
 pjlib: $(PJLIB_LIB)
 $(PJLIB_LIB): ../include/pj/config_site.h
 
-$(PJLIB_SHLIB): $(PJLIB_SONAME)
 $(PJLIB_SONAME): $(PJLIB_LIB)
-$(PJLIB_LIB) $(PJLIB_SHLIB) $(PJLIB_SONAME):
+$(PJLIB_LIB) $(PJLIB_SONAME):
 	$(MAKE) -f $(RULES_MAK) APP=PJLIB app=pjlib $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 ../include/pj/config_site.h:

@@ -21,9 +21,13 @@ export RESAMPLE_SRCDIR = ../../resample/src
 export RESAMPLE_OBJS = resamplesubs.o
 export RESAMPLE_CFLAGS = $(_CFLAGS)
 
+export RESAMPLE_LIB := libresample-$(TARGET_NAME)$(LIBEXT)
+
+ifeq ($(PJ_SHARED_LIBRARIES),)
+else
 export RESAMPLE_SONAME := libresample.$(SHLIB_SUFFIX)
 export RESAMPLE_SHLIB := $(RESAMPLE_SONAME).$(PJ_VERSION_MAJOR)
-export RESAMPLE_LIB := libresample-$(TARGET_NAME)$(LIBEXT)
+endif
 
 export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT 
 ###############################################################################
@@ -31,12 +35,10 @@ export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT
 #
 # $(TARGET) is defined in os-$(OS_NAME).mak file in current directory.
 #
-TARGETS := $(RESAMPLE_LIB)
+TARGETS := $(RESAMPLE_LIB) $(RESAMPLE_SONAME)
 ifneq ($(PJ_SHARED_LIBRARIES),)
-TARGETS += $(RESAMPLE_SONAME)
 else
 ifneq ($(PJ_RESAMPLE_DLL),)
-TARGETS += $(RESAMPLE_SONAME)
 export RESAMPLE_CFLAGS := -fPIC $(RESAMPLE_CFLAGS)
 endif
 endif
@@ -51,14 +53,13 @@ distclean: realclean
 
 .PHONY: all dep depend clean realclean distclean
 .PHONY: $(TARGETS)
-.PHONY: $(RESAMPLE_LIB) $(RESAMPLE_SHLIB) $(RESAMPLE_SONAME)
+.PHONY: $(RESAMPLE_LIB) $(RESAMPLE_SONAME)
 
 dep: depend
 
 libresample: $(RESAMPLE_LIB)
-$(RESAMPLE_SHLIB): $(RESAMPLE_SONAME)
 $(RESAMPLE_SONAME): $(RESAMPLE_LIB)
-$(RESAMPLE_LIB) $(RESAMPLE_SHLIB) $(RESAMPLE_SONAME):
+$(RESAMPLE_LIB) $(RESAMPLE_SONAME):
 	$(MAKE) -f $(RULES_MAK) APP=RESAMPLE app=libresample $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 clean print_lib:
