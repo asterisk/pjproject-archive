@@ -1,4 +1,4 @@
-DIRS = resample milenage srtp
+DIRS = resample milenage
 
 include ../../build.mak
 include $(PJDIR)/build/common.mak

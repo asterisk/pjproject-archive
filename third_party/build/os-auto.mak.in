@@ -31,3 +31,8 @@ DIRS += portaudio
 endif
 endif
 
+ifeq (@ac_external_srtp@,1)
+# External SRTP
+else
+DIRS += srtp
+endif

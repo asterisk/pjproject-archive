@@ -531,6 +531,26 @@ AC_ARG_WITH(external-gsm,
     )
 
 
+dnl # Use external SRTP installation
+AC_SUBST(ac_external_srtp,0)
+AC_ARG_WITH(external-srtp,
+    AC_HELP_STRING([--with-external-srtp],
+		   [Use external SRTP development files, not the one in "third_party" directory. When this option is set, make sure that SRTP is accessible to use (hint: use CFLAGS and LDFLAGS env var to set the include/lib paths)]),
+    [
+	if test "x$with_external_srtp" != "xno"; then
+		# Test SRTP installation
+		AC_MSG_CHECKING([if external SRTP devkit is installed])
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <srtp/srtp.h>
+						     ]],
+						  [srtp_init();])],
+				  [AC_MSG_RESULT(yes!!)
+				   ac_external_srtp="1"
+				   ],
+				  [AC_MSG_ERROR([Unable to use SRTP. If SRTP development files are not available in the default locations, use CFLAGS and LDFLAGS env var to set the include/lib paths])])
+	fi
+    ]
+    )
+
 
 dnl # Sound device backend selection
 AC_SUBST(ac_pjmedia_snd)

@@ -3,10 +3,6 @@ include ../../version.mak
 
 THIRD_PARTY:=$(PJDIR)/third_party
 
-SRTP_INC=$(CC_INC)$(THIRD_PARTY)/build/srtp \
-	 $(CC_INC)$(THIRD_PARTY)/srtp/crypto/include \
-	 $(CC_INC)$(THIRD_PARTY)/srtp/include
-
 include $(PJDIR)/build/common.mak
 
 export LIBDIR := ../lib
@@ -48,8 +44,7 @@ export _CFLAGS 	:= $(CC_CFLAGS) $(OS_CFLAGS) $(HOST_CFLAGS) $(M_CFLAGS) \
 		   $(CC_INC)../../pjlib-util/include \
 		   $(CC_INC)../../pjmedia/include \
 		   $(CC_INC)../../pjnath/include \
-		   $(CC_INC)../.. \
-		   $(SRTP_INC) 
+		   $(CC_INC)../..
 export _CXXFLAGS:= $(_CFLAGS) $(CC_CXXFLAGS) $(OS_CXXFLAGS) $(M_CXXFLAGS) \
 		   $(HOST_CXXFLAGS) $(CXXFLAGS)
 
