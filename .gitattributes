@@ -232,6 +232,7 @@ tests/pjsua/scripts-sipp/uas-inv-answered-with-srtp.xml -text
 tests/pjsua/scripts-sipp/uas-mwi-0.xml -text
 tests/pjsua/scripts-sipp/uas-mwi.xml -text
 tests/pjsua/scripts-sipp/uas-prack_fork.xml -text
+tests/pjsua/scripts-sipp/uas-reinv-with-less-media.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-late-notify.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-notify-terminate.xml -text
 tests/pjsua/scripts-sipp/uas-subscribe-refresh-481.xml -text
