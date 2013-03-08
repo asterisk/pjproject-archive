@@ -81,6 +81,7 @@ pjmedia/docs/siprtp.jpg -text svneol=unset#image/jpeg
 pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
 pjmedia/include/pjmedia-codec/config_auto.h.in eol=lf
 pjmedia/include/pjmedia/config_auto.h.in eol=lf
+pjmedia/src/pjmedia-audiodev/bdimad_dev.c -text
 pjmedia/src/test/vectors/g722_1_dec_in_24000_fe.itu -text
 pjmedia/src/test/vectors/g722_1_dec_in_32000_fe.itu -text
 pjmedia/src/test/vectors/g722_1_dec_out_24000.pcm -text
@@ -273,6 +274,7 @@ third_party/BaseClasses/wxlist.cpp -text
 third_party/BaseClasses/wxlist.h -text
 third_party/BaseClasses/wxutil.cpp -text
 third_party/BaseClasses/wxutil.h -text
+third_party/bdsound/include/bdimad.h -text
 third_party/build/baseclasses/libbaseclasses.vcproj -text
 third_party/build/g7221/libg7221codec.vcproj -text
 third_party/build/gsm/libgsmcodec.vcp -text
