@@ -1,4 +1,4 @@
-/* $Id: sip_inv.c 4156 2012-06-06 07:24:08Z bennylp $ */
+/* $Id: sip_inv.c 4367 2013-02-21 20:49:19Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -829,7 +829,7 @@ PJ_DEF(pjsip_rdata_sdp_info*) pjsip_rdata_get_sdp_info(pjsip_rx_data *rdata)
 				   sdp_info->body.slen,
 				   &sdp_info->sdp);
 	if (status == PJ_SUCCESS)
-	    status = pjmedia_sdp_validate(sdp_info->sdp);
+	    status = pjmedia_sdp_validate2(sdp_info->sdp, PJ_FALSE);
 
 	if (status != PJ_SUCCESS) {
 	    sdp_info->sdp = NULL;
@@ -1745,7 +1745,7 @@ static pj_status_t inv_check_sdp_in_incoming_msg( pjsip_inv_session *inv,
 	if (tsx->role == PJSIP_ROLE_UAC &&
 	    rdata->msg_info.msg->line.status.code/100 == 2 &&
 	    tsx_inv_data->done_early &&
-	    pj_strcmp(&tsx_inv_data->done_tag, &res_tag))
+	    pj_stricmp(&tsx_inv_data->done_tag, &res_tag))
 	{
 	    const pjmedia_sdp_session *reoffer_sdp = NULL;
 
@@ -2329,6 +2329,7 @@ static pj_bool_t inv_uac_recurse(pjsip_inv_session *inv, int code,
     /* Check what the application wants to do now */
     switch (op) {
     case PJSIP_REDIRECT_ACCEPT:
+    case PJSIP_REDIRECT_ACCEPT_REPLACE:
     case PJSIP_REDIRECT_STOP:
 	/* Must increment session counter, that's the convention of the 
 	 * pjsip_inv_process_redirect().
@@ -2394,6 +2395,7 @@ PJ_DEF(pj_status_t) pjsip_inv_process_redirect( pjsip_inv_session *inv,
     /* See what the application wants to do now */
     switch (op) {
     case PJSIP_REDIRECT_ACCEPT:
+    case PJSIP_REDIRECT_ACCEPT_REPLACE:
 	/* User accept the redirection. Reset the session and resend the 
 	 * INVITE request.
 	 */
@@ -2418,6 +2420,51 @@ PJ_DEF(pj_status_t) pjsip_inv_process_redirect( pjsip_inv_session *inv,
 	    via = (pjsip_via_hdr*) 
 		  pjsip_msg_find_hdr(tdata->msg, PJSIP_H_VIA, NULL);
 	    via->branch_param.slen = 0;
+
+	    /* Process PJSIP_REDIRECT_ACCEPT_REPLACE */
+	    if (op == PJSIP_REDIRECT_ACCEPT_REPLACE) {
+		pjsip_to_hdr *to;
+		pjsip_dialog *dlg = inv->dlg;
+		enum { TMP_LEN = 128 };
+		char tmp[TMP_LEN];
+		int len;
+
+		/* Replace To header */
+		to = PJSIP_MSG_TO_HDR(tdata->msg);
+		to->uri = (pjsip_uri*)
+			  pjsip_uri_clone(tdata->pool,
+				          dlg->target_set.current->uri);
+		to->tag.slen = 0;
+		pj_list_init(&to->other_param);
+		
+		/* Re-init dialog remote info */
+		dlg->remote.info = (pjsip_to_hdr*)
+				   pjsip_hdr_clone(dlg->pool, to);
+
+		/* Remove header param from remote info */
+		if (PJSIP_URI_SCHEME_IS_SIP(dlg->remote.info->uri) ||
+		    PJSIP_URI_SCHEME_IS_SIPS(dlg->remote.info->uri))
+		{
+		    pjsip_sip_uri *sip_uri = (pjsip_sip_uri *) 
+				   pjsip_uri_get_uri(dlg->remote.info->uri);
+		    if (!pj_list_empty(&sip_uri->header_param)) {
+			/* Remove all header param */
+			pj_list_init(&sip_uri->header_param);
+		    }
+		}
+
+		/* Print the remote info. */
+		len = pjsip_uri_print(PJSIP_URI_IN_FROMTO_HDR,
+				      dlg->remote.info->uri, tmp, TMP_LEN);
+		if (len < 1) {
+		    pj_ansi_strcpy(tmp, "<-error: uri too long->");
+		    len = pj_ansi_strlen(tmp);
+		}
+		pj_strdup2_with_null(dlg->pool, &dlg->remote.info_str, tmp);
+
+		/* Secure? */
+		dlg->secure = PJSIP_URI_SCHEME_IS_SIPS(to->uri);
+	    }
 
 	    /* Reset message destination info (see #1248). */
 	    pj_bzero(&tdata->dest_info, sizeof(tdata->dest_info));
@@ -2572,6 +2619,7 @@ PJ_DEF(pj_status_t) pjsip_inv_update (	pjsip_inv_session *inv,
     pjsip_contact_hdr *contact_hdr = NULL;
     pjsip_tx_data *tdata = NULL;
     pjmedia_sdp_session *sdp_copy;
+    const pjsip_hdr *hdr;
     pj_status_t status = PJ_SUCCESS;
 
     /* Verify arguments. */
@@ -2640,12 +2688,23 @@ PJ_DEF(pj_status_t) pjsip_inv_update (	pjsip_inv_session *inv,
 	pjsip_create_sdp_body(tdata->pool, sdp_copy, &tdata->msg->body);
     }
 
-    /* Unlock dialog. */
-    pjsip_dlg_dec_lock(inv->dlg);
+    /* Session Timers spec (RFC 4028) says that Supported header MUST be put
+     * in refresh requests. So here we'll just put the Supported header in
+     * all cases regardless of whether session timers is used or not, just
+     * in case this is a common behavior.
+     */
+    hdr = pjsip_endpt_get_capability(inv->dlg->endpt, PJSIP_H_SUPPORTED, NULL);
+    if (hdr) {
+	pjsip_msg_add_hdr(tdata->msg, (pjsip_hdr*)
+			  pjsip_hdr_shallow_clone(tdata->pool, hdr));
+    }
 
     status = pjsip_timer_update_req(inv, tdata);
     if (status != PJ_SUCCESS)
 	goto on_error;
+
+    /* Unlock dialog. */
+    pjsip_dlg_dec_lock(inv->dlg);
 
     *p_tdata = tdata;
 
@@ -2957,8 +3016,16 @@ static void inv_respond_incoming_update(pjsip_inv_session *inv,
 
     neg_state = pjmedia_sdp_neg_get_state(inv->neg);
 
+    /* If UPDATE doesn't contain SDP, just respond with 200/OK.
+     * This is a valid scenario according to session-timer draft.
+     */
+    if (rdata->msg_info.msg->body == NULL) {
+
+	status = pjsip_dlg_create_response(inv->dlg, rdata, 
+					   200, NULL, &tdata);
+    }
     /* Send 491 if we receive UPDATE while we're waiting for an answer */
-    if (neg_state == PJMEDIA_SDP_NEG_STATE_LOCAL_OFFER) {
+    else if (neg_state == PJMEDIA_SDP_NEG_STATE_LOCAL_OFFER) {
 	status = pjsip_dlg_create_response(inv->dlg, rdata, 
 					   PJSIP_SC_REQUEST_PENDING, NULL,
 					   &tdata);
@@ -2967,18 +3034,18 @@ static void inv_respond_incoming_update(pjsip_inv_session *inv,
      * receive UPDATE while we haven't sent answer.
      */
     else if (neg_state == PJMEDIA_SDP_NEG_STATE_REMOTE_OFFER ||
-	     neg_state == PJMEDIA_SDP_NEG_STATE_WAIT_NEGO) {
-	status = pjsip_dlg_create_response(inv->dlg, rdata, 
+	     neg_state == PJMEDIA_SDP_NEG_STATE_WAIT_NEGO)
+    {
+        pjsip_retry_after_hdr *ra_hdr;
+	int val;
+
+        status = pjsip_dlg_create_response(inv->dlg, rdata, 
 					   PJSIP_SC_INTERNAL_SERVER_ERROR,
 					   NULL, &tdata);
 
-    /* If UPDATE doesn't contain SDP, just respond with 200/OK.
-     * This is a valid scenario according to session-timer draft.
-     */
-    } else if (rdata->msg_info.msg->body == NULL) {
-
-	status = pjsip_dlg_create_response(inv->dlg, rdata, 
-					   200, NULL, &tdata);
+        val = (pj_rand() % 10);
+        ra_hdr = pjsip_retry_after_hdr_create(tdata->pool, val);
+        pjsip_msg_add_hdr(tdata->msg, (pjsip_hdr*)ra_hdr);
 
     } else {
 	/* We receive new offer from remote */
@@ -3305,8 +3372,7 @@ static pj_bool_t handle_uac_tsx_response(pjsip_inv_session *inv,
 	((tsx->status_code == PJSIP_SC_CALL_TSX_DOES_NOT_EXIST &&
 	    tsx->method.id != PJSIP_CANCEL_METHOD) ||
 	 tsx->status_code == PJSIP_SC_REQUEST_TIMEOUT ||
-	 tsx->status_code == PJSIP_SC_TSX_TIMEOUT ||
-	 tsx->status_code == PJSIP_SC_TSX_TRANSPORT_ERROR))
+	 tsx->status_code == PJSIP_SC_TSX_TIMEOUT))
     {
 	pjsip_tx_data *bye;
 	pj_status_t status;

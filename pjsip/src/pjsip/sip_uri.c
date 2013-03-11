@@ -1,4 +1,4 @@
-/* $Id: sip_uri.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sip_uri.c 4228 2012-08-13 07:26:03Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -269,7 +269,10 @@ static pj_ssize_t pjsip_url_print(  pjsip_uri_context_e context,
 
     /* Print "user:password@", if any. */
     if (url->user.slen) {
-	copy_advance_escape(buf, url->user, pc->pjsip_USER_SPEC);
+	const pj_cis_t *spec = pjsip_cfg()->endpt.allow_tx_hash_in_uri ?
+				&pc->pjsip_USER_SPEC_LENIENT :
+				&pc->pjsip_USER_SPEC;
+	copy_advance_escape(buf, url->user, *spec);
 	if (url->passwd.slen) {
 	    *buf++ = ':';
 	    copy_advance_escape(buf, url->passwd, pc->pjsip_PASSWD_SPEC);

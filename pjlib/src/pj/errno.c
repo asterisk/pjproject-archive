@@ -1,4 +1,4 @@
-/* $Id: errno.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: errno.c 4359 2013-02-21 11:18:36Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -77,7 +77,8 @@ static const struct
     PJ_BUILD_ERR(PJ_ETOOSMALL,	   "Size is too short"),
     PJ_BUILD_ERR(PJ_EIGNORED,	   "Ignored"),
     PJ_BUILD_ERR(PJ_EIPV6NOTSUP,   "IPv6 is not supported"),
-    PJ_BUILD_ERR(PJ_EAFNOTSUP,	   "Unsupported address family")
+    PJ_BUILD_ERR(PJ_EAFNOTSUP,	   "Unsupported address family"),
+    PJ_BUILD_ERR(PJ_EGONE,	   "Object no longer exists")
 };
 #endif	/* PJ_HAS_ERROR_STRING */
 

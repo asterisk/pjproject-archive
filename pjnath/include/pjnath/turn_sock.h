@@ -1,4 +1,4 @@
-/* $Id: turn_sock.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: turn_sock.h 4360 2013-02-21 11:26:35Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -109,6 +109,21 @@ typedef struct pj_turn_sock_cb
 typedef struct pj_turn_sock_cfg
 {
     /**
+     * The group lock to be used by the STUN socket. If NULL, the STUN socket
+     * will create one internally.
+     *
+     * Default: NULL
+     */
+    pj_grp_lock_t *grp_lock;
+
+    /**
+     * Packet buffer size.
+     *
+     * Default value is PJ_TURN_MAX_PKT_LEN.
+     */
+    unsigned max_pkt_size;
+
+    /**
      * QoS traffic type to be set on this transport. When application wants
      * to apply QoS tagging to the transport, it's preferable to set this
      * field rather than \a qos_param fields since this is more portable.
@@ -133,6 +148,23 @@ typedef struct pj_turn_sock_cfg
      * Default: PJ_TRUE
      */
     pj_bool_t qos_ignore_error;
+
+    /**
+     * Specify the interface where the socket should be bound to. If the
+     * address is zero, socket will be bound to INADDR_ANY. If the address
+     * is non-zero, socket will be bound to this address only. If the port is
+     * set to zero, the socket will bind at any port (chosen by the OS).
+     */
+    pj_sockaddr bound_addr;
+
+    /**
+     * Specify the port range for TURN socket binding, relative to the start
+     * port number specified in \a bound_addr. Note that this setting is only
+     * applicable when the start port number is non zero.
+     *
+     * Default value is zero.
+     */
+    pj_uint16_t	port_range;
 
 } pj_turn_sock_cfg;
 

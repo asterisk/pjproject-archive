@@ -1,4 +1,4 @@
-/* $Id: pool.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: pool.h 4298 2012-11-22 05:00:01Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -509,7 +509,7 @@ PJ_INLINE(void*) pj_pool_zalloc(pj_pool_t *pool, pj_size_t size)
  * Internal functions
  */
 PJ_IDECL(void*) pj_pool_alloc_from_block(pj_pool_block *block, pj_size_t size);
-PJ_DECL(void*) pj_pool_allocate_find(pj_pool_t *pool, unsigned size);
+PJ_DECL(void*) pj_pool_allocate_find(pj_pool_t *pool, pj_size_t size);
 
 
 	

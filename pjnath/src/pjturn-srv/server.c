@@ -1,4 +1,4 @@
-/* $Id: server.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: server.c 4360 2013-02-21 11:26:35Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -155,7 +155,8 @@ PJ_DEF(pj_status_t) pj_turn_srv_create(pj_pool_factory *pf,
     sess_cb.on_send_msg = &on_tx_stun_msg;
 
     status = pj_stun_session_create(&srv->core.stun_cfg, srv->obj_name,
-				    &sess_cb, PJ_FALSE, &srv->core.stun_sess);
+				    &sess_cb, PJ_FALSE, NULL,
+				    &srv->core.stun_sess);
     if (status != PJ_SUCCESS) {
 	goto on_error;
     }

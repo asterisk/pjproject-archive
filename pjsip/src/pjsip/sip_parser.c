@@ -1,4 +1,4 @@
-/* $Id: sip_parser.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sip_parser.c 4288 2012-10-26 09:30:37Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1522,8 +1522,15 @@ static pjsip_name_addr *int_parse_name_addr( pj_scanner *scanner,
 
     /* Get the SIP-URL */
     has_bracket = (*scanner->curptr == '<');
-    if (has_bracket)
+    if (has_bracket) {
 	pj_scan_get_char(scanner);
+    } else if (name_addr->display.slen) {
+	/* Must have bracket now (2012-10-26).
+	 * Allowing (invalid) name-addr to pass URI verification will
+	 * cause us to send invalid URI to the wire.
+	 */
+	PJ_THROW( PJSIP_SYN_ERR_EXCEPTION);
+    }
     name_addr->uri = int_parse_uri( scanner, pool, PJ_TRUE );
     if (has_bracket) {
 	if (pj_scan_get_char(scanner) != '>')

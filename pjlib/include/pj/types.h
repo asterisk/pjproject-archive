@@ -1,4 +1,4 @@
-/* $Id: types.h 4154 2012-06-05 10:41:17Z bennylp $ */
+/* $Id: types.h 4359 2013-02-21 11:18:36Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -230,6 +230,9 @@ typedef struct pj_thread_t pj_thread_t;
 
 /** Lock object. */
 typedef struct pj_lock_t pj_lock_t;
+
+/** Group lock */
+typedef struct pj_grp_lock_t pj_grp_lock_t;
 
 /** Mutex handle. */
 typedef struct pj_mutex_t pj_mutex_t;

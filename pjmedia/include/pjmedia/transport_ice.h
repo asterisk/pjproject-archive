@@ -1,4 +1,4 @@
-/* $Id: transport_ice.h 3872 2011-10-28 04:27:41Z bennylp $ */
+/* $Id: transport_ice.h 4350 2013-02-15 03:57:31Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -68,6 +68,12 @@ typedef struct pjmedia_ice_cb
  */
 typedef struct pjmedia_ice_transport_info
 {
+    /**
+     * Specifies whether ICE is used, i.e. SDP offer and answer indicates
+     * that both parties support ICE and ICE should be used for the session.
+     */
+    pj_bool_t active;
+
     /**
      * ICE sesion state.
      */

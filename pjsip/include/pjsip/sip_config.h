@@ -1,4 +1,4 @@
-/* $Id: sip_config.h 4172 2012-06-19 14:35:18Z nanang $ */
+/* $Id: sip_config.h 4285 2012-10-19 04:23:57Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -73,18 +73,41 @@ typedef struct pjsip_cfg_t
 	/**
 	 * Specify port number should be allowed to appear in To and From
 	 * header. Note that RFC 3261 disallow this, see Table 1 in section
-	 * 19.1.1 of the RFC. Default is PJSIP_ALLOW_PORT_IN_FROMTO_HDR.
+	 * 19.1.1 of the RFC.
+	 *
+	 * Default is PJSIP_ALLOW_PORT_IN_FROMTO_HDR.
 	 */
 	pj_bool_t allow_port_in_fromto_hdr;
 
 	/**
+	 * Accept call replace in early state when invite is not initiated
+	 * by the user agent. RFC 3891 Section 3 disallows this, however,
+	 * for better interoperability reason, this might be ignored.
+	 *
+	 * Default is PJSIP_ACCEPT_REPLACE_IN_EARLY_STATE.
+	 */
+	pj_bool_t accept_replace_in_early_state;
+
+	/**
+	 * Allow hash character ('#') to appear in outgoing URIs. See
+	 * https://trac.pjsip.org/repos/ticket/1569.
+	 *
+	 * Default is PJ_FALSE.
+	 */
+	pj_bool_t allow_tx_hash_in_uri;
+
+	/**
 	 * Disable rport in request.
+	 *
+	 * Default is PJ_FALSE.
 	 */
 	pj_bool_t disable_rport;
 
 	/**
 	 * Disable automatic switching from UDP to TCP if outgoing request
-	 * is greater than 1300 bytes. See PJSIP_DONT_SWITCH_TO_TCP.
+	 * is greater than 1300 bytes.
+	 *
+	 * Default is PJSIP_DONT_SWITCH_TO_TCP.
 	 */
 	pj_bool_t disable_tcp_switch;
 
@@ -269,6 +292,21 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
 
 
 /**
+ * Accept call replace in early state when invite is not initiated
+ * by the user agent. RFC 3891 Section 3 disallows this, however,
+ * for better interoperability reason, this might be ignored.
+ *
+ * This option can also be controlled at run-time by the
+ * \a accept_replace_in_early_state setting in pjsip_cfg_t.
+ *
+ * Default is 0 (no).
+ */
+#ifndef PJSIP_ACCEPT_REPLACE_IN_EARLY_STATE
+#   define PJSIP_ACCEPT_REPLACE_IN_EARLY_STATE	    0
+#endif
+
+
+/**
  * This setting controls the threshold of the UDP packet, which if it's
  * larger than this value the request will be sent with TCP. This setting
  * is useful only when PJSIP_DONT_SWITCH_TO_TCP is set to 0.
@@ -362,9 +400,13 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
  * response is received, the response will be discarded since its Via
  * sent-by now contains address that is different than the transport
  * address.
+ *
+ * Update:
+ * As of version 2.1, the default value is 0. This change was part of
+ * https://trac.pjsip.org/repos/ticket/1412
  */
 #ifndef PJSIP_CHECK_VIA_SENT_BY
-#   define PJSIP_CHECK_VIA_SENT_BY	1
+#   define PJSIP_CHECK_VIA_SENT_BY	0
 #endif
 
 

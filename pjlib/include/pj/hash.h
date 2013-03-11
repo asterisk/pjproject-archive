@@ -1,4 +1,4 @@
-/* $Id: hash.h 3841 2011-10-24 09:28:13Z ming $ */
+/* $Id: hash.h 4208 2012-07-18 07:52:33Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -75,8 +75,8 @@ PJ_DECL(pj_uint32_t) pj_hash_calc(pj_uint32_t hval,
  * string is stored in \c result.
  *
  * @param hval      The initial hash value, normally zero.
- * @param result    Buffer to store the result, which must be enough to hold
- *                  the string.
+ * @param result    Optional. Buffer to store the result, which must be enough
+ *                  to hold the string.
  * @param key       The input key to be converted and calculated.
  *
  * @return          The hash value.
@@ -116,6 +116,17 @@ PJ_DECL(void *) pj_hash_get( pj_hash_table_t *ht,
 
 
 /**
+ * Variant of #pj_hash_get() with the key being converted to lowercase when
+ * calculating the hash value.
+ *
+ * @see pj_hash_get()
+ */
+PJ_DECL(void *) pj_hash_get_lower( pj_hash_table_t *ht,
+			           const void *key, unsigned keylen,
+			           pj_uint32_t *hval );
+
+
+/**
  * Associate/disassociate a value with the specified key. If value is not
  * NULL and entry already exists, the entry's value will be overwritten.
  * If value is not NULL and entry does not exist, a new one will be created
@@ -142,6 +153,17 @@ PJ_DECL(void) pj_hash_set( pj_pool_t *pool, pj_hash_table_t *ht,
 
 
 /**
+ * Variant of #pj_hash_set() with the key being converted to lowercase when
+ * calculating the hash value.
+ *
+ * @see pj_hash_set()
+ */
+PJ_DECL(void) pj_hash_set_lower( pj_pool_t *pool, pj_hash_table_t *ht,
+			         const void *key, unsigned keylen,
+                                 pj_uint32_t hval, void *value );
+
+
+/**
  * Associate/disassociate a value with the specified key. This function works
  * like #pj_hash_set(), except that it doesn't use pool (hence the np -- no 
  * pool suffix). If new entry needs to be allocated, it will use the entry_buf.
@@ -163,6 +185,18 @@ PJ_DECL(void) pj_hash_set_np(pj_hash_table_t *ht,
 			     const void *key, unsigned keylen, 
 			     pj_uint32_t hval, pj_hash_entry_buf entry_buf, 
 			     void *value);
+
+/**
+ * Variant of #pj_hash_set_np() with the key being converted to lowercase
+ * when calculating the hash value.
+ *
+ * @see pj_hash_set_np()
+ */
+PJ_DECL(void) pj_hash_set_np_lower(pj_hash_table_t *ht,
+			           const void *key, unsigned keylen,
+			           pj_uint32_t hval,
+                                   pj_hash_entry_buf entry_buf,
+			           void *value);
 
 /**
  * Get the total number of entries in the hash table.

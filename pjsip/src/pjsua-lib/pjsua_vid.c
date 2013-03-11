@@ -1,4 +1,4 @@
-/* $Id: pjsua_vid.c 4071 2012-04-24 05:40:32Z nanang $ */
+/* $Id: pjsua_vid.c 4341 2013-02-05 12:21:30Z nanang $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -705,7 +705,12 @@ pj_status_t pjsua_vid_channel_init(pjsua_call_media *call_med)
     return PJ_SUCCESS;
 }
 
-/* Internal function: update video channel after SDP negotiation */
+/* Internal function: update video channel after SDP negotiation.
+ * Warning: do not use temporary/flip-flop pool, e.g: inv->pool_prov,
+ *          for creating stream, etc, as after SDP negotiation and when
+ *	    the SDP media is not changed, the stream should remain running
+ *          while the temporary/flip-flop pool may be released.
+ */
 pj_status_t pjsua_vid_channel_update(pjsua_call_media *call_med,
 				     pj_pool_t *tmp_pool,
 				     pjmedia_vid_stream_info *si,
@@ -1743,11 +1748,13 @@ static pj_status_t call_modify_video(pjsua_call *call,
 
 	sdp->media[med_idx] = sdp_m;
 
-	/* Update SDP media line by media transport */
-	status = pjmedia_transport_encode_sdp(call_med->tp, pool,
-					      sdp, NULL, call_med->idx);
-	if (status != PJ_SUCCESS)
-	    goto on_error;
+        if (call_med->dir == PJMEDIA_DIR_NONE) {
+	    /* Update SDP media line by media transport */
+	    status = pjmedia_transport_encode_sdp(call_med->tp, pool,
+					          sdp, NULL, call_med->idx);
+	    if (status != PJ_SUCCESS)
+	        goto on_error;
+        }
 
 on_error:
 	if (status != PJ_SUCCESS) {
@@ -2029,6 +2036,7 @@ PJ_DEF(pj_status_t) pjsua_call_set_vid_strm (
 				const pjsua_call_vid_strm_op_param *param)
 {
     pjsua_call *call;
+    pjsip_dialog *dlg;
     pjsua_call_vid_strm_op_param param_;
     pj_status_t status;
 
@@ -2040,9 +2048,9 @@ PJ_DEF(pj_status_t) pjsua_call_set_vid_strm (
 	      call_id, op));
     pj_log_push_indent();
 
-    PJSUA_LOCK();
-
-    call = &pjsua_var.calls[call_id];
+    status = acquire_call("pjsua_call_set_vid_strm()", call_id, &call, &dlg);
+    if (status != PJ_SUCCESS)
+	goto on_return;
 
     if (param) {
 	param_ = *param;
@@ -2097,9 +2105,9 @@ PJ_DEF(pj_status_t) pjsua_call_set_vid_strm (
 	break;
     }
 
-    PJSUA_UNLOCK();
+on_return:
+    if (dlg) pjsip_dlg_dec_lock(dlg);
     pj_log_pop_indent();
-
     return status;
 }
 

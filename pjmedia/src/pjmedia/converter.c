@@ -1,4 +1,4 @@
-/* $Id: converter.c 4087 2012-04-26 03:39:24Z ming $ */
+/* $Id: converter.c 4412 2013-03-05 03:12:32Z riza $ */
 /*
  * Copyright (C) 2010-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -39,7 +39,9 @@ PJ_DEF(pj_status_t) pjmedia_converter_mgr_create(pj_pool_t *pool,
 					         pjmedia_converter_mgr **p_mgr)
 {
     pjmedia_converter_mgr *mgr;
+#if PJMEDIA_HAS_LIBSWSCALE && PJMEDIA_HAS_LIBAVUTIL
     pj_status_t status = PJ_SUCCESS;
+#endif
 
     mgr = PJ_POOL_ALLOC_T(pool, pjmedia_converter_mgr);
     pj_list_init(&mgr->factory_list);

@@ -1,4 +1,4 @@
-/* $Id: pjsua_dump.c 4085 2012-04-25 07:45:22Z nanang $ */
+/* $Id: pjsua_dump.c 4300 2012-11-26 02:04:17Z ming $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -212,6 +212,10 @@ static unsigned dump_media_stat(const char *indent,
 
 
 /* Dump media session */
+#if PJSUA_MEDIA_HAS_PJMEDIA || \
+    (PJSUA_THIRD_PARTY_STREAM_HAS_GET_INFO && \
+     PJSUA_THIRD_PARTY_STREAM_HAS_GET_STAT)
+
 static void dump_media_session(const char *indent,
 			       char *buf, unsigned maxlen,
 			       pjsua_call *call)
@@ -858,6 +862,24 @@ static void dump_media_session(const char *indent,
     }
 }
 
+#else	/* PJSUA_MEDIA_HAS_PJMEDIA ||
+	   (PJSUA_THIRD_PARTY_STREAM_HAS_GET_INFO &&
+	    PJSUA_THIRD_PARTY_STREAM_HAS_GET_STAT) */
+
+static void dump_media_session(const char *indent,
+			       char *buf, unsigned maxlen,
+			       pjsua_call *call)
+{
+    PJ_UNUSED_ARG(indent);
+    PJ_UNUSED_ARG(buf);
+    PJ_UNUSED_ARG(maxlen);
+    PJ_UNUSED_ARG(call);
+}
+
+#endif	/* PJSUA_MEDIA_HAS_PJMEDIA ||
+	   (PJSUA_THIRD_PARTY_STREAM_HAS_GET_INFO &&
+	    PJSUA_THIRD_PARTY_STREAM_HAS_GET_STAT) */
+
 
 /* Print call info */
 void print_call(const char *title,
@@ -866,11 +888,12 @@ void print_call(const char *title,
 {
     int len;
     pjsip_inv_session *inv = pjsua_var.calls[call_id].inv;
-    pjsip_dialog *dlg = inv->dlg;
+    pjsip_dialog *dlg;
     char userinfo[128];
 
     /* Dump invite sesion info. */
 
+    dlg = (inv? inv->dlg: pjsua_var.calls[call_id].async_call.dlg);
     len = pjsip_hdr_print_on(dlg->remote.info, userinfo, sizeof(userinfo));
     if (len < 0)
 	pj_ansi_strcpy(userinfo, "<--uri too long-->");
@@ -879,7 +902,8 @@ void print_call(const char *title,
 
     len = pj_ansi_snprintf(buf, size, "%s[%s] %s",
 			   title,
-			   pjsip_inv_state_name(inv->state),
+                           pjsip_inv_state_name(inv? inv->state:
+                                                PJSIP_INV_STATE_DISCONNECTED),
 			   userinfo);
     if (len < 1 || len >= (int)size) {
 	pj_ansi_strcpy(buf, "<--uri too long-->");

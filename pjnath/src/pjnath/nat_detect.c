@@ -1,4 +1,4 @@
-/* $Id: nat_detect.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: nat_detect.c 4360 2013-02-21 11:26:35Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -307,7 +307,7 @@ PJ_DEF(pj_status_t) pj_stun_detect_nat_type(const pj_sockaddr_in *server,
     sess_cb.on_request_complete = &on_request_complete;
     sess_cb.on_send_msg = &on_send_msg;
     status = pj_stun_session_create(stun_cfg, pool->obj_name, &sess_cb,
-				    PJ_FALSE, &sess->stun_sess);
+				    PJ_FALSE, NULL, &sess->stun_sess);
     if (status != PJ_SUCCESS)
 	goto on_error;
 

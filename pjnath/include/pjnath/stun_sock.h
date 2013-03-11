@@ -1,4 +1,4 @@
-/* $Id: stun_sock.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: stun_sock.h 4360 2013-02-21 11:26:35Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -27,6 +27,7 @@
 #include <pjnath/stun_config.h>
 #include <pjlib-util/resolver.h>
 #include <pj/ioqueue.h>
+#include <pj/lock.h>
 #include <pj/sock.h>
 #include <pj/sock_qos.h>
 
@@ -218,7 +219,17 @@ typedef struct pj_stun_sock_info
 typedef struct pj_stun_sock_cfg
 {
     /**
-     * Packet buffer size. Default value is PJ_STUN_SOCK_PKT_LEN.
+     * The group lock to be used by the STUN socket. If NULL, the STUN socket
+     * will create one internally.
+     *
+     * Default: NULL
+     */
+    pj_grp_lock_t *grp_lock;
+
+    /**
+     * Packet buffer size.
+     *
+     * Default value is PJ_STUN_SOCK_PKT_LEN.
      */
     unsigned max_pkt_size;
 
@@ -236,9 +247,19 @@ typedef struct pj_stun_sock_cfg
      * address is zero, socket will be bound to INADDR_ANY. If the address
      * is non-zero, socket will be bound to this address only, and the
      * transport will have only one address alias (the \a alias_cnt field
-     * in #pj_stun_sock_info structure.
+     * in #pj_stun_sock_info structure. If the port is set to zero, the
+     * socket will bind at any port (chosen by the OS).
      */
     pj_sockaddr bound_addr;
+
+    /**
+     * Specify the port range for STUN socket binding, relative to the start
+     * port number specified in \a bound_addr. Note that this setting is only
+     * applicable when the start port number is non zero.
+     *
+     * Default value is zero.
+     */
+    pj_uint16_t	port_range;
 
     /**
      * Specify the STUN keep-alive duration, in seconds. The STUN transport

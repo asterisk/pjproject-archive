@@ -1,4 +1,4 @@
-/* $Id: sip_util.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sip_util.h 4347 2013-02-13 10:19:25Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -90,6 +90,13 @@ typedef enum pjsip_redirect_op
      * will be resent to the current target.
      */
     PJSIP_REDIRECT_ACCEPT,
+
+    /**
+     * Accept the redirection to the current target and replace the To
+     * header in the INVITE request with the current target. The INVITE
+     * request will be resent to the current target.
+     */
+    PJSIP_REDIRECT_ACCEPT_REPLACE,
 
     /**
      * Defer the redirection decision, for example to request permission

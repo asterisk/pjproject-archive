@@ -1,4 +1,4 @@
-/* $Id: os_info.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: os_info.c 4411 2013-03-04 04:34:38Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -242,6 +242,9 @@ PJ_DEF(const pj_sys_info*) pj_get_sys_info(void)
 	} else {
 	    si.os_name = pj_str("Unknown");
 	}
+	
+	/* Avoid compile warning on Symbian. */
+	goto get_sdk_info;
     }
 #endif
 

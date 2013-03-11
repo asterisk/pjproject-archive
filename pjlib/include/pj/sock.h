@@ -1,4 +1,4 @@
-/* $Id: sock.h 3841 2011-10-24 09:28:13Z ming $ */
+/* $Id: sock.h 4343 2013-02-07 09:35:34Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1165,6 +1165,24 @@ PJ_DECL(pj_status_t) pj_sock_bind( pj_sock_t sockfd,
 PJ_DECL(pj_status_t) pj_sock_bind_in( pj_sock_t sockfd, 
 				      pj_uint32_t addr,
 				      pj_uint16_t port);
+
+/**
+ * Bind the IP socket sockfd to the given address and a random port in the
+ * specified range.
+ *
+ * @param sockfd    	The socket desriptor.
+ * @param addr      	The local address and port to bind the socket to.
+ * @param port_range	The port range, relative the to start port number
+ * 			specified in port field in #addr. Note that if the
+ * 			port is zero, this param will be ignored.
+ * @param max_try   	Maximum retries.
+ *
+ * @return	    	Zero on success.
+ */
+PJ_DECL(pj_status_t) pj_sock_bind_random( pj_sock_t sockfd,
+				          const pj_sockaddr_t *addr,
+				          pj_uint16_t port_range,
+				          pj_uint16_t max_try);
 
 #if PJ_HAS_TCP
 /**

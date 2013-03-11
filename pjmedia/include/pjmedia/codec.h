@@ -1,4 +1,4 @@
-/* $Id: codec.h 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: codec.h 4278 2012-10-05 10:04:54Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -276,6 +276,7 @@ typedef struct pjmedia_codec_param
        unsigned	   channel_cnt;		/**< Channel count.		    */
        pj_uint32_t avg_bps;		/**< Average bandwidth in bits/sec  */
        pj_uint32_t max_bps;		/**< Maximum bandwidth in bits/sec  */
+       unsigned    max_rx_frame_size;   /**< Maximum frame size             */
        pj_uint16_t frm_ptime;		/**< Decoder frame ptime in msec.   */
        pj_uint16_t enc_ptime;		/**< Encoder ptime, or zero if it's
 					     equal to decoder ptime.	    */
@@ -307,6 +308,18 @@ typedef struct pjmedia_codec_param
     } setting;
 } pjmedia_codec_param;
 
+
+/**
+ * Duplicate codec parameter.
+ *
+ * @param pool	    The pool.
+ * @param src	    The codec parameter to be duplicated.
+ *
+ * @return	    Duplicated codec parameter.
+ */
+PJ_DECL(pjmedia_codec_param*) pjmedia_codec_param_clone(
+					pj_pool_t *pool, 
+					const pjmedia_codec_param *src);
 
 
 /*

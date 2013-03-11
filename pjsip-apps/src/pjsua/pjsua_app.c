@@ -1,4 +1,4 @@
-/* $Id: pjsua_app.c 4129 2012-05-17 08:27:46Z nanang $ */
+/* $Id: pjsua_app.c 4358 2013-02-20 21:00:42Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -170,7 +170,6 @@ static char some_buf[SOME_BUF_SIZE];
 #ifdef STEREO_DEMO
 static void stereo_demo();
 #endif
-static pj_status_t create_ipv6_media_transports(void);
 pj_status_t app_destroy(void);
 
 static void ringback_start(pjsua_call_id call_id);
@@ -194,9 +193,13 @@ void keepAliveFunction(int timeout)
 	if (!pjsua_acc_is_valid(i))
 	    continue;
 
-	if (app_config.acc_cfg[i].reg_timeout < timeout)
+        if (app_config.acc_cfg[i].reg_timeout < timeout) {
+            pjsua_acc_get_config(i, &app_config.acc_cfg[i]);
 	    app_config.acc_cfg[i].reg_timeout = timeout;
-	pjsua_acc_set_registration(i, PJ_TRUE);
+            pjsua_acc_modify(i, &app_config.acc_cfg[i]);
+        } else {
+	    pjsua_acc_set_registration(i, PJ_TRUE);
+        }
     }
 }
 #endif
@@ -224,14 +227,11 @@ static void usage(void)
 
     puts  ("");
     puts  ("SIP Account options:");
-    puts  ("  --use-ims           Enable 3GPP/IMS related settings on this account");
-#if defined(PJMEDIA_HAS_SRTP) && (PJMEDIA_HAS_SRTP != 0)
-    puts  ("  --use-srtp=N        Use SRTP?  0:disabled, 1:optional, 2:mandatory,");
-    puts  ("                      3:optional by duplicating media offer (def:0)");
-    puts  ("  --srtp-secure=N     SRTP require secure SIP? 0:no, 1:tls, 2:sips (def:1)");
-#endif
     puts  ("  --registrar=url     Set the URL of registrar server");
     puts  ("  --id=url            Set the URL of local ID (used in From header)");
+    puts  ("  --realm=string      Set realm");
+    puts  ("  --username=string   Set authentication username");
+    puts  ("  --password=string   Set authentication password");
     puts  ("  --contact=url       Optionally override the Contact information");
     puts  ("  --contact-params=S  Append the specified parameters S in Contact header");
     puts  ("  --contact-uri-params=S  Append the specified parameters S in Contact URI");
@@ -243,11 +243,14 @@ static void usage(void)
 	    PJSUA_REG_RETRY_INTERVAL);
     puts  ("  --reg-use-proxy=N   Control the use of proxy settings in REGISTER.");
     puts  ("                      0=no proxy, 1=outbound only, 2=acc only, 3=all (default)");
-    puts  ("  --realm=string      Set realm");
-    puts  ("  --username=string   Set authentication username");
-    puts  ("  --password=string   Set authentication password");
     puts  ("  --publish           Send presence PUBLISH for this account");
     puts  ("  --mwi               Subscribe to message summary/waiting indication");
+    puts  ("  --use-ims           Enable 3GPP/IMS related settings on this account");
+#if defined(PJMEDIA_HAS_SRTP) && (PJMEDIA_HAS_SRTP != 0)
+    puts  ("  --use-srtp=N        Use SRTP?  0:disabled, 1:optional, 2:mandatory,");
+    puts  ("                      3:optional by duplicating media offer (def:0)");
+    puts  ("  --srtp-secure=N     SRTP require secure SIP? 0:no, 1:tls, 2:sips (def:1)");
+#endif
     puts  ("  --use-100rel        Require reliable provisional response (100rel)");
     puts  ("  --use-timer=N       Use SIP session timers? (default=1)");
     puts  ("                      0:inactive, 1:optional, 2:mandatory, 3:always");
@@ -257,6 +260,7 @@ static void usage(void)
     puts  ("  --outb-rid=string   Set SIP outbound reg-id (default:1)");
     puts  ("  --auto-update-nat=N Where N is 0 or 1 to enable/disable SIP traversal behind");
     puts  ("                      symmetric NAT (default 1)");
+    puts  ("  --disable-stun      Disable STUN for this account");
     puts  ("  --next-cred         Add another credentials");
     puts  ("");
     puts  ("SIP Account Control:");
@@ -340,7 +344,7 @@ static void usage(void)
     puts  ("Video Options:");
     puts  ("  --video             Enable video");
     puts  ("  --vcapture-dev=id   Video capture device ID (default=-1)");
-    puts  ("  --vrender-dev=id    Video render device ID (default=-1)");
+    puts  ("  --vrender-dev=id    Video render device ID (default=-2)");
     puts  ("  --play-avi=FILE     Load this AVI as virtual capture device");
     puts  ("  --auto-play-avi     Automatically play the AVI media to call");
 #endif
@@ -373,7 +377,8 @@ static void usage(void)
     puts  ("  --use-compact-form  Minimize SIP message size");
     puts  ("  --no-force-lr       Allow strict-route to be used (i.e. do not force lr)");
     puts  ("  --accept-redirect=N Specify how to handle call redirect (3xx) response.");
-    puts  ("                      0: reject, 1: follow automatically (default), 2: ask");
+    puts  ("                      0: reject, 1: follow automatically,");
+    puts  ("                      2: follow + replace To header (default), 3: ask");
 
     puts  ("");
     puts  ("When URL is specified, pjsua will immediately initiate call to that URL");
@@ -400,7 +405,7 @@ static void default_config(struct app_config *cfg)
     cfg->udp_cfg.port = 5060;
     pjsua_transport_config_default(&cfg->rtp_cfg);
     cfg->rtp_cfg.port = 4000;
-    cfg->redir_op = PJSIP_REDIRECT_ACCEPT;
+    cfg->redir_op = PJSIP_REDIRECT_ACCEPT_REPLACE;
     cfg->duration = NO_LIMIT;
     cfg->wav_id = PJSUA_INVALID_ID;
     cfg->rec_id = PJSUA_INVALID_ID;
@@ -589,7 +594,7 @@ static pj_status_t parse_args(int argc, char *argv[],
 	   OPT_STDOUT_NO_BUF,
 #endif
 	   OPT_AUTO_UPDATE_NAT,OPT_USE_COMPACT_FORM,OPT_DIS_CODEC,
-	   OPT_NO_FORCE_LR,
+	   OPT_DISABLE_STUN, OPT_NO_FORCE_LR,
 	   OPT_TIMER, OPT_TIMER_SE, OPT_TIMER_MIN_SE,
 	   OPT_VIDEO, OPT_EXTRA_AUDIO,
 	   OPT_VCAPTURE_DEV, OPT_VRENDER_DEV, OPT_PLAY_AVI, OPT_AUTO_PLAY_AVI
@@ -629,6 +634,7 @@ static pj_status_t parse_args(int argc, char *argv[],
 	{ "contact-params",1,0, OPT_CONTACT_PARAMS},
 	{ "contact-uri-params",1,0, OPT_CONTACT_URI_PARAMS},
 	{ "auto-update-nat",	1, 0, OPT_AUTO_UPDATE_NAT},
+	{ "disable-stun",0,0, OPT_DISABLE_STUN},
         { "use-compact-form",	0, 0, OPT_USE_COMPACT_FORM},
 	{ "accept-redirect", 1, 0, OPT_ACCEPT_REDIRECT},
 	{ "no-force-lr",0, 0, OPT_NO_FORCE_LR},
@@ -874,8 +880,8 @@ static pj_status_t parse_args(int argc, char *argv[],
 	    break;
 
 	case OPT_NO_UDP: /* no-udp */
-	    if (cfg->no_tcp) {
-	      PJ_LOG(1,(THIS_FILE,"Error: can not disable both TCP and UDP"));
+	    if (cfg->no_tcp && !cfg->use_tls) {
+	      PJ_LOG(1,(THIS_FILE,"Error: cannot disable both TCP and UDP"));
 	      return PJ_EINVAL;
 	    }
 
@@ -887,8 +893,8 @@ static pj_status_t parse_args(int argc, char *argv[],
 	    break;
 
 	case OPT_NO_TCP: /* no-tcp */
-	    if (cfg->no_udp) {
-	      PJ_LOG(1,(THIS_FILE,"Error: can not disable both TCP and UDP"));
+	    if (cfg->no_udp && !cfg->use_tls) {
+	      PJ_LOG(1,(THIS_FILE,"Error: cannot disable both TCP and UDP"));
 	      return PJ_EINVAL;
 	    }
 
@@ -1019,6 +1025,11 @@ static pj_status_t parse_args(int argc, char *argv[],
 
 	case OPT_AUTO_UPDATE_NAT:   /* OPT_AUTO_UPDATE_NAT */
             cur_acc->allow_contact_rewrite  = pj_strtoul(pj_cstr(&tmp, pj_optarg));
+	    break;
+
+	case OPT_DISABLE_STUN:
+	    cur_acc->sip_stun_use = PJSUA_STUN_USE_DISABLED;
+	    cur_acc->media_stun_use = PJSUA_STUN_USE_DISABLED;
 	    break;
 
 	case OPT_USE_COMPACT_FORM:
@@ -1171,42 +1182,54 @@ static pj_status_t parse_args(int argc, char *argv[],
 	    break;
 
 	case OPT_USE_ICE:
-	    cfg->media_cfg.enable_ice = PJ_TRUE;
+	    cfg->media_cfg.enable_ice =
+		    cur_acc->ice_cfg.enable_ice = PJ_TRUE;
 	    break;
 
 	case OPT_ICE_REGULAR:
-	    cfg->media_cfg.ice_opt.aggressive = PJ_FALSE;
+	    cfg->media_cfg.ice_opt.aggressive =
+		    cur_acc->ice_cfg.ice_opt.aggressive = PJ_FALSE;
 	    break;
 
 	case OPT_USE_TURN:
-	    cfg->media_cfg.enable_turn = PJ_TRUE;
+	    cfg->media_cfg.enable_turn =
+		    cur_acc->turn_cfg.enable_turn = PJ_TRUE;
 	    break;
 
 	case OPT_ICE_MAX_HOSTS:
-	    cfg->media_cfg.ice_max_host_cands = my_atoi(pj_optarg);
+	    cfg->media_cfg.ice_max_host_cands =
+		    cur_acc->ice_cfg.ice_max_host_cands = my_atoi(pj_optarg);
 	    break;
 
 	case OPT_ICE_NO_RTCP:
-	    cfg->media_cfg.ice_no_rtcp = PJ_TRUE;
+	    cfg->media_cfg.ice_no_rtcp =
+		    cur_acc->ice_cfg.ice_no_rtcp = PJ_TRUE;
 	    break;
 
 	case OPT_TURN_SRV:
-	    cfg->media_cfg.turn_server = pj_str(pj_optarg);
+	    cfg->media_cfg.turn_server =
+		    cur_acc->turn_cfg.turn_server = pj_str(pj_optarg);
 	    break;
 
 	case OPT_TURN_TCP:
-	    cfg->media_cfg.turn_conn_type = PJ_TURN_TP_TCP;
+	    cfg->media_cfg.turn_conn_type =
+		    cur_acc->turn_cfg.turn_conn_type = PJ_TURN_TP_TCP;
 	    break;
 
 	case OPT_TURN_USER:
-	    cfg->media_cfg.turn_auth_cred.type = PJ_STUN_AUTH_CRED_STATIC;
-	    cfg->media_cfg.turn_auth_cred.data.static_cred.realm = pj_str("*");
-	    cfg->media_cfg.turn_auth_cred.data.static_cred.username = pj_str(pj_optarg);
+	    cfg->media_cfg.turn_auth_cred.type =
+		    cur_acc->turn_cfg.turn_auth_cred.type = PJ_STUN_AUTH_CRED_STATIC;
+	    cfg->media_cfg.turn_auth_cred.data.static_cred.realm =
+		    cur_acc->turn_cfg.turn_auth_cred.data.static_cred.realm = pj_str("*");
+	    cfg->media_cfg.turn_auth_cred.data.static_cred.username =
+		    cur_acc->turn_cfg.turn_auth_cred.data.static_cred.username = pj_str(pj_optarg);
 	    break;
 
 	case OPT_TURN_PASSWD:
-	    cfg->media_cfg.turn_auth_cred.data.static_cred.data_type = PJ_STUN_PASSWD_PLAIN;
-	    cfg->media_cfg.turn_auth_cred.data.static_cred.data = pj_str(pj_optarg);
+	    cfg->media_cfg.turn_auth_cred.data.static_cred.data_type =
+		    cur_acc->turn_cfg.turn_auth_cred.data.static_cred.data_type = PJ_STUN_PASSWD_PLAIN;
+	    cfg->media_cfg.turn_auth_cred.data.static_cred.data =
+		    cur_acc->turn_cfg.turn_auth_cred.data.static_cred.data = pj_str(pj_optarg);
 	    break;
 
 #if defined(PJMEDIA_HAS_SRTP) && (PJMEDIA_HAS_SRTP != 0)
@@ -1577,6 +1600,13 @@ static pj_status_t parse_args(int argc, char *argv[],
 	    acfg->cred_count++;
 	}
 
+	if (acfg->ice_cfg.enable_ice) {
+	    acfg->ice_cfg_use = PJSUA_ICE_CONFIG_USE_CUSTOM;
+	}
+	if (acfg->turn_cfg.enable_turn) {
+	    acfg->turn_cfg_use = PJSUA_TURN_CONFIG_USE_CUSTOM;
+	}
+
 	/* When IMS mode is enabled for the account, verify that settings
 	 * are okay.
 	 */
@@ -1771,6 +1801,55 @@ static void write_account_settings(int acc_index, pj_str_t *result)
     /* MWI */
     if (acc_cfg->mwi_enabled)
 	pj_strcat2(result, "--mwi\n");
+
+    if (acc_cfg->sip_stun_use != PJSUA_STUN_USE_DEFAULT ||
+	acc_cfg->media_stun_use != PJSUA_STUN_USE_DEFAULT)
+    {
+	pj_strcat2(result, "--disable-stun\n");
+    }
+
+    /* Media Transport*/
+    if (acc_cfg->ice_cfg.enable_ice)
+	pj_strcat2(result, "--use-ice\n");
+
+    if (acc_cfg->ice_cfg.ice_opt.aggressive == PJ_FALSE)
+	pj_strcat2(result, "--ice-regular\n");
+
+    if (acc_cfg->turn_cfg.enable_turn)
+	pj_strcat2(result, "--use-turn\n");
+
+    if (acc_cfg->ice_cfg.ice_max_host_cands >= 0) {
+	pj_ansi_sprintf(line, "--ice_max_host_cands %d\n",
+	                acc_cfg->ice_cfg.ice_max_host_cands);
+	pj_strcat2(result, line);
+    }
+
+    if (acc_cfg->ice_cfg.ice_no_rtcp)
+	pj_strcat2(result, "--ice-no-rtcp\n");
+
+    if (acc_cfg->turn_cfg.turn_server.slen) {
+	pj_ansi_sprintf(line, "--turn-srv %.*s\n",
+			(int)acc_cfg->turn_cfg.turn_server.slen,
+			acc_cfg->turn_cfg.turn_server.ptr);
+	pj_strcat2(result, line);
+    }
+
+    if (acc_cfg->turn_cfg.turn_conn_type == PJ_TURN_TP_TCP)
+	pj_strcat2(result, "--turn-tcp\n");
+
+    if (acc_cfg->turn_cfg.turn_auth_cred.data.static_cred.username.slen) {
+	pj_ansi_sprintf(line, "--turn-user %.*s\n",
+			(int)acc_cfg->turn_cfg.turn_auth_cred.data.static_cred.username.slen,
+			acc_cfg->turn_cfg.turn_auth_cred.data.static_cred.username.ptr);
+	pj_strcat2(result, line);
+    }
+
+    if (acc_cfg->turn_cfg.turn_auth_cred.data.static_cred.data.slen) {
+	pj_ansi_sprintf(line, "--turn-passwd %.*s\n",
+			(int)acc_cfg->turn_cfg.turn_auth_cred.data.static_cred.data.slen,
+			acc_cfg->turn_cfg.turn_auth_cred.data.static_cred.data.ptr);
+	pj_strcat2(result, line);
+    }
 }
 
 
@@ -1966,49 +2045,6 @@ static int write_settings(const struct app_config *config,
 	pj_strcat2(&cfg, line);
     }
 #endif
-
-    /* Media Transport*/
-    if (config->media_cfg.enable_ice)
-	pj_strcat2(&cfg, "--use-ice\n");
-
-    if (config->media_cfg.ice_opt.aggressive == PJ_FALSE)
-	pj_strcat2(&cfg, "--ice-regular\n");
-
-    if (config->media_cfg.enable_turn)
-	pj_strcat2(&cfg, "--use-turn\n");
-
-    if (config->media_cfg.ice_max_host_cands >= 0) {
-	pj_ansi_sprintf(line, "--ice_max_host_cands %d\n",
-			config->media_cfg.ice_max_host_cands);
-	pj_strcat2(&cfg, line);
-    }
-
-    if (config->media_cfg.ice_no_rtcp)
-	pj_strcat2(&cfg, "--ice-no-rtcp\n");
-
-    if (config->media_cfg.turn_server.slen) {
-	pj_ansi_sprintf(line, "--turn-srv %.*s\n",
-			(int)config->media_cfg.turn_server.slen,
-			config->media_cfg.turn_server.ptr);
-	pj_strcat2(&cfg, line);
-    }
-
-    if (config->media_cfg.turn_conn_type == PJ_TURN_TP_TCP)
-	pj_strcat2(&cfg, "--turn-tcp\n");
-
-    if (config->media_cfg.turn_auth_cred.data.static_cred.username.slen) {
-	pj_ansi_sprintf(line, "--turn-user %.*s\n",
-			(int)config->media_cfg.turn_auth_cred.data.static_cred.username.slen,
-			config->media_cfg.turn_auth_cred.data.static_cred.username.ptr);
-	pj_strcat2(&cfg, line);
-    }
-
-    if (config->media_cfg.turn_auth_cred.data.static_cred.data.slen) {
-	pj_ansi_sprintf(line, "--turn-passwd %.*s\n",
-			(int)config->media_cfg.turn_auth_cred.data.static_cred.data.slen,
-			config->media_cfg.turn_auth_cred.data.static_cred.data.ptr);
-	pj_strcat2(&cfg, line);
-    }
 
     /* Media */
     if (config->null_audio)
@@ -2206,7 +2242,7 @@ static int write_settings(const struct app_config *config,
     }
 
     /* accept-redirect */
-    if (config->redir_op != PJSIP_REDIRECT_ACCEPT) {
+    if (config->redir_op != PJSIP_REDIRECT_ACCEPT_REPLACE) {
 	pj_ansi_sprintf(line, "--accept-redirect %d\n",
 			config->redir_op);
 	pj_strcat2(&cfg, line);
@@ -3016,8 +3052,8 @@ static pjsip_redirect_op call_on_redirected(pjsua_call_id call_id,
 	}
 
 	PJ_LOG(3,(THIS_FILE, "Call %d is being redirected to %.*s. "
-		  "Press 'Ra' to accept, 'Rr' to reject, or 'Rd' to "
-		  "disconnect.",
+		  "Press 'Ra' to accept+replace To header, 'RA' to accept, "
+		  "'Rr' to reject, or 'Rd' to disconnect.",
 		  call_id, len, uristr));
     }
 
@@ -4339,7 +4375,7 @@ static void vid_handle_menu(char *menuin)
 		status = pjsua_vid_codec_set_param(&cid, &cp);
 	    }
 	    if (status != PJ_SUCCESS)
-		PJ_PERROR(1,(THIS_FILE, status, "Set codec bitrate error"));
+		PJ_PERROR(1,(THIS_FILE, status, "Set codec size error"));
 	} else
 	    goto on_error;
     } else
@@ -4366,7 +4402,7 @@ static void app_config_init_video(pjsua_acc_config *acc_cfg)
  */
 void console_app_main(const pj_str_t *uri_to_call)
 {
-    char menuin[32];
+    char menuin[80];
     char buf[128];
     char text[128];
     int i, count;
@@ -5346,6 +5382,9 @@ void console_app_main(const pj_str_t *uri_to_call)
 		PJ_LOG(1,(THIS_FILE, "Call %d has gone", current_call));
 	    } else if (menuin[1] == 'a') {
 		pjsua_call_process_redirect(current_call, 
+					    PJSIP_REDIRECT_ACCEPT_REPLACE);
+	    } else if (menuin[1] == 'A') {
+		pjsua_call_process_redirect(current_call, 
 					    PJSIP_REDIRECT_ACCEPT);
 	    } else if (menuin[1] == 'r') {
 		pjsua_call_process_redirect(current_call,
@@ -5875,6 +5914,8 @@ pj_status_t app_init(int argc, char *argv[])
 	    pjsua_acc_config acc_cfg;
 	    pjsua_acc_get_config(aid, &acc_cfg);
 	    app_config_init_video(&acc_cfg);
+	    if (app_config.ipv6)
+		acc_cfg.ipv6_media_use = PJSUA_IPV6_ENABLED;
 	    pjsua_acc_modify(aid, &acc_cfg);
 	}
 	//pjsua_acc_set_transport(aid, transport_id);
@@ -5913,6 +5954,33 @@ pj_status_t app_init(int argc, char *argv[])
 
     }
 
+    /* Add TCP IPv6 transport unless it's disabled. */
+    if (!app_config.no_tcp && app_config.ipv6) {
+	pjsua_acc_id aid;
+	pjsip_transport_type_e type = PJSIP_TRANSPORT_TCP6;
+
+	tcp_cfg.port += 10;
+
+	status = pjsua_transport_create(type,
+					&tcp_cfg,
+					&transport_id);
+	if (status != PJ_SUCCESS)
+	    goto on_error;
+
+	/* Add local account */
+	pjsua_acc_add_local(transport_id, PJ_TRUE, &aid);
+	if (PJMEDIA_HAS_VIDEO) {
+	    pjsua_acc_config acc_cfg;
+	    pjsua_acc_get_config(aid, &acc_cfg);
+	    app_config_init_video(&acc_cfg);
+	    if (app_config.ipv6)
+		acc_cfg.ipv6_media_use = PJSUA_IPV6_ENABLED;
+	    pjsua_acc_modify(aid, &acc_cfg);
+	}
+	//pjsua_acc_set_transport(aid, transport_id);
+	pjsua_acc_set_online_status(current_acc, PJ_TRUE);
+    }
+
 
 #if defined(PJSIP_HAS_TLS_TRANSPORT) && PJSIP_HAS_TLS_TRANSPORT!=0
     /* Add TLS transport when application wants one */
@@ -5944,6 +6012,34 @@ pj_status_t app_init(int argc, char *argv[])
 	}
 	pjsua_acc_set_online_status(acc_id, PJ_TRUE);
     }
+
+    /* Add TLS IPv6 transport unless it's disabled. */
+    if (app_config.use_tls && app_config.ipv6) {
+	pjsua_acc_id aid;
+	pjsip_transport_type_e type = PJSIP_TRANSPORT_TLS6;
+
+	tcp_cfg.port += 10;
+
+	status = pjsua_transport_create(type,
+					&tcp_cfg,
+					&transport_id);
+	if (status != PJ_SUCCESS)
+	    goto on_error;
+
+	/* Add local account */
+	pjsua_acc_add_local(transport_id, PJ_TRUE, &aid);
+	if (PJMEDIA_HAS_VIDEO) {
+	    pjsua_acc_config acc_cfg;
+	    pjsua_acc_get_config(aid, &acc_cfg);
+	    app_config_init_video(&acc_cfg);
+	    if (app_config.ipv6)
+		acc_cfg.ipv6_media_use = PJSUA_IPV6_ENABLED;
+	    pjsua_acc_modify(aid, &acc_cfg);
+	}
+	//pjsua_acc_set_transport(aid, transport_id);
+	pjsua_acc_set_online_status(current_acc, PJ_TRUE);
+    }
+
 #endif
 
     if (transport_id == -1) {
@@ -5993,16 +6089,6 @@ pj_status_t app_init(int argc, char *argv[])
 				     (pj_uint8_t)(PJMEDIA_CODEC_PRIO_NORMAL+i+9));
 #endif
     }
-
-    /* Add RTP transports */
-    if (app_config.ipv6)
-	status = create_ipv6_media_transports();
-  #if DISABLED_FOR_TICKET_1185
-    else
-	status = pjsua_media_transports_create(&app_config.rtp_cfg);
-  #endif
-    if (status != PJ_SUCCESS)
-	goto on_error;
 
     /* Use null sound device? */
 #ifndef STEREO_DEMO
@@ -6218,95 +6304,4 @@ static void stereo_demo()
 
 }
 #endif
-
-static pj_status_t create_ipv6_media_transports(void)
-{
-    pjsua_media_transport tp[PJSUA_MAX_CALLS];
-    pj_status_t status;
-    int port = app_config.rtp_cfg.port;
-    unsigned i;
-
-    for (i=0; i<app_config.cfg.max_calls; ++i) {
-	enum { MAX_RETRY = 10 };
-	pj_sock_t sock[2];
-	pjmedia_sock_info si;
-	unsigned j;
-
-	/* Get rid of uninitialized var compiler warning with MSVC */
-	status = PJ_SUCCESS;
-
-	for (j=0; j<MAX_RETRY; ++j) {
-	    unsigned k;
-
-	    for (k=0; k<2; ++k) {
-		pj_sockaddr bound_addr;
-
-		status = pj_sock_socket(pj_AF_INET6(), pj_SOCK_DGRAM(), 0, &sock[k]);
-		if (status != PJ_SUCCESS)
-		    break;
-
-		status = pj_sockaddr_init(pj_AF_INET6(), &bound_addr,
-					  &app_config.rtp_cfg.bound_addr, 
-					  (unsigned short)(port+k));
-		if (status != PJ_SUCCESS)
-		    break;
-
-		status = pj_sock_bind(sock[k], &bound_addr, 
-				      pj_sockaddr_get_len(&bound_addr));
-		if (status != PJ_SUCCESS)
-		    break;
-	    }
-	    if (status != PJ_SUCCESS) {
-		if (k==1)
-		    pj_sock_close(sock[0]);
-
-		if (port != 0)
-		    port += 10;
-		else
-		    break;
-
-		continue;
-	    }
-
-	    pj_bzero(&si, sizeof(si));
-	    si.rtp_sock = sock[0];
-	    si.rtcp_sock = sock[1];
-	
-	    pj_sockaddr_init(pj_AF_INET6(), &si.rtp_addr_name, 
-			     &app_config.rtp_cfg.public_addr, 
-			     (unsigned short)(port));
-	    pj_sockaddr_init(pj_AF_INET6(), &si.rtcp_addr_name, 
-			     &app_config.rtp_cfg.public_addr, 
-			     (unsigned short)(port+1));
-
-	    status = pjmedia_transport_udp_attach(pjsua_get_pjmedia_endpt(),
-						  NULL,
-						  &si,
-						  0,
-						  &tp[i].transport);
-	    if (port != 0)
-		port += 10;
-	    else
-		break;
-
-	    if (status == PJ_SUCCESS)
-		break;
-	}
-
-	if (status != PJ_SUCCESS) {
-	    pjsua_perror(THIS_FILE, "Error creating IPv6 UDP media transport", 
-			 status);
-	    for (j=0; j<i; ++j) {
-		pjmedia_transport_close(tp[j].transport);
-	    }
-	    return status;
-	}
-    }
-
-#if DISABLED_FOR_TICKET_1185
-    return pjsua_media_transports_attach(tp, i, PJ_TRUE);
-#else
-    return PJ_ENOTSUP;
-#endif
-}
 

@@ -2975,11 +2975,15 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\pjmedia-codec\opencore_amrnb.c"
+				RelativePath="..\src\pjmedia-codec\opencore_amr.c"
 				>
 			</File>
 			<File
 				RelativePath="..\src\pjmedia-codec\passthrough.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\pjmedia-codec\silk.c"
 				>
 			</File>
 			<File
@@ -3122,7 +3126,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\include\pjmedia-codec\opencore_amrnb.h"
+				RelativePath="..\include\pjmedia-codec\opencore_amr.h"
 				>
 			</File>
 			<File
@@ -3131,6 +3135,10 @@
 			</File>
 			<File
 				RelativePath="..\include\pjmedia-codec.h"
+				>
+			</File>
+			<File
+				RelativePath="..\include\pjmedia-codec\silk.h"
 				>
 			</File>
 			<File

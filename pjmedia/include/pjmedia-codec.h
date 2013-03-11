@@ -1,4 +1,4 @@
-/* $Id: pjmedia-codec.h 4049 2012-04-13 06:24:23Z ming $ */
+/* $Id: pjmedia-codec.h 4331 2013-01-23 06:18:18Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -34,8 +34,9 @@
 #include <pjmedia-codec/g722.h>
 #include <pjmedia-codec/g7221.h>
 #include <pjmedia-codec/ipp_codecs.h>
+#include <pjmedia-codec/opencore_amr.h>
 #include <pjmedia-codec/passthrough.h>
-#include <pjmedia-codec/opencore_amrnb.h>
+#include <pjmedia-codec/silk.h>
 
 
 #endif	/* __PJMEDIA_CODEC_PJMEDIA_CODEC_H__ */

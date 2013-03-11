@@ -1,4 +1,4 @@
-/* $Id: pjsua_aud.c 4145 2012-05-22 23:13:22Z bennylp $ */
+/* $Id: pjsua_aud.c 4336 2013-01-29 08:15:02Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -291,7 +291,8 @@ pj_status_t pjsua_aud_subsys_init()
 	/* Init the passthrough codec with supported formats only */
 	codec_cfg.passthrough.setting.fmt_cnt = ext_fmt_cnt;
 	codec_cfg.passthrough.setting.fmts = ext_fmts;
-	codec_cfg.passthrough.setting.ilbc_mode = cfg->ilbc_mode;
+	codec_cfg.passthrough.setting.ilbc_mode =
+            pjsua_var.media_cfg.ilbc_mode;
     }
 #endif /* PJMEDIA_HAS_PASSTHROUGH_CODECS */
 
@@ -559,7 +560,12 @@ static void dtmf_callback(pjmedia_stream *strm, void *user_data,
     pj_log_pop_indent();
 }
 
-
+/* Internal function: update audio channel after SDP negotiation.
+ * Warning: do not use temporary/flip-flop pool, e.g: inv->pool_prov,
+ *          for creating stream, etc, as after SDP negotiation and when
+ *	    the SDP media is not changed, the stream should remain running
+ *          while the temporary/flip-flop pool may be released.
+ */
 pj_status_t pjsua_aud_channel_update(pjsua_call_media *call_med,
                                      pj_pool_t *tmp_pool,
                                      pjmedia_stream_info *si,
@@ -582,20 +588,6 @@ pj_status_t pjsua_aud_channel_update(pjsua_call_media *call_med,
 
     /* Check if no media is active */
     if (si->dir != PJMEDIA_DIR_NONE) {
-
-	/* Override ptime, if this option is specified. */
-	if (pjsua_var.media_cfg.ptime != 0) {
-	    si->param->setting.frm_per_pkt = (pj_uint8_t)
-		(pjsua_var.media_cfg.ptime / si->param->info.frm_ptime);
-	    if (si->param->setting.frm_per_pkt == 0)
-		si->param->setting.frm_per_pkt = 1;
-	}
-
-	/* Disable VAD, if this option is specified. */
-	if (pjsua_var.media_cfg.no_vad) {
-	    si->param->setting.vad = 0;
-	}
-
 
 	/* Optionally, application may modify other stream settings here
 	 * (such as jitter buffer parameters, codec ptime, etc.)
@@ -678,7 +670,7 @@ pj_status_t pjsua_aud_channel_update(pjsua_call_media *call_med,
 		port_name = pj_str("call");
 	    }
 	    status = pjmedia_conf_add_port( pjsua_var.mconf,
-					    call->inv->pool_prov,
+					    call->inv->pool,
 					    media_port,
 					    &port_name,
 					    (unsigned*)
@@ -1569,6 +1561,14 @@ static pj_status_t create_aud_param(pjmedia_aud_param *param,
 	param->ec_tail_ms = pjsua_var.media_cfg.ec_tail_len;
     } else {
 	param->flags &= ~(PJMEDIA_AUD_DEV_CAP_EC|PJMEDIA_AUD_DEV_CAP_EC_TAIL);
+    }
+
+    /* VAD settings */
+    if (pjsua_var.media_cfg.no_vad) {
+	param->flags &= ~PJMEDIA_AUD_DEV_CAP_VAD;
+    } else {
+	param->flags |= PJMEDIA_AUD_DEV_CAP_VAD;
+	param->vad_enabled = PJ_TRUE;
     }
 
     return PJ_SUCCESS;

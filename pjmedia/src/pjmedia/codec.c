@@ -1,4 +1,4 @@
-/* $Id: codec.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: codec.c 4254 2012-09-14 04:06:29Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -38,6 +38,39 @@ struct pjmedia_codec_default_param
 
 /* Sort codecs in codec manager based on priorities */
 static void sort_codecs(pjmedia_codec_mgr *mgr);
+
+
+/*
+ * Duplicate codec parameter.
+ */
+PJ_DEF(pjmedia_codec_param*) pjmedia_codec_param_clone(
+					pj_pool_t *pool, 
+					const pjmedia_codec_param *src)
+{
+    pjmedia_codec_param *p;
+    unsigned i;
+
+    PJ_ASSERT_RETURN(pool && src, NULL);
+
+    p = PJ_POOL_ZALLOC_T(pool, pjmedia_codec_param);
+
+    /* Update codec param */
+    pj_memcpy(p, src, sizeof(pjmedia_codec_param));
+    for (i = 0; i < src->setting.dec_fmtp.cnt; ++i) {
+	pj_strdup(pool, &p->setting.dec_fmtp.param[i].name, 
+		  &src->setting.dec_fmtp.param[i].name);
+	pj_strdup(pool, &p->setting.dec_fmtp.param[i].val, 
+		  &src->setting.dec_fmtp.param[i].val);
+    }
+    for (i = 0; i < src->setting.enc_fmtp.cnt; ++i) {
+	pj_strdup(pool, &p->setting.enc_fmtp.param[i].name, 
+		  &src->setting.enc_fmtp.param[i].name);
+	pj_strdup(pool, &p->setting.enc_fmtp.param[i].val, 
+		  &src->setting.enc_fmtp.param[i].val);
+    }
+
+    return p;
+}
 
 
 /*
@@ -600,22 +633,11 @@ PJ_DEF(pj_status_t) pjmedia_codec_mgr_set_default_param(
     codec_desc->param = PJ_POOL_ZALLOC_T(pool, pjmedia_codec_default_param);
     p = codec_desc->param;
     p->pool = pool;
-    p->param = PJ_POOL_ZALLOC_T(pool, pjmedia_codec_param);
 
     /* Update codec param */
-    pj_memcpy(p->param, param, sizeof(pjmedia_codec_param));
-    for (i = 0; i < param->setting.dec_fmtp.cnt; ++i) {
-	pj_strdup(pool, &p->param->setting.dec_fmtp.param[i].name, 
-		  &param->setting.dec_fmtp.param[i].name);
-	pj_strdup(pool, &p->param->setting.dec_fmtp.param[i].val, 
-		  &param->setting.dec_fmtp.param[i].val);
-    }
-    for (i = 0; i < param->setting.enc_fmtp.cnt; ++i) {
-	pj_strdup(pool, &p->param->setting.enc_fmtp.param[i].name, 
-		  &param->setting.enc_fmtp.param[i].name);
-	pj_strdup(pool, &p->param->setting.enc_fmtp.param[i].val, 
-		  &param->setting.enc_fmtp.param[i].val);
-    }
+    p->param = pjmedia_codec_param_clone(pool, param);
+    if (!p->param)
+	return PJ_EINVAL;
 
     pj_mutex_unlock(mgr->mutex);
 

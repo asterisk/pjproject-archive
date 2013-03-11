@@ -1,4 +1,4 @@
-/* $Id: stun_transaction.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: stun_transaction.h 4360 2013-02-21 11:26:35Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -27,6 +27,7 @@
 
 #include <pjnath/stun_msg.h>
 #include <pjnath/stun_config.h>
+#include <pj/lock.h>
 
 
 PJ_BEGIN_DECL
@@ -124,6 +125,7 @@ typedef struct pj_stun_tsx_cb
  * @param cfg		The STUN endpoint, which will be used to retrieve
  *			various settings for the transaction.
  * @param pool		Pool to be used to allocate memory from.
+ * @param grp_lock	Group lock to synchronize.
  * @param cb		Callback structure, to be used by the transaction
  *			to send message and to notify the application about
  *			the completion of the transaction.
@@ -133,6 +135,7 @@ typedef struct pj_stun_tsx_cb
  */
 PJ_DECL(pj_status_t) pj_stun_client_tsx_create(	pj_stun_config *cfg,
 					        pj_pool_t *pool,
+					        pj_grp_lock_t *grp_lock,
 						const pj_stun_tsx_cb *cb,
 						pj_stun_client_tsx **p_tsx);
 
@@ -159,15 +162,14 @@ pj_stun_client_tsx_schedule_destroy(pj_stun_client_tsx *tsx,
 
 
 /**
- * Destroy a STUN client transaction immediately. This function can be 
- * called at any time to stop the transaction and destroy it.
+ * Stop the client transaction.
  *
  * @param tsx		The STUN transaction.
  *
  * @return		PJ_SUCCESS on success or PJ_EINVAL if the parameter
  *			is NULL.
  */
-PJ_DECL(pj_status_t) pj_stun_client_tsx_destroy(pj_stun_client_tsx *tsx);
+PJ_DECL(pj_status_t) pj_stun_client_tsx_stop(pj_stun_client_tsx *tsx);
 
 
 /**
@@ -234,13 +236,16 @@ PJ_DECL(pj_status_t) pj_stun_client_tsx_send_msg(pj_stun_client_tsx *tsx,
  * but this functionality is needed by ICE.
  *
  * @param tsx		The STUN client transaction instance.
+ * @param mod_count     Boolean flag to indicate whether transmission count
+ *                      needs to be incremented.
  *
  * @return		PJ_SUCCESS on success, or PJNATH_ESTUNDESTROYED 
  *			when the user has destroyed the transaction in 
  *			\a on_send_msg() callback, or any other error code
  *			as returned by \a on_send_msg() callback.
  */
-PJ_DECL(pj_status_t) pj_stun_client_tsx_retransmit(pj_stun_client_tsx *tsx);
+PJ_DECL(pj_status_t) pj_stun_client_tsx_retransmit(pj_stun_client_tsx *tsx,
+                                                   pj_bool_t mod_count);
 
 
 /**

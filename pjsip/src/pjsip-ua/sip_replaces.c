@@ -1,4 +1,4 @@
-/* $Id: sip_replaces.c 3999 2012-03-30 07:10:13Z bennylp $ */
+/* $Id: sip_replaces.c 4268 2012-09-28 08:56:08Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -305,10 +305,19 @@ PJ_DEF(pj_status_t) pjsip_replaces_verify_request( pjsip_rx_data *rdata,
      * initiated by this UA, it returns a 481 (Call/Transaction Does Not
      * Exist) response to the new INVITE.
      */
-    if (inv->state <= PJSIP_INV_STATE_EARLY && inv->role != PJSIP_ROLE_UAC) {
-	code = PJSIP_SC_CALL_TSX_DOES_NOT_EXIST;
-	warn_text = "Found early INVITE session but not initiated by this UA";
-	goto on_return;
+    if (inv->state <= PJSIP_INV_STATE_EARLY && inv->role != PJSIP_ROLE_UAC)
+    {
+	/* Really return 481 only if call haven't reached early state or
+	 * accept-replace-in-early-state (ticket #1587) is not allowed.
+	 */
+	if (inv->state != PJSIP_INV_STATE_EARLY ||
+	    pjsip_cfg()->endpt.accept_replace_in_early_state == PJ_FALSE)
+	{
+	    code = PJSIP_SC_CALL_TSX_DOES_NOT_EXIST;
+	    warn_text = "Found early INVITE session but not initiated by "
+			"this UA";
+	    goto on_return;
+	}
     }
 
 

@@ -1,4 +1,4 @@
-/* $Id: pjsua_internal.h 4175 2012-06-22 08:53:11Z nanang $ */
+/* $Id: pjsua_internal.h 4342 2013-02-06 13:48:45Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -155,10 +155,7 @@ struct pjsua_call
     char    last_text_buf_[128];    /**< Buffer for last_text.		    */
 
     struct {
-	pj_timer_entry	 reinv_timer;/**< Reinvite retry timer.		    */
-	pj_uint32_t	 sdp_ver;    /**< SDP version of the bad answer     */
 	int		 retry_cnt;  /**< Retry count.			    */
-        pj_bool_t        pending;    /**< Pending until CONFIRMED state     */
     } lock_codec;		     /**< Data for codec locking when answer
 					  contains multiple codecs.	    */
 
@@ -170,6 +167,7 @@ struct pjsua_call
         union {
             struct {
                 pjsua_msg_data  *msg_data;/**< Headers for outgoing INVITE. */
+                pj_bool_t        hangup;  /**< Call is hangup?              */
             } out_call;
             struct {
                 call_answer      answers;/**< A list of call answers.       */
@@ -184,6 +182,10 @@ struct pjsua_call
 					    offer.			    */
     unsigned		 rem_vid_cnt;  /**< No of active video in last remote
 					    offer.			    */
+    
+    pj_timer_entry	 reinv_timer;  /**< Reinvite retry timer.	    */
+    pj_bool_t	 	 reinv_pending;/**< Pending until CONFIRMED state.  */
+    pj_bool_t	 	 reinv_ice_sent;/**< Has reinvite for ICE upd sent? */
 };
 
 
@@ -336,6 +338,9 @@ typedef struct pjsua_stun_resolve
     PJ_DECL_LIST_MEMBER(struct pjsua_stun_resolve);
 
     pj_pool_t		*pool;	    /**< Pool		    */
+    int			 ref_cnt;   /**< Reference count    */
+    pj_bool_t		 destroy_flag; /**< To be destroyed */
+    pj_bool_t		 has_result;
     unsigned		 count;	    /**< # of entries	    */
     pj_str_t		*srv;	    /**< Array of entries   */
     unsigned		 idx;	    /**< Current index	    */
@@ -583,6 +588,20 @@ pj_status_t resolve_stun_server(pj_bool_t wait);
  */
 pj_status_t normalize_route_uri(pj_pool_t *pool, pj_str_t *uri);
 
+/* acc use stun? */
+pj_bool_t pjsua_sip_acc_is_using_stun(pjsua_acc_id acc_id);
+
+/* Get local transport address suitable to be used for Via or Contact address
+ * to send request to the specified destination URI.
+ */
+pj_status_t pjsua_acc_get_uac_addr(pjsua_acc_id acc_id,
+				   pj_pool_t *pool,
+				   const pj_str_t *dst_uri,
+				   pjsip_host_port *addr,
+				   pjsip_transport_type_e *p_tp_type,
+				   int *p_secure,
+				   const void **p_tp);
+
 /**
  * Handle incoming invite request.
  */
@@ -798,6 +817,10 @@ PJ_DECL(void) pjsua_vid_win_reset(pjsua_vid_win_id wid);
 #  define pjsua_vid_win_reset(wid)
 #endif
 
+/*
+ * Schedule check for the need of re-INVITE/UPDATE after media update
+ */
+void pjsua_call_schedule_reinvite_check(pjsua_call *call, unsigned delay_ms);
 
 PJ_END_DECL
 

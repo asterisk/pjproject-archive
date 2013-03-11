@@ -1,4 +1,4 @@
-/* $Id: v4l2_dev.c 3901 2011-12-07 10:43:28Z nanang $ */
+/* $Id: v4l2_dev.c 4310 2012-12-19 05:38:28Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -670,6 +670,7 @@ static pj_status_t vid4lin_stream_get_frame_mmap(vid4lin_stream *stream,
     struct v4l2_buffer buf;
     pj_time_val time;
     pj_status_t status = PJ_SUCCESS;
+    unsigned tmp_idx;
 
     pj_bzero(&buf, sizeof(buf));
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -697,9 +698,11 @@ static pj_status_t vid4lin_stream_get_frame_mmap(vid4lin_stream *stream,
     pj_memcpy(frame->buf, stream->buffers[buf.index].start, buf.bytesused);
 
 on_return:
+    tmp_idx = buf.index;
     pj_bzero(&buf, sizeof(buf));
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
+    buf.index = tmp_idx;
     xioctl(stream->fd, VIDIOC_QBUF, &buf);
 
     return status;

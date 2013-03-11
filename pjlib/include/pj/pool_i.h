@@ -1,4 +1,4 @@
-/* $Id: pool_i.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: pool_i.h 4298 2012-11-22 05:00:01Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -47,7 +47,7 @@ PJ_IDEF(void*) pj_pool_alloc_from_block( pj_pool_block *block, pj_size_t size )
     if (size & (PJ_POOL_ALIGNMENT-1)) {
 	size = (size + PJ_POOL_ALIGNMENT) & ~(PJ_POOL_ALIGNMENT-1);
     }
-    if ((unsigned)(block->end - block->cur) >= size) {
+    if ((pj_size_t)(block->end - block->cur) >= size) {
 	void *ptr = block->cur;
 	block->cur += size;
 	return ptr;

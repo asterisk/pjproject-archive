@@ -1,4 +1,4 @@
-/* $Id: pool_caching.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: pool_caching.c 4298 2012-11-22 05:00:01Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -178,7 +178,11 @@ static pj_pool_t* cpool_create_pool(pj_pool_factory *pf,
 	pj_pool_init_int(pool, name, increment_sz, callback);
 
 	/* Update pool manager's free capacity. */
-	cp->capacity -= pj_pool_get_capacity(pool);
+	if (cp->capacity > pj_pool_get_capacity(pool)) {
+	    cp->capacity -= pj_pool_get_capacity(pool);
+	} else {
+	    cp->capacity = 0;
+	}
 
 	PJ_LOG(6, (pool->obj_name, "pool reused, size=%u", pool->capacity));
     }
@@ -199,7 +203,7 @@ static pj_pool_t* cpool_create_pool(pj_pool_factory *pf,
 static void cpool_release_pool( pj_pool_factory *pf, pj_pool_t *pool)
 {
     pj_caching_pool *cp = (pj_caching_pool*)pf;
-    unsigned pool_capacity;
+    pj_size_t pool_capacity;
     unsigned i;
 
     PJ_CHECK_STACK();

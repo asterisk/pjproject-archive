@@ -1,4 +1,4 @@
-/* $Id: errno.h 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: errno.h 4359 2013-02-21 11:18:36Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -422,6 +422,11 @@ PJ_DECL(pj_status_t) pj_register_strerror(pj_status_t start_code,
  * Unsupported address family
  */
 #define PJ_EAFNOTSUP	    (PJ_ERRNO_START_STATUS + 22)/* 70022 */
+/**
+ * @hideinitializer
+ * Object no longer exists
+ */
+#define PJ_EGONE	    (PJ_ERRNO_START_STATUS + 23)/* 70023 */
 
 /** @} */   /* pj_errnum */
 

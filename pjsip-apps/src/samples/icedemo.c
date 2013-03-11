@@ -1,4 +1,4 @@
-/* $Id: icedemo.c 3841 2011-10-24 09:28:13Z ming $ */
+/* $Id: icedemo.c 4217 2012-07-27 17:24:12Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -614,6 +614,7 @@ static int encode_session(char buffer[], unsigned maxlen)
 	}
 
 	/* Enumerate all candidates for this component */
+	cand_cnt = PJ_ARRAY_SIZE(cand);
 	status = pj_ice_strans_enum_cands(icedemo.icest, comp+1,
 					  &cand_cnt, cand);
 	if (status != PJ_SUCCESS)

@@ -1,4 +1,4 @@
-/* $Id: audiodev.h 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: audiodev.h 4243 2012-08-31 11:42:17Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -423,6 +423,12 @@ typedef struct pjmedia_aud_param
      * if PJMEDIA_AUD_DEV_CAP_CNG is set in the flags.
      */
     pj_bool_t cng_enabled;
+
+    /** 
+     * Enable/disable VAD. This setting is optional, and will only be used
+     * if PJMEDIA_AUD_DEV_CAP_VAD is set in the flags.
+     */
+    pj_bool_t vad_enabled;
 
 } pjmedia_aud_param;
 

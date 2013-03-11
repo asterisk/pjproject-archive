@@ -1,4 +1,4 @@
-/* $Id: sdp.h 3945 2012-01-27 09:12:59Z nanang $ */
+/* $Id: sdp.h 4367 2013-02-21 20:49:19Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -683,6 +683,23 @@ PJ_DECL(int) pjmedia_sdp_print( const pjmedia_sdp_session *sdp,
  * @return	    PJ_SUCCESS on success.
  */
 PJ_DECL(pj_status_t) pjmedia_sdp_validate(const pjmedia_sdp_session *sdp);
+
+
+/**
+ * Perform semantic validation for the specified SDP session descriptor.
+ * This function perform validation beyond just syntactic verification,
+ * such as to verify the value of network type and address type, check
+ * the connection line, and verify that \a rtpmap attribute is present
+ * when dynamic payload type is used.
+ *
+ * @param sdp	    The SDP session descriptor to validate.
+ * @param strict    Flag whether the check should be strict, i.e: allow
+ *		    media without connection line when port is zero.
+ *
+ * @return	    PJ_SUCCESS on success.
+ */
+PJ_DECL(pj_status_t) pjmedia_sdp_validate2(const pjmedia_sdp_session *sdp,
+					   pj_bool_t strict);
 
 
 /**

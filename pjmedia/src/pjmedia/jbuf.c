@@ -1,4 +1,4 @@
-/* $Id: jbuf.c 4100 2012-04-26 16:57:47Z nanang $ */
+/* $Id: jbuf.c 4369 2013-02-21 21:55:54Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -167,7 +167,7 @@ struct pjmedia_jbuf
 /* Enabling this would log the jitter buffer state about once per 
  * second.
  */
-#if 1
+#if 0
 #  define TRACE__(args)	    PJ_LOG(5,args)
 #else
 #  define TRACE__(args)
@@ -599,6 +599,7 @@ PJ_DEF(pj_status_t) pjmedia_jbuf_set_fixed( pjmedia_jbuf *jb,
     jb->jb_min_prefetch = jb->jb_max_prefetch = 
 	jb->jb_prefetch = jb->jb_init_prefetch = prefetch;
 
+    pjmedia_jbuf_set_discard(jb, PJMEDIA_JB_DISCARD_NONE);
     return PJ_SUCCESS;
 }
 
@@ -724,6 +725,8 @@ static void jbuf_calculate_jitter(pjmedia_jbuf *jb)
 		jb->jb_prefetch = jb->jb_eff_level;
 		if (jb->jb_prefetch < jb->jb_min_prefetch) 
 		    jb->jb_prefetch = jb->jb_min_prefetch;
+		if (jb->jb_prefetch > jb->jb_max_prefetch)
+		    jb->jb_prefetch = jb->jb_max_prefetch;
 	    }
 
 	    /* Reset history */
@@ -747,6 +750,8 @@ static void jbuf_calculate_jitter(pjmedia_jbuf *jb)
 	    jb->jb_prefetch = jb->jb_eff_level;
 	    if (jb->jb_prefetch > jb->jb_max_prefetch)
 		jb->jb_prefetch = jb->jb_max_prefetch;
+	    if (jb->jb_prefetch < jb->jb_min_prefetch)
+		jb->jb_prefetch = jb->jb_min_prefetch;
 	}
 
 	jb->jb_stable_hist = 0;

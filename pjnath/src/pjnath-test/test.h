@@ -1,4 +1,4 @@
-/* $Id: test.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: test.h 4360 2013-02-21 11:26:35Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -25,16 +25,20 @@
 #define INCLUDE_ICE_TEST	    1
 #define INCLUDE_STUN_SOCK_TEST	    1
 #define INCLUDE_TURN_SOCK_TEST	    1
+#define INCLUDE_CONCUR_TEST    	    1
 
 int stun_test(void);
 int sess_auth_test(void);
 int stun_sock_test(void);
 int turn_sock_test(void);
 int ice_test(void);
+int concur_test(void);
 int test_main(void);
 
 extern void app_perror(const char *title, pj_status_t rc);
 extern pj_pool_factory *mem;
+
+int ice_one_conc_test(pj_stun_config *stun_cfg, int err_quit);
 
 ////////////////////////////////////
 /*

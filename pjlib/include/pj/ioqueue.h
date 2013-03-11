@@ -1,4 +1,4 @@
-/* $Id: ioqueue.h 3553 2011-05-05 06:14:19Z nanang $
+/* $Id: ioqueue.h 4359 2013-02-21 11:18:36Z bennylp $
  */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
@@ -400,6 +400,19 @@ PJ_DECL(pj_status_t) pj_ioqueue_set_default_concurrency(pj_ioqueue_t *ioqueue,
 PJ_DECL(pj_status_t) pj_ioqueue_register_sock( pj_pool_t *pool,
 					       pj_ioqueue_t *ioque,
 					       pj_sock_t sock,
+					       void *user_data,
+					       const pj_ioqueue_callback *cb,
+                                               pj_ioqueue_key_t **key );
+
+/**
+ * Variant of pj_ioqueue_register_sock() with additional group lock parameter.
+ * If group lock is set for the key, the key will add the reference counter
+ * when the socket is registered and decrease it when it is destroyed.
+ */
+PJ_DECL(pj_status_t) pj_ioqueue_register_sock2(pj_pool_t *pool,
+					       pj_ioqueue_t *ioque,
+					       pj_sock_t sock,
+					       pj_grp_lock_t *grp_lock,
 					       void *user_data,
 					       const pj_ioqueue_callback *cb,
                                                pj_ioqueue_key_t **key );

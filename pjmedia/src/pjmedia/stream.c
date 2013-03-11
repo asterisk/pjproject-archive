@@ -1,4 +1,4 @@
-/* $Id: stream.c 4120 2012-05-12 07:18:09Z ming $ */
+/* $Id: stream.c 4336 2013-01-29 08:15:02Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -73,6 +73,8 @@
 #   define PJMEDIA_STREAM_INC	1000
 #endif
 
+/* Number of DTMF E bit transmissions */
+#define DTMF_EBIT_RETRANSMIT_CNT	3
 
 /**
  * Media channel.
@@ -94,6 +96,7 @@ struct dtmf
 {
     int		    event;
     pj_uint32_t	    duration;
+    int		    ebit_cnt;		    /**< # of E bit transmissions   */
 };
 
 /**
@@ -876,7 +879,7 @@ static pj_status_t get_frame_ext( pjmedia_port *port, pjmedia_frame *frame)
  */
 static void create_dtmf_payload(pjmedia_stream *stream, 
 			        struct pjmedia_frame *frame_out,
-				int *first, int *last)
+			        int forced_last, int *first, int *last)
 {
     pjmedia_rtp_dtmf_event *event;
     struct dtmf *digit = &stream->tx_dtmf_buf[0];
@@ -896,25 +899,33 @@ static void create_dtmf_payload(pjmedia_stream *stream,
     }
 
     digit->duration += PJMEDIA_PIA_SPF(&stream->port.info);
+    if (digit->duration >= PJMEDIA_DTMF_DURATION)
+	digit->duration = PJMEDIA_DTMF_DURATION;
 
     event->event = (pj_uint8_t)digit->event;
     event->e_vol = 10;
     event->duration = pj_htons((pj_uint16_t)digit->duration);
 
+    if (forced_last) {
+	digit->duration = PJMEDIA_DTMF_DURATION;
+    }
 
     if (digit->duration >= PJMEDIA_DTMF_DURATION) {
 
 	event->e_vol |= 0x80;
-	*last = 1;
 
-	/* Prepare next digit. */
-	pj_mutex_lock(stream->jb_mutex);
+	if (++digit->ebit_cnt >= DTMF_EBIT_RETRANSMIT_CNT) {
+	    *last = 1;
 
-	pj_array_erase(stream->tx_dtmf_buf, sizeof(stream->tx_dtmf_buf[0]),
-		       stream->tx_dtmf_count, 0);
-	--stream->tx_dtmf_count;
+	    /* Prepare next digit. */
+	    pj_mutex_lock(stream->jb_mutex);
 
-	pj_mutex_unlock(stream->jb_mutex);
+	    pj_array_erase(stream->tx_dtmf_buf, sizeof(stream->tx_dtmf_buf[0]),
+			   stream->tx_dtmf_count, 0);
+	    --stream->tx_dtmf_count;
+
+	    pj_mutex_unlock(stream->jb_mutex);
+	}
     }
 
     frame_out->size = 4;
@@ -1217,7 +1228,7 @@ static pj_status_t put_frame_imp( pjmedia_port *port,
     if (stream->tx_dtmf_count) {
 	int first=0, last=0;
 
-	create_dtmf_payload(stream, &frame_out, &first, &last);
+	create_dtmf_payload(stream, &frame_out, 0, &first, &last);
 
 	/* Encapsulate into RTP packet. Note that:
          *  - RTP marker should be set on the beginning of a new event
@@ -1235,7 +1246,9 @@ static pj_status_t put_frame_imp( pjmedia_port *port,
 	     * Increment the RTP timestamp of the RTP session, for next
 	     * RTP packets.
 	     */
-	    inc_timestamp = PJMEDIA_DTMF_DURATION - rtp_ts_len;
+	    inc_timestamp = PJMEDIA_DTMF_DURATION +
+		            ((DTMF_EBIT_RETRANSMIT_CNT-1) * samples_per_frame)
+		            - rtp_ts_len;
 	}
 
 
@@ -1765,7 +1778,11 @@ static void on_rx_rtp( void *data,
 			 peer_frm_ts_diff == (frm_ts_span>>1)))
 		    {
 			if (peer_frm_ts_diff < stream->rtp_rx_ts_len_per_frame)
+			{
 			    stream->rtp_rx_ts_len_per_frame = peer_frm_ts_diff;
+			    /* Done, stop the check immediately */
+			    stream->rtp_rx_check_cnt = 1;
+			}
 
 			if (--stream->rtp_rx_check_cnt == 0) {
     			    PJ_LOG(4, (THIS_FILE, "G722 codec used, remote"
@@ -1985,6 +2002,8 @@ PJ_DEF(pj_status_t) pjmedia_stream_create( pjmedia_endpt *endpt,
     PJ_ASSERT_RETURN(stream != NULL, PJ_ENOMEM);
     stream->own_pool = own_pool;
     pj_memcpy(&stream->si, info, sizeof(*info));
+    stream->si.param = pjmedia_codec_param_clone(pool, info->param);
+    pj_strdup(pool, &stream->si.fmt.encoding_name, &info->fmt.encoding_name);
 
     /* Init stream/port name */
     name.ptr = (char*) pj_pool_alloc(pool, M);
@@ -2159,12 +2178,16 @@ PJ_DEF(pj_status_t) pjmedia_stream_create( pjmedia_endpt *endpt,
     }
 
     /* Get the frame size */
-    stream->frame_size = stream->codec_param.info.max_bps * 
-			 stream->codec_param.info.frm_ptime / 8 / 1000;
-    if ((stream->codec_param.info.max_bps * stream->codec_param.info.frm_ptime) 
-	% 8000 != 0)
-    {
-	++stream->frame_size;
+    if (stream->codec_param.info.max_rx_frame_size > 0) {
+        stream->frame_size = stream->codec_param.info.max_rx_frame_size;
+    } else {
+        stream->frame_size = stream->codec_param.info.max_bps * 
+			     stream->codec_param.info.frm_ptime / 8 / 1000;
+        if ((stream->codec_param.info.max_bps *
+             stream->codec_param.info.frm_ptime) % 8000 != 0)
+        {
+	    ++stream->frame_size;
+        }
     }
 
     /* How many consecutive PLC frames can be generated */
@@ -2172,7 +2195,7 @@ PJ_DEF(pj_status_t) pjmedia_stream_create( pjmedia_endpt *endpt,
 			    stream->codec_param.info.frm_ptime;
 
 #if defined(PJMEDIA_HANDLE_G722_MPEG_BUG) && (PJMEDIA_HANDLE_G722_MPEG_BUG!=0)
-    stream->rtp_rx_check_cnt = 5;
+    stream->rtp_rx_check_cnt = 50;
     stream->has_g722_mpeg_bug = PJ_FALSE;
     stream->rtp_rx_last_ts = 0;
     stream->rtp_rx_last_cnt = 0;
@@ -2410,11 +2433,55 @@ err_cleanup:
  */
 PJ_DEF(pj_status_t) pjmedia_stream_destroy( pjmedia_stream *stream )
 {
+    pj_status_t status;
+
     PJ_ASSERT_RETURN(stream != NULL, PJ_EINVAL);
 
     /* Send RTCP BYE (also SDES & XR) */
     if (!stream->rtcp_sdes_bye_disabled) {
 	send_rtcp(stream, PJ_TRUE, PJ_TRUE, PJ_TRUE);
+    }
+
+    /* If we're in the middle of transmitting DTMF digit, send one last
+     * RFC 2833 RTP packet with 'End' flag set.
+     */
+    if (stream->tx_dtmf_count && stream->tx_dtmf_buf[0].duration != 0) {
+	pjmedia_frame frame_out;
+	pjmedia_channel *channel = stream->enc;
+	int first=0, last=0;
+	void *rtphdr;
+	int rtphdrlen;
+
+	pj_bzero(&frame_out, sizeof(frame_out));
+	frame_out.buf = ((char*)channel->out_pkt) + sizeof(pjmedia_rtp_hdr);
+	frame_out.size = 0;
+
+	create_dtmf_payload(stream, &frame_out, 1, &first, &last);
+
+	/* Encapsulate into RTP packet. Note that:
+         *  - RTP marker should be set on the beginning of a new event
+	 *  - RTP timestamp is constant for the same packet.
+         */
+	status = pjmedia_rtp_encode_rtp( &channel->rtp,
+					 stream->tx_event_pt, first,
+					 frame_out.size, 0,
+					 (const void**)&rtphdr,
+					 &rtphdrlen);
+	if (status == PJ_SUCCESS) {
+	    /* Copy RTP header to the beginning of packet */
+	    pj_memcpy(channel->out_pkt, rtphdr, sizeof(pjmedia_rtp_hdr));
+
+	    /* Send the RTP packet to the transport. */
+	    status = pjmedia_transport_send_rtp(stream->transport,
+						channel->out_pkt,
+						frame_out.size +
+						    sizeof(pjmedia_rtp_hdr));
+	}
+
+	if (status != PJ_SUCCESS) {
+	    PJ_PERROR(4,(stream->port.info.name.ptr, status,
+			 "Error sending RTP/DTMF end packet"));
+	}
     }
 
     /* Detach from transport 
@@ -2692,6 +2759,7 @@ PJ_DEF(pj_status_t) pjmedia_stream_dial_dtmf( pjmedia_stream *stream,
 
 	    stream->tx_dtmf_buf[stream->tx_dtmf_count+i].event = pt;
 	    stream->tx_dtmf_buf[stream->tx_dtmf_count+i].duration = 0;
+	    stream->tx_dtmf_buf[stream->tx_dtmf_count+i].ebit_cnt = 0;
 	}
 
 	if (status != PJ_SUCCESS)

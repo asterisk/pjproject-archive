@@ -1,4 +1,4 @@
-/* $Id: sdp_neg.c 3980 2012-03-20 09:23:20Z ming $ */
+/* $Id: sdp_neg.c 4367 2013-02-21 20:49:19Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -138,7 +138,7 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_create_w_remote_offer(pj_pool_t *pool,
     *p_neg = NULL;
 
     /* Validate remote offer and initial answer */
-    status = pjmedia_sdp_validate(remote);
+    status = pjmedia_sdp_validate2(remote, PJ_FALSE);
     if (status != PJ_SUCCESS)
 	return status;
 

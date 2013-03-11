@@ -1,4 +1,4 @@
-/* $Id: pjsua.h 4180 2012-06-26 09:37:41Z ming $ */
+/* $Id: pjsua.h 4347 2013-02-13 10:19:25Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -906,9 +906,10 @@ typedef struct pjsua_callback
      *	  callback.
      *  - it may delay the processing of the request, for example to request
      *    user permission whether to accept or reject the request. In this 
-     *	  case, the application MUST set the \a code argument to 202, and 
-     *	  later calls #pjsua_pres_notify() to accept or reject the 
-     *	  subscription request.
+     *	  case, the application MUST set the \a code argument to 202, then
+     *    IMMEDIATELY calls #pjsua_pres_notify() with state
+     *    PJSIP_EVSUB_STATE_PENDING and later calls #pjsua_pres_notify()
+     *    again to accept or reject the subscription request.
      *
      * Any \a code other than 200 and 202 will be treated as 200.
      *
@@ -1124,9 +1125,8 @@ typedef struct pjsua_callback
      * INVITE request to the specified target, following the previously
      * received redirection response.
      *
-     * Application may accept the redirection to the specified target 
-     * (the default behavior if this callback is implemented), reject 
-     * this target only and make the session continue to try the next 
+     * Application may accept the redirection to the specified target,
+     * reject this target only and make the session continue to try the next 
      * target in the list if such target exists, stop the whole
      * redirection process altogether and cause the session to be
      * disconnected, or defer the decision to ask for user confirmation.
@@ -1146,9 +1146,12 @@ typedef struct pjsua_callback
      * @return		Action to be performed for the target. Set this
      *			parameter to one of the value below:
      *			- PJSIP_REDIRECT_ACCEPT: immediately accept the
-     *			  redirection (default value). When set, the
-     *			  call will immediately resend INVITE request
-     *			  to the target.
+     *			  redirection. When set, the call will immediately
+     *			  resend INVITE request to the target.
+     *			- PJSIP_REDIRECT_ACCEPT_REPLACE: immediately accept
+     *			  the redirection and replace the To header with the
+     *			  current target. When set, the call will immediately
+     *			  resend INVITE request to the target.
      *			- PJSIP_REDIRECT_REJECT: immediately reject this
      *			  target. The call will continue retrying with
      *			  next target if present, or disconnect the call
@@ -1459,6 +1462,15 @@ typedef struct pjsua_config
      * Default: PJ_TRUE
      */
     pj_bool_t	    stun_ignore_failure;
+
+    /**
+     * This specifies whether STUN requests for resolving socket mapped
+     * address should use the new format, i.e: having STUN magic cookie
+     * in its transaction ID.
+     *
+     * Default: PJ_FALSE
+     */
+    pj_bool_t	    stun_map_use_stun2;
 
     /**
      * Support for adding and parsing NAT type in the SDP to assist 
@@ -2143,6 +2155,15 @@ typedef struct pjsua_transport_config
     unsigned		port;
 
     /**
+     * Specify the port range for socket binding, relative to the start
+     * port number specified in \a port. Note that this setting is only
+     * applicable when the start port number is non zero.
+     *
+     * Default value is zero.
+     */
+    unsigned		port_range;
+
+    /**
      * Optional address to advertise as the address of this transport.
      * Application can specify any address or hostname for this field,
      * for example it can point to one of the interface address in the
@@ -2566,6 +2587,147 @@ typedef enum pjsua_call_hold_type
 #endif
 
 /**
+ * This enumeration controls the use of STUN in the account.
+ */
+typedef enum pjsua_stun_use
+{
+    /**
+     * Follow the default setting in the global \a pjsua_config.
+     */
+    PJSUA_STUN_USE_DEFAULT,
+
+    /**
+     * Disable STUN. If STUN is not enabled in the global \a pjsua_config,
+     * this setting has no effect.
+     */
+    PJSUA_STUN_USE_DISABLED
+
+} pjsua_stun_use;
+
+/**
+ * This enumeration controls the use of ICE settings in the account.
+ */
+typedef enum pjsua_ice_config_use
+{
+    /**
+     * Use the default settings in the global \a pjsua_media_config.
+     */
+    PJSUA_ICE_CONFIG_USE_DEFAULT,
+
+    /**
+     * Use the custom \a pjsua_ice_config setting in the account.
+     */
+    PJSUA_ICE_CONFIG_USE_CUSTOM
+
+} pjsua_ice_config_use;
+
+/**
+ * This enumeration controls the use of TURN settings in the account.
+ */
+typedef enum pjsua_turn_config_use
+{
+    /**
+     * Use the default setting in the global \a pjsua_media_config.
+     */
+    PJSUA_TURN_CONFIG_USE_DEFAULT,
+
+    /**
+     * Use the custom \a pjsua_turn_config setting in the account.
+     */
+    PJSUA_TURN_CONFIG_USE_CUSTOM
+
+} pjsua_turn_config_use;
+
+/**
+ * ICE setting. This setting is used in the pjsua_acc_config.
+ */
+typedef struct pjsua_ice_config
+{
+    /**
+     * Enable ICE.
+     */
+    pj_bool_t		enable_ice;
+
+    /**
+     * Set the maximum number of host candidates.
+     *
+     * Default: -1 (maximum not set)
+     */
+    int			ice_max_host_cands;
+
+    /**
+     * ICE session options.
+     */
+    pj_ice_sess_options	ice_opt;
+
+    /**
+     * Disable RTCP component.
+     *
+     * Default: no
+     */
+    pj_bool_t		ice_no_rtcp;
+
+    /**
+     * Send re-INVITE/UPDATE every after ICE connectivity check regardless
+     * the default ICE transport address is changed or not. When this is set
+     * to PJ_FALSE, re-INVITE/UPDATE will be sent only when the default ICE
+     * transport address is changed.
+     *
+     * Default: yes
+     */
+    pj_bool_t		ice_always_update;
+
+} pjsua_ice_config;
+
+/**
+ * TURN setting. This setting is used in the pjsua_acc_config.
+ */
+typedef struct pjsua_turn_config
+{
+    /**
+     * Enable TURN candidate in ICE.
+     */
+    pj_bool_t		enable_turn;
+
+    /**
+     * Specify TURN domain name or host name, in in "DOMAIN:PORT" or
+     * "HOST:PORT" format.
+     */
+    pj_str_t		turn_server;
+
+    /**
+     * Specify the connection type to be used to the TURN server. Valid
+     * values are PJ_TURN_TP_UDP or PJ_TURN_TP_TCP.
+     *
+     * Default: PJ_TURN_TP_UDP
+     */
+    pj_turn_tp_type	turn_conn_type;
+
+    /**
+     * Specify the credential to authenticate with the TURN server.
+     */
+    pj_stun_auth_cred	turn_auth_cred;
+
+} pjsua_turn_config;
+
+/**
+ * Specify how IPv6 transport should be used in account config.
+ */
+typedef enum pjsua_ipv6_use
+{
+    /**
+     * IPv6 is not used.
+     */
+    PJSUA_IPV6_DISABLED,
+
+    /**
+     * IPv6 is enabled.
+     */
+    PJSUA_IPV6_ENABLED
+
+} pjsua_ipv6_use;
+
+/**
  * This structure describes account configuration to be specified when
  * adding a new account with #pjsua_acc_add(). Application MUST initialize
  * this structure first by calling #pjsua_acc_config_default().
@@ -2588,7 +2750,8 @@ typedef struct pjsua_acc_config
 
     /** 
      * The full SIP URL for the account. The value can take name address or 
-     * URL format, and will look something like "sip:account@serviceprovider".
+     * URL format, and will look something like "sip:account@serviceprovider"
+     * or "\"Display Name\" <sip:account@provider>".
      *
      * This field is mandatory.
      */
@@ -2742,6 +2905,15 @@ typedef struct pjsua_acc_config
      * proxies in the routeset.
      */
     pj_str_t	    proxy[PJSUA_ACC_MAX_PROXIES];
+
+    /**
+     * If remote sends SDP answer containing more than one format or codec in
+     * the media line, send re-INVITE or UPDATE with just one codec to lock
+     * which codec to use.
+     *
+     * Default: 1 (Yes). Set to zero to disable.
+     */
+    unsigned	    lock_codec;
 
     /** 
      * Optional interval for registration, in seconds. If the value is zero, 
@@ -2957,13 +3129,60 @@ typedef struct pjsua_acc_config
     pjsua_transport_config rtp_cfg;
 
     /**
+     * Specify whether IPv6 should be used on media.
+     */
+    pjsua_ipv6_use     		ipv6_media_use;
+
+    /**
+     * Control the use of STUN for the SIP signaling.
+     *
+     * Default: PJSUA_STUN_USE_DEFAULT
+     */
+    pjsua_stun_use 		sip_stun_use;
+
+    /**
+     * Control the use of STUN for the media transports.
+     *
+     * Default: PJSUA_STUN_USE_DEFAULT
+     */
+    pjsua_stun_use 		media_stun_use;
+
+    /**
+     * Control the use of ICE in the account. By default, the settings in the
+     * \a pjsua_media_config will be used.
+     *
+     * Default: PJSUA_ICE_CONFIG_USE_DEFAULT
+     */
+    pjsua_ice_config_use	ice_cfg_use;
+
+    /**
+     * The custom ICE setting for this account. This setting will only be
+     * used if \a ice_cfg_use is set to PJSUA_ICE_CONFIG_USE_CUSTOM
+     */
+    pjsua_ice_config		ice_cfg;
+
+    /**
+     * Control the use of TURN in the account. By default, the settings in the
+     * \a pjsua_media_config will be used
+     *
+     * Default: PJSUA_TURN_CONFIG_USE_DEFAULT
+     */
+    pjsua_turn_config_use	turn_cfg_use;
+
+    /**
+     * The custom TURN setting for this account. This setting will only be
+     * used if \a turn_cfg_use is set to PJSUA_TURN_CONFIG_USE_CUSTOM
+     */
+    pjsua_turn_config		turn_cfg;
+
+    /**
      * Specify whether secure media transport should be used for this account.
      * Valid values are PJMEDIA_SRTP_DISABLED, PJMEDIA_SRTP_OPTIONAL, and
      * PJMEDIA_SRTP_MANDATORY.
      *
      * Default: #PJSUA_DEFAULT_USE_SRTP
      */
-    pjmedia_srtp_use	use_srtp;
+    pjmedia_srtp_use		use_srtp;
 
     /**
      * Specify whether SRTP requires secure signaling to be used. This option
@@ -3059,6 +3278,52 @@ typedef struct pjsua_acc_config
 
 } pjsua_acc_config;
 
+
+/**
+ * Initialize ICE config from a media config. If the \a pool argument
+ * is NULL, a simple memcpy() will be used.
+ *
+ * @param pool	    Memory to duplicate strings.
+ * @param dst	    Destination config.
+ * @param src	    Source config.
+ */
+PJ_DECL(void) pjsua_ice_config_from_media_config(pj_pool_t *pool,
+                                              pjsua_ice_config *dst,
+                                              const pjsua_media_config *src);
+
+/**
+ * Clone. If the \a pool argument is NULL, a simple memcpy() will be used.
+ *
+ * @param pool	    Memory to duplicate strings.
+ * @param dst	    Destination config.
+ * @param src	    Source config.
+ */
+PJ_DECL(void) pjsua_ice_config_dup( pj_pool_t *pool,
+                                    pjsua_ice_config *dst,
+                                    const pjsua_ice_config *src);
+
+/**
+ * Initialize TURN config from a media config. If the \a pool argument
+ * is NULL, a simple memcpy() will be used.
+ *
+ * @param pool	    Memory to duplicate strings.
+ * @param dst	    Destination config.
+ * @param src	    Source config.
+ */
+PJ_DECL(void) pjsua_turn_config_from_media_config(pj_pool_t *pool,
+                                               pjsua_turn_config *dst,
+                                               const pjsua_media_config *src);
+
+/**
+ * Clone. If the \a pool argument is NULL, a simple memcpy() will be used.
+ *
+ * @param pool	    Memory to duplicate strings.
+ * @param dst	    Destination config.
+ * @param src	    Source config.
+ */
+PJ_DECL(void) pjsua_turn_config_dup(pj_pool_t *pool,
+                                    pjsua_turn_config *dst,
+                                    const pjsua_turn_config *src);
 
 /**
  * Call this function to initialize account config with default values.
@@ -4291,7 +4556,8 @@ PJ_DECL(pj_status_t) pjsua_call_update2(pjsua_call_id call_id,
  * of the call transfer request.
  *
  * @param call_id	The call id to be transfered.
- * @param dest		Address of new target to be contacted.
+ * @param dest		URI of new target to be contacted. The URI may be
+ * 			in name address or addr-spec format.
  * @param msg_data	Optional message components to be sent with
  *			the request.
  *
@@ -5015,6 +5281,28 @@ PJ_DECL(pj_status_t) pjsua_im_typing(pjsua_acc_id acc_id,
 
 
 /**
+ * Specify whether the third party stream has the capability of retrieving
+ * the stream info, i.e: pjmedia_stream_get_info() and
+ * pjmedia_vid_stream_get_info(). Currently this capability is required
+ * by smart media update and call dump.
+ */
+#ifndef PJSUA_THIRD_PARTY_STREAM_HAS_GET_INFO
+#   define PJSUA_THIRD_PARTY_STREAM_HAS_GET_INFO    0
+#endif
+
+
+/**
+ * Specify whether the third party stream has the capability of retrieving
+ * the stream statistics, i.e: pjmedia_stream_get_stat() and
+ * pjmedia_vid_stream_get_stat(). Currently this capability is required
+ * by call dump.
+ */
+#ifndef PJSUA_THIRD_PARTY_STREAM_HAS_GET_STAT
+#   define PJSUA_THIRD_PARTY_STREAM_HAS_GET_STAT    0
+#endif
+
+
+/**
  * Max ports in the conference bridge. This setting is the default value
  * for pjsua_media_config.max_media_ports.
  */
@@ -5077,6 +5365,14 @@ PJ_DECL(pj_status_t) pjsua_im_typing(pjsua_acc_id acc_id,
  */
 #ifndef PJSUA_MAX_RECORDERS
 #   define PJSUA_MAX_RECORDERS		32
+#endif
+
+
+/**
+ * Enable/disable "c=" line in SDP session level. Set to zero to disable it.
+ */
+#ifndef PJSUA_SDP_SESS_HAS_CONN
+#   define PJSUA_SDP_SESS_HAS_CONN	0
 #endif
 
 
@@ -5276,6 +5572,16 @@ struct pjsua_media_config
     pj_bool_t		ice_no_rtcp;
 
     /**
+     * Send re-INVITE/UPDATE every after ICE connectivity check regardless
+     * the default ICE transport address is changed or not. When this is set
+     * to PJ_FALSE, re-INVITE/UPDATE will be sent only when the default ICE
+     * transport address is changed.
+     *
+     * Default: yes
+     */
+    pj_bool_t		ice_always_update;
+
+    /**
      * Enable TURN relay candidate in ICE.
      */
     pj_bool_t		enable_turn;
@@ -5319,6 +5625,20 @@ struct pjsua_media_config
      * Default: PJ_TRUE
      */
     pj_bool_t vid_preview_enable_native;
+
+    /**
+     * Disable smart media update (ticket #1568). The smart media update
+     * will check for any changes in the media properties after a successful
+     * SDP negotiation and the media will only be reinitialized when any
+     * change is found. When it is disabled, media streams will always be
+     * reinitialized after a successful SDP negotiation.
+     *
+     * Note for third party media, the smart media update requires stream info
+     * retrieval capability, see #PJSUA_THIRD_PARTY_STREAM_HAS_GET_INFO.
+     *
+     * Default: PJ_FALSE
+     */
+    pj_bool_t no_smart_media_update;
 };
 
 

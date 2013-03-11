@@ -1,4 +1,4 @@
-/* $Id: sip_util_proxy.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sip_util_proxy.c 4208 2012-07-18 07:52:33Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -345,7 +345,7 @@ PJ_DEF(pj_str_t) pjsip_calculate_branch_id( pjsip_rx_data *rdata )
     /* If incoming request does not have RFC 3261 branch value, create
      * a branch value from GUID .
      */
-    if (pj_strncmp(&rdata->msg_info.via->branch_param, 
+    if (pj_strnicmp(&rdata->msg_info.via->branch_param, 
 		   &rfc3261_branch, PJSIP_RFC3261_BRANCH_LEN) != 0 ) 
     {
 	pj_str_t tmp;

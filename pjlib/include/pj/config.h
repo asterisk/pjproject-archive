@@ -1,4 +1,4 @@
-/* $Id: config.h 4189 2012-07-03 03:11:24Z ming $ */
+/* $Id: config.h 4415 2013-03-05 08:34:45Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -484,6 +484,14 @@
  */
 #ifndef PJ_TIMER_DEBUG
 #  define PJ_TIMER_DEBUG	    0
+#endif
+
+
+/**
+ * Set this to 1 to enable debugging on the group lock. Default: 0
+ */
+#ifndef PJ_GRP_LOCK_DEBUG
+#  define PJ_GRP_LOCK_DEBUG	0
 #endif
 
 
@@ -1122,6 +1130,14 @@
 #endif
 
 /**
+ * Simulate race condition by sleeping the thread in strategic locations.
+ * Default: no!
+ */
+#ifndef PJ_RACE_ME
+#  define PJ_RACE_ME(x)
+#endif
+
+/**
  * Function attributes to inform that the function may throw exception.
  *
  * @param x     The exception list, enclosed in parenthesis.
@@ -1167,10 +1183,10 @@ PJ_BEGIN_DECL
 #define PJ_VERSION_NUM_MAJOR	2
 
 /** PJLIB version minor number. */
-#define PJ_VERSION_NUM_MINOR	0
+#define PJ_VERSION_NUM_MINOR	1
 
 /** PJLIB version revision number. */
-#define PJ_VERSION_NUM_REV	1
+#define PJ_VERSION_NUM_REV	0
 
 /**
  * Extra suffix for the version (e.g. "-trunk"), or empty for

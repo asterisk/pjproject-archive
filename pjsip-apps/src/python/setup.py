@@ -1,4 +1,4 @@
-# $Id: setup.py 4122 2012-05-14 11:04:46Z bennylp $
+# $Id: setup.py 4232 2012-08-20 06:01:41Z ming $
 #
 # pjsua Setup script.
 #
@@ -87,8 +87,9 @@ f.close()
 if platform.system() == 'Darwin':
     extra_link_args = ["-framework", "CoreFoundation", 
                        "-framework", "AudioToolbox"]
-    # OS X Lion support
-    if platform.mac_ver()[0].startswith("10.7"):
+    version = platform.mac_ver()[0].split(".")    
+    # OS X Lion (10.7.x) or above support
+    if version[0] == '10' and int(version[1]) >= 7:
         extra_link_args += ["-framework", "AudioUnit"]
 else:
     extra_link_args = []

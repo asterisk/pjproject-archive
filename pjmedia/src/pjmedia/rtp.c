@@ -1,4 +1,4 @@
-/* $Id: rtp.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: rtp.c 4235 2012-08-24 03:15:42Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -118,8 +118,6 @@ PJ_DEF(pj_status_t) pjmedia_rtp_encode_rtp( pjmedia_rtp_session *ses,
 					    int payload_len, int ts_len,
 					    const void **rtphdr, int *hdrlen )
 {
-    PJ_UNUSED_ARG(payload_len);
-
     /* Update timestamp */
     ses->out_hdr.ts = pj_htonl(pj_ntohl(ses->out_hdr.ts)+ts_len);
 

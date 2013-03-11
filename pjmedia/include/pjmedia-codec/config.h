@@ -1,4 +1,4 @@
-/* $Id: config.h 4070 2012-04-23 13:48:10Z bennylp $ */
+/* $Id: config.h 4331 2013-01-23 06:18:18Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -323,8 +323,18 @@
 #endif
 
 /**
+ * Enable OpenCORE AMR-WB codec.
+ * See https://trac.pjsip.org/repos/ticket/1608 for some info.
+ *
+ * Default: 0
+ */
+#ifndef PJMEDIA_HAS_OPENCORE_AMRWB_CODEC
+#   define PJMEDIA_HAS_OPENCORE_AMRWB_CODEC	0
+#endif
+
+/**
  * Link with libopencore-amrXX via pragma comment on Visual Studio.
- * This option only makes sense if PJMEDIA_HAS_OPENCORE_AMRNB_CODEC
+ * This option only makes sense if PJMEDIA_HAS_OPENCORE_AMRNB/WB_CODEC
  * is enabled.
  *
  * Default: 1
@@ -335,7 +345,7 @@
 
 /**
  * Link with libopencore-amrXX.a that has been produced with gcc.
- * This option only makes sense if PJMEDIA_HAS_OPENCORE_AMRNB_CODEC
+ * This option only makes sense if PJMEDIA_HAS_OPENCORE_AMRNB/WB_CODEC
  * and PJMEDIA_AUTO_LINK_OPENCORE_AMR_LIBS are enabled.
  *
  * Default: 1
@@ -374,6 +384,38 @@
 	  Please use PJMEDIA_HAS_G7221_CODEC and \
 	  PJMEDIA_HAS_INTEL_IPP_CODEC_G722_1 in your config_site.h \
 	  to control which implementation to be used.
+#endif
+
+
+/**
+ * Enable SILK codec.
+ *
+ * Default: 0
+ */
+#ifndef PJMEDIA_HAS_SILK_CODEC
+#   define PJMEDIA_HAS_SILK_CODEC		0
+#endif
+
+
+/**
+ * SILK codec default complexity setting, valid values are 0 (lowest), 1,
+ * and 2.
+ *
+ * Default: 2
+ */
+#ifndef PJMEDIA_CODEC_SILK_DEFAULT_COMPLEXITY
+#   define PJMEDIA_CODEC_SILK_DEFAULT_COMPLEXITY   2
+#endif
+
+/**
+ * SILK codec default quality setting, valid values are ranging from
+ * 0 (lowest) to 10. Please note that pjsua-lib may override this setting
+ * via its codec quality setting (i.e PJSUA_DEFAULT_CODEC_QUALITY).
+ *
+ * Default: 10
+ */
+#ifndef PJMEDIA_CODEC_SILK_DEFAULT_QUALITY
+#   define PJMEDIA_CODEC_SILK_DEFAULT_QUALITY	    10
 #endif
 
 

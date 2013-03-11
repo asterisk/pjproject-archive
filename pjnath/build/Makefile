@@ -40,7 +40,7 @@ export PJNATH_CFLAGS += $(_CFLAGS)
 # Defines for building test application
 #
 export PJNATH_TEST_SRCDIR = ../src/pjnath-test
-export PJNATH_TEST_OBJS += ice_test.o stun.o sess_auth.o server.o \
+export PJNATH_TEST_OBJS += ice_test.o stun.o sess_auth.o server.o concur_test.o \
 			    stun_sock_test.o turn_sock_test.o test.o
 export PJNATH_TEST_CFLAGS += $(_CFLAGS)
 export PJNATH_TEST_LDFLAGS += $(_LDFLAGS)
@@ -96,6 +96,8 @@ distclean: realclean
 
 pjnath:
 	$(MAKE) -f $(RULES_MAK) APP=PJNATH app=pjnath $(PJNATH_LIB)
+
+$$(PJNATH_LIB): pjnath
 
 pjnath-test: $(PJLIB_LIB) $(PJLIB_UTIL_LIB) $(PJNATH_LIB)
 	$(MAKE) -f $(RULES_MAK) APP=PJNATH_TEST app=pjnath-test $(PJNATH_TEST_EXE)

@@ -1,4 +1,4 @@
-/* $Id: stun_config.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: stun_config.h 4199 2012-07-05 10:52:55Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -81,6 +81,13 @@ typedef struct pj_stun_config
      */
     unsigned		 res_cache_msec;
 
+    /**
+     * Software name to be included in all STUN requests and responses.
+     *
+     * Default: PJNATH_STUN_SOFTWARE_NAME.
+     */
+    pj_str_t		 software_name;
+
 } pj_stun_config;
 
 
@@ -102,6 +109,7 @@ PJ_INLINE(void) pj_stun_config_init(pj_stun_config *cfg,
     cfg->timer_heap = timer_heap;
     cfg->rto_msec = PJ_STUN_RTO_VALUE;
     cfg->res_cache_msec = PJ_STUN_RES_CACHE_DURATION;
+    cfg->software_name = pj_str((char*)PJNATH_STUN_SOFTWARE_NAME);
 }
 
 

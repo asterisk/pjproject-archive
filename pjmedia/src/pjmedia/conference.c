@@ -1,4 +1,4 @@
-/* $Id: conference.c 4162 2012-06-11 04:17:54Z nanang $ */
+/* $Id: conference.c 4198 2012-07-05 10:25:46Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1810,11 +1810,11 @@ static pj_status_t get_frame(pjmedia_port *this_port,
 	/* Var "ci" is to count how many ports have been visited so far. */
 	++ci;
 
-	/* Reset buffer (only necessary if more than one transmitter) and
+	/* Reset buffer (only necessary if the port has transmitter) and
 	 * reset auto adjustment level for mixed signal.
 	 */
 	conf_port->mix_adj = NORMAL_LEVEL;
-	if (conf_port->transmitter_cnt > 1) {
+	if (conf_port->transmitter_cnt) {
 	    pj_bzero(conf_port->mix_buf,
 		     conf->samples_per_frame*sizeof(conf_port->mix_buf[0]));
 	}

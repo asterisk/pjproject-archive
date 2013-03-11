@@ -1,4 +1,4 @@
-/* $Id: sip_transport.h 4173 2012-06-20 10:39:05Z ming $ */
+/* $Id: sip_transport.h 4275 2012-10-04 06:11:58Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -426,6 +426,42 @@ struct pjsip_rx_data
  * @return	    Printable information.
  */
 PJ_DECL(char*) pjsip_rx_data_get_info(pjsip_rx_data *rdata);
+
+/**
+ * Clone pjsip_rx_data. This will duplicate the contents of
+ * pjsip_rx_data and add reference count to the transport.
+ * Once application has finished using the cloned pjsip_rx_data,
+ * it must release it by calling  #pjsip_rx_data_free_cloned().
+ *
+ * By default (if flags is set to zero), this function copies the
+ * transport pointer in \a tp_info, duplicates the \a pkt_info,
+ * perform deep clone of the \a msg_info parts of the rdata, and
+ * fills the \a endpt_info (i.e. the \a mod_data) with zeros.
+ *
+ * @param src	    The source to be cloned.
+ * @param flags	    Optional flags. Must be zero for now.
+ * @param p_rdata   Pointer to receive the cloned rdata.
+ *
+ * @return	    PJ_SUCCESS on success or the appropriate error.
+ */
+PJ_DECL(pj_status_t) pjsip_rx_data_clone(const pjsip_rx_data *src,
+                                         unsigned flags,
+                                         pjsip_rx_data **p_rdata);
+
+/**
+ * Free cloned pjsip_rx_data. This function must be and must only
+ * be called for a cloned pjsip_rx_data. Specifically, it must NOT
+ * be called for the original pjsip_rx_data that is returned by
+ * transports.
+ *
+ * This function will free the memory used by the pjsip_rx_data and
+ * decrement the transport reference counter.
+ *
+ * @param rdata	    The receive data buffer.
+ *
+ * @return	    PJ_SUCCESS on success or the appropriate error.
+ */
+PJ_DECL(pj_status_t) pjsip_rx_data_free_cloned(pjsip_rx_data *rdata);
 
 
 /*****************************************************************************
@@ -1076,6 +1112,8 @@ PJ_DECL(pj_status_t) pjsip_tpmgr_create( pj_pool_t *pool,
  * In this implementation, it will only select the transport based on
  * the transport type in the request.
  *
+ * @see pjsip_tpmgr_find_local_addr2()
+ *
  * @param tpmgr	    The transport manager.
  * @param pool	    Pool to allocate memory for the IP address.
  * @param type	    Destination address to contact.
@@ -1091,6 +1129,76 @@ PJ_DECL(pj_status_t) pjsip_tpmgr_find_local_addr( pjsip_tpmgr *tpmgr,
 						  const pjsip_tpselector *sel,
 						  pj_str_t *ip_addr,
 						  int *port);
+
+/**
+ * Parameter for pjsip_tpmgr_find_local_addr2() function.
+ */
+typedef struct pjsip_tpmgr_fla2_param
+{
+    /**
+     * Specify transport type to use. This must be set.
+     */
+    pjsip_transport_type_e	 tp_type;
+
+    /**
+     * Optional pointer to preferred transport, if any.
+     */
+    const pjsip_tpselector	*tp_sel;
+
+    /**
+     * Destination host, if known. The destination host is needed
+     * if \a local_if field below is set.
+     */
+    pj_str_t			 dst_host;
+
+    /**
+     * Specify if the function should return which local interface
+     * to use for the specified destination in \a dst_host. By definition,
+     * the returned address will always be local interface address.
+     */
+    pj_bool_t			 local_if;
+
+    /**
+     * The returned address.
+     */
+    pj_str_t			 ret_addr;
+
+    /**
+     * The returned port.
+     */
+    pj_uint16_t			 ret_port;
+
+    /**
+     * Returned pointer to the transport. Only set if local_if is set.
+     */
+    const void			*ret_tp;
+
+} pjsip_tpmgr_fla2_param;
+
+/**
+ * Initialize with default values.
+ *
+ * @param prm	    The parameter to be initialized.
+ */
+PJ_DECL(void) pjsip_tpmgr_fla2_param_default(pjsip_tpmgr_fla2_param *prm);
+
+/**
+ * Find out the appropriate local address info (IP address and port) to
+ * advertise in Contact or Via header header based on the remote address
+ * to be contacted. The local address info would be the address name of the
+ * transport or listener which will be used to send the request.
+ *
+ * @see pjsip_tpmgr_find_local_addr()
+ *
+ * @param tpmgr	    The transport manager.
+ * @param pool	    Pool to allocate memory for the IP address.
+ * @param param	    Function input and output parameters.
+ *
+ * @return	    PJ_SUCCESS, or the appropriate error code.
+ */
+PJ_DECL(pj_status_t) pjsip_tpmgr_find_local_addr2(pjsip_tpmgr *tpmgr,
+                                                  pj_pool_t *pool,
+                                                  pjsip_tpmgr_fla2_param *prm);
 
 /**
  * Return number of transports currently registered to the transport

@@ -1,4 +1,4 @@
-/* $Id: transport_ice.c 3999 2012-03-30 07:10:13Z bennylp $ */
+/* $Id: transport_ice.c 4350 2013-02-15 03:57:31Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -285,7 +285,9 @@ static void set_no_ice(struct transport_ice *tp_ice, const char *reason,
 		  "Stopping ICE, reason=%s", reason));
     }
 
-    pj_ice_strans_stop_ice(tp_ice->ice_st);
+    if (tp_ice->ice_st) {
+	pj_ice_strans_stop_ice(tp_ice->ice_st);
+    }
 
     tp_ice->use_ice = PJ_FALSE;
 }
@@ -1540,6 +1542,8 @@ static pj_status_t transport_get_info(pjmedia_transport *tp,
 
 	ii = (pjmedia_ice_transport_info*) tsi->buffer;
 	pj_bzero(ii, sizeof(*ii));
+
+	ii->active = tp_ice->use_ice;
 
 	if (pj_ice_strans_has_sess(tp_ice->ice_st))
 	    ii->role = pj_ice_strans_get_role(tp_ice->ice_st);

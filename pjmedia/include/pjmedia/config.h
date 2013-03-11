@@ -1,4 +1,4 @@
-/* $Id: config.h 4130 2012-05-17 08:35:51Z nanang $ */
+/* $Id: config.h 4240 2012-08-31 09:03:36Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -371,10 +371,18 @@
 
 
 /**
- * Max packet size to support.
+ * Max packet size for transmitting direction.
  */
 #ifndef PJMEDIA_MAX_MTU			
 #  define PJMEDIA_MAX_MTU			1500
+#endif
+
+
+/**
+ * Max packet size for receiving direction.
+ */
+#ifndef PJMEDIA_MAX_MRU			
+#  define PJMEDIA_MAX_MRU			2000
 #endif
 
 
@@ -673,6 +681,28 @@
  */
 #ifndef PJMEDIA_HAS_RTCP_IN_SDP
 #   define PJMEDIA_HAS_RTCP_IN_SDP		(PJMEDIA_ADVERTISE_RTCP)
+#endif
+
+
+/**
+ * This macro controls whether pjmedia should include SDP
+ * bandwidth modifier "TIAS" (RFC3890).
+ *
+ * Note that there is also a run-time variable to turn this setting
+ * on or off, defined in endpoint.c. To access this variable, use
+ * the following construct
+ *
+ \verbatim
+    extern pj_bool_t pjmedia_add_bandwidth_tias_in_sdp;
+
+    // Do not enable bandwidth information inclusion in sdp
+    pjmedia_add_bandwidth_tias_in_sdp = PJ_FALSE;
+ \endverbatim
+ *
+ * Default: 1 (yes)
+ */
+#ifndef PJMEDIA_ADD_BANDWIDTH_TIAS_IN_SDP
+#   define PJMEDIA_ADD_BANDWIDTH_TIAS_IN_SDP	1
 #endif
 
 

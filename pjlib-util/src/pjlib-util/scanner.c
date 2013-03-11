@@ -1,4 +1,4 @@
-/* $Id: scanner.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: scanner.c 4209 2012-07-18 10:21:00Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -393,7 +393,6 @@ PJ_DEF(void) pj_scan_get_quotes(pj_scanner *scanner,
 		    }
 		    /* break from main loop if we have odd number of backslashes */
 		    if (((unsigned)(q-r) & 0x01) == 1) {
-			++s;
 			break;
 		    }
 		    ++s;

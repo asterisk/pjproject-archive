@@ -1,4 +1,4 @@
-/* $Id: vid_stream_info.c 3982 2012-03-22 09:56:52Z bennylp $ */
+/* $Id: vid_stream_info.c 4257 2012-09-17 03:11:44Z ming $ */
 /*
  * Copyright (C) 2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -22,6 +22,7 @@
 #include <pj/ctype.h>
 #include <pj/rand.h>
 
+#if defined(PJMEDIA_HAS_VIDEO) && (PJMEDIA_HAS_VIDEO != 0)
 
 static const pj_str_t ID_VIDEO = { "video", 5};
 static const pj_str_t ID_IN = { "IN", 2 };
@@ -382,4 +383,4 @@ PJ_DEF(pj_status_t) pjmedia_vid_stream_info_from_sdp(
     return status;
 }
 
-
+#endif /* PJMEDIA_HAS_VIDEO */

@@ -1,4 +1,4 @@
-/* $Id: audio_codecs.c 3910 2011-12-15 06:34:25Z nanang $ */
+/* $Id: audio_codecs.c 4335 2013-01-29 08:09:15Z ming $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -107,9 +107,16 @@ pjmedia_codec_register_audio_codecs(pjmedia_endpt *endpt,
 	return status;
 #endif	/* PJMEDIA_HAS_L16_CODEC */
 
-#if PJMEDIA_HAS_OPENCORE_AMRNB_CODEC
-    /* Register OpenCORE AMR-NB */
-    status = pjmedia_codec_opencore_amrnb_init(endpt);
+#if PJMEDIA_HAS_OPENCORE_AMRNB_CODEC || PJMEDIA_HAS_OPENCORE_AMRWB_CODEC
+    /* Register OpenCORE AMR */
+    status = pjmedia_codec_opencore_amr_init(endpt, 0);
+    if (status != PJ_SUCCESS)
+	return status;
+#endif
+
+#if PJMEDIA_HAS_SILK_CODEC
+    /* Register SILK */
+    status = pjmedia_codec_silk_init(endpt);
     if (status != PJ_SUCCESS)
 	return status;
 #endif

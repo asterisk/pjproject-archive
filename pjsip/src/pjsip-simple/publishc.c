@@ -1,4 +1,4 @@
-/* $Id: publishc.c 4173 2012-06-20 10:39:05Z ming $ */
+/* $Id: publishc.c 4206 2012-07-16 02:45:09Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -355,8 +355,11 @@ PJ_DEF(pj_status_t) pjsip_publishc_set_via_sent_by(pjsip_publishc *pubc,
 
     if (!via_addr)
         pj_bzero(&pubc->via_addr, sizeof(pubc->via_addr));
-    else
-        pubc->via_addr = *via_addr;
+    else {
+        if (pj_strcmp(&pubc->via_addr.host, &via_addr->host))
+            pj_strdup(pubc->pool, &pubc->via_addr.host, &via_addr->host);
+        pubc->via_addr.port = via_addr->port;
+    }
     pubc->via_tp = via_tp;
 
     return PJ_SUCCESS;

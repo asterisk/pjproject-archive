@@ -1,4 +1,4 @@
-/* $Id: sdl_dev.c 4157 2012-06-06 09:37:25Z nanang $ */
+/* $Id: sdl_dev.c 4414 2013-03-05 08:21:02Z riza $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -1418,7 +1418,9 @@ static pj_status_t job_queue_destroy(job_queue *jq)
 }
 
 #ifdef _MSC_VER
-#   if SDL_VERSION_ATLEAST(2,0,0)
+#   if defined(PJMEDIA_SDL_LIB)
+#	pragma comment( lib, PJMEDIA_SDL_LIB)
+#   elif SDL_VERSION_ATLEAST(2,0,0)
 #	pragma comment( lib, "sdl2.lib")
 #   elif SDL_VERSION_ATLEAST(1,3,0)
 #	pragma comment( lib, "sdl.lib")

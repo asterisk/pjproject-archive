@@ -1,4 +1,4 @@
-/* $Id: g711.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: g711.c 4266 2012-09-26 05:55:18Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -331,7 +331,8 @@ static pj_status_t g711_alloc_codec( pjmedia_codec_factory *factory,
 
 #if !PLC_DISABLED
 	/* Create PLC, always with 10ms ptime */
-	status = pjmedia_plc_create(g711_factory.pool, 8000, 80,
+	status = pjmedia_plc_create(g711_factory.pool, 8000,
+				    SAMPLES_PER_FRAME,
 				    0, &codec_priv->plc);
 	if (status != PJ_SUCCESS) {
 	    pj_mutex_unlock(g711_factory.mutex);
@@ -341,7 +342,7 @@ static pj_status_t g711_alloc_codec( pjmedia_codec_factory *factory,
 
 	/* Create VAD */
 	status = pjmedia_silence_det_create(g711_factory.pool,
-					    8000, 80,
+					    8000, SAMPLES_PER_FRAME,
 					    &codec_priv->vad);
 	if (status != PJ_SUCCESS) {
 	    pj_mutex_unlock(g711_factory.mutex);

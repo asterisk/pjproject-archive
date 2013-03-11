@@ -1,4 +1,4 @@
-/* $Id: sip_reg.c 4173 2012-06-20 10:39:05Z ming $ */
+/* $Id: sip_reg.c 4319 2013-01-16 10:20:55Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -336,7 +336,7 @@ PJ_DEF(pj_status_t) pjsip_regc_init( pjsip_regc *regc,
     pj_status_t status;
 
     PJ_ASSERT_RETURN(regc && srv_url && from_url && to_url && 
-		     contact_cnt && contact && expires, PJ_EINVAL);
+		     expires, PJ_EINVAL);
 
     /* Copy server URL. */
     pj_strdup_with_null(regc->pool, &regc->str_srv_url, srv_url);
@@ -818,8 +818,11 @@ PJ_DEF(pj_status_t) pjsip_regc_set_via_sent_by( pjsip_regc *regc,
 
     if (!via_addr)
         pj_bzero(&regc->via_addr, sizeof(regc->via_addr));
-    else
-        regc->via_addr = *via_addr;
+    else {
+        if (pj_strcmp(&regc->via_addr.host, &via_addr->host))
+            pj_strdup(regc->pool, &regc->via_addr.host, &via_addr->host);
+        regc->via_addr.port = via_addr->port;
+    }
     regc->via_tp = via_tp;
 
     return PJ_SUCCESS;

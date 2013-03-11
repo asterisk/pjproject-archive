@@ -1,4 +1,4 @@
-/* $Id: uri_test.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: uri_test.c 4210 2012-07-19 01:00:07Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -67,6 +67,7 @@ static pjsip_uri *create_uri14( pj_pool_t *pool );
 static pjsip_uri *create_uri15( pj_pool_t *pool );
 static pjsip_uri *create_uri16( pj_pool_t *pool );
 static pjsip_uri *create_uri17( pj_pool_t *pool );
+static pjsip_uri *create_uri18( pj_pool_t *pool );
 static pjsip_uri *create_uri25( pj_pool_t *pool );
 static pjsip_uri *create_uri26( pj_pool_t *pool );
 static pjsip_uri *create_uri27( pj_pool_t *pool );
@@ -81,6 +82,7 @@ static pjsip_uri *create_uri35( pj_pool_t *pool );
 static pjsip_uri *create_uri36( pj_pool_t *pool );
 static pjsip_uri *create_uri37( pj_pool_t *pool );
 static pjsip_uri *create_uri38( pj_pool_t *pool );
+static pjsip_uri *create_uri39( pj_pool_t *pool );
 static pjsip_uri *create_dummy( pj_pool_t *pool );
 
 #define ERR_NOT_EQUAL	-1001
@@ -349,6 +351,12 @@ struct uri_test
 	"\xC0\x81 <sip:localhost>",
 	&create_uri38,
 	"\"\xC0\x81\" <sip:localhost>"
+    },
+    {
+	/* Even number of backslash before end quote in display name. */
+	PJ_SUCCESS,
+	"\"User\\\\\" <sip:localhost>",
+	&create_uri39,
     }
 
 };
@@ -757,6 +765,20 @@ static pjsip_uri *create_uri38( pj_pool_t *pool )
 
     return (pjsip_uri*)name;
 
+}
+
+/* "\"User\\\\\" <sip:localhost>" */
+static pjsip_uri *create_uri39(pj_pool_t *pool)
+{
+    pjsip_name_addr *name_addr = pjsip_name_addr_create(pool);
+    pjsip_sip_uri *url;
+
+    url = pjsip_sip_uri_create(pool, 0);
+    name_addr->uri = (pjsip_uri*) url;
+
+    pj_strdup2(pool, &name_addr->display, "User\\\\");
+    pj_strdup2(pool, &url->host, "localhost");
+    return (pjsip_uri*)name_addr;
 }
 
 static pjsip_uri *create_dummy(pj_pool_t *pool)

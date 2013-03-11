@@ -1,4 +1,4 @@
-/* $Id: config.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: config.h 4199 2012-07-05 10:52:55Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -485,6 +485,17 @@
 /** TURN socket pool increment size */
 #ifndef PJNATH_POOL_INC_TURN_SOCK
 #   define PJNATH_POOL_INC_TURN_SOCK		    1000
+#endif
+
+/** Default STUN software name */
+#ifndef PJNATH_STUN_SOFTWARE_NAME
+#   define PJNATH_MAKE_SW_NAME(a,b,c,d)     "pjnath-" #a "." #b "." #c d
+#   define PJNATH_MAKE_SW_NAME2(a,b,c,d)    PJNATH_MAKE_SW_NAME(a,b,c,d)
+#   define PJNATH_STUN_SOFTWARE_NAME        PJNATH_MAKE_SW_NAME2( \
+						    PJ_VERSION_NUM_MAJOR, \
+						    PJ_VERSION_NUM_MINOR, \
+						    PJ_VERSION_NUM_REV, \
+						    PJ_VERSION_NUM_EXTRA)
 #endif
 
 /**

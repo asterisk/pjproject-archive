@@ -1,4 +1,4 @@
-/* $Id: stun_simple_client.c 3999 2012-03-30 07:10:13Z bennylp $ */
+/* $Id: stun_simple_client.c 4297 2012-11-13 08:46:42Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -42,7 +42,27 @@ PJ_DEF(pj_status_t) pjstun_get_mapped_addr( pj_pool_factory *pf,
 					    const pj_str_t *srv2, int port2,
 					    pj_sockaddr_in mapped_addr[])
 {
+    pjstun_setting opt;
+
+    pj_bzero(&opt, sizeof(opt));
+    opt.use_stun2 = PJ_FALSE;
+    opt.srv1 = *srv1;
+    opt.port1 = port1;
+    opt.srv2 = *srv2;
+    opt.port2 = port2;
+
+    return pjstun_get_mapped_addr2(pf, &opt, sock_cnt, sock, mapped_addr);
+}
+
+PJ_DEF(pj_status_t) pjstun_get_mapped_addr2(pj_pool_factory *pf,
+					    const pjstun_setting *opt,
+					    int sock_cnt,
+					    pj_sock_t sock[],
+					    pj_sockaddr_in mapped_addr[])
+{
     unsigned srv_cnt;
+    const pj_str_t *srv1, *srv2;
+    int port1, port2;
     pj_sockaddr_in srv_addr[2];
     int i, send_cnt = 0, nfds;
     pj_pool_t *pool;
@@ -58,6 +78,11 @@ PJ_DEF(pj_status_t) pjstun_get_mapped_addr( pj_pool_factory *pf,
     pj_status_t status;
 
     PJ_CHECK_STACK();
+
+    srv1 = &opt->srv1;
+    port1 = opt->port1;
+    srv2 = &opt->srv1;
+    port2 = opt->port2;
 
     TRACE_((THIS_FILE, "Entering pjstun_get_mapped_addr()"));
 
@@ -81,6 +106,12 @@ PJ_DEF(pj_status_t) pjstun_get_mapped_addr( pj_pool_factory *pf,
 				      pj_rand(), pj_rand());
     if (status != PJ_SUCCESS)
 	goto on_error;
+
+    /* Insert magic cookie (specified in RFC 5389) when requested to. */
+    if (opt->use_stun2) {
+	pjstun_msg_hdr *hdr = (pjstun_msg_hdr*)out_msg;
+	hdr->tsx[0] = pj_htonl(STUN_MAGIC);
+    }
 
     TRACE_((THIS_FILE, "  Binding request created."));
 
@@ -162,15 +193,15 @@ PJ_DEF(pj_status_t) pjstun_get_mapped_addr( pj_pool_factory *pf,
 	TRACE_((THIS_FILE, "  Request(s) sent, counter=%d", send_cnt));
 
 	/* Calculate time of next retransmission. */
-	pj_gettimeofday(&next_tx);
+	pj_gettickcount(&next_tx);
 	next_tx.sec += (stun_timer[send_cnt]/1000);
 	next_tx.msec += (stun_timer[send_cnt]%1000);
 	pj_time_val_normalize(&next_tx);
 
-	for (pj_gettimeofday(&now), select_rc=1; 
+	for (pj_gettickcount(&now), select_rc=1;
 	     status==PJ_SUCCESS && select_rc>=1 && wait_resp>0 
 	       && PJ_TIME_VAL_LT(now, next_tx); 
-	     pj_gettimeofday(&now)) 
+	     pj_gettickcount(&now))
 	{
 	    pj_time_val timeout;
 

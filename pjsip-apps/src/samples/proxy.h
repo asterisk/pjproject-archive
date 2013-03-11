@@ -1,4 +1,4 @@
-/* $Id: proxy.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: proxy.h 4370 2013-02-26 05:30:00Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -364,9 +364,11 @@ static pj_status_t proxy_verify_request(pjsip_rx_data *rdata)
      */
 
     /* 2. URI scheme.
-     * We only want to support "sip:" URI scheme for this simple proxy.
+     * We only want to support "sip:"/"sips:" URI scheme for this simple proxy.
      */
-    if (!PJSIP_URI_SCHEME_IS_SIP(rdata->msg_info.msg->line.req.uri)) {
+    if (!PJSIP_URI_SCHEME_IS_SIP(rdata->msg_info.msg->line.req.uri) &&
+	!PJSIP_URI_SCHEME_IS_SIPS(rdata->msg_info.msg->line.req.uri))
+    {
 	pjsip_endpt_respond_stateless(global.endpt, rdata, 
 				      PJSIP_SC_UNSUPPORTED_URI_SCHEME, NULL,
 				      NULL, NULL);

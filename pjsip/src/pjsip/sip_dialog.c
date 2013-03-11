@@ -1,4 +1,4 @@
-/* $Id: sip_dialog.c 4173 2012-06-20 10:39:05Z ming $ */
+/* $Id: sip_dialog.c 4208 2012-07-18 07:52:33Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -206,8 +206,8 @@ PJ_DEF(pj_status_t) pjsip_dlg_create_uac( pjsip_user_agent *ua,
     pj_create_unique_string(dlg->pool, &dlg->local.info->tag);
 
     /* Calculate hash value of local tag. */
-    dlg->local.tag_hval = pj_hash_calc(0, dlg->local.info->tag.ptr,
-				       dlg->local.info->tag.slen);
+    dlg->local.tag_hval = pj_hash_calc_tolower(0, NULL,
+                                               &dlg->local.info->tag);
 
     /* Randomize local CSeq. */
     dlg->local.first_cseq = pj_rand() & 0x7FFF;
@@ -374,8 +374,7 @@ PJ_DEF(pj_status_t) pjsip_dlg_create_uas(   pjsip_user_agent *ua,
     pj_strdup(dlg->pool, &dlg->local.info_str, &tmp);
 
     /* Calculate hash value of local tag. */
-    dlg->local.tag_hval = pj_hash_calc(0, dlg->local.info->tag.ptr,
-				       dlg->local.info->tag.slen);
+    dlg->local.tag_hval = pj_hash_calc_tolower(0, NULL, &dlg->local.info->tag);
 
 
     /* Randomize local cseq */
@@ -522,8 +521,7 @@ PJ_DEF(pj_status_t) pjsip_dlg_create_uas(   pjsip_user_agent *ua,
     ++dlg->tsx_count;
 
     /* Calculate hash value of remote tag. */
-    dlg->remote.tag_hval = pj_hash_calc(0, dlg->remote.info->tag.ptr, 
-					dlg->remote.info->tag.slen);
+    dlg->remote.tag_hval = pj_hash_calc_tolower(0, NULL, &dlg->remote.info->tag);
 
     /* Update remote capabilities info */
     pjsip_dlg_update_remote_cap(dlg, rdata->msg_info.msg, PJ_TRUE);
@@ -596,8 +594,11 @@ PJ_DEF(pj_status_t) pjsip_dlg_set_via_sent_by( pjsip_dialog *dlg,
 
     if (!via_addr)
         pj_bzero(&dlg->via_addr, sizeof(dlg->via_addr));
-    else
-        dlg->via_addr = *via_addr;
+    else {
+        if (pj_strcmp(&dlg->via_addr.host, &via_addr->host))
+            pj_strdup(dlg->pool, &dlg->via_addr.host, &via_addr->host);
+        dlg->via_addr.port = via_addr->port;
+    }
     dlg->via_tp = via_tp;
 
     return PJ_SUCCESS;
@@ -1814,7 +1815,7 @@ void pjsip_dlg_on_rx_response( pjsip_dialog *dlg, pjsip_rx_data *rdata )
 	 res_code > 100 &&
 	 res_code/100 <= 2 &&
 	 pjsip_method_creates_dialog(&rdata->msg_info.cseq->method) &&
-	 pj_strcmp(&dlg->remote.info->tag, &rdata->msg_info.to->tag)))
+	 pj_stricmp(&dlg->remote.info->tag, &rdata->msg_info.to->tag)))
     {
 	pjsip_contact_hdr *contact;
 
@@ -1823,7 +1824,7 @@ void pjsip_dlg_on_rx_response( pjsip_dialog *dlg, pjsip_rx_data *rdata )
 	 * with To-tag or forking, apply strict update.
 	 */
 	pjsip_dlg_update_remote_cap(dlg, rdata->msg_info.msg,
-				    pj_strcmp(&dlg->remote.info->tag,
+				    pj_stricmp(&dlg->remote.info->tag,
 					      &rdata->msg_info.to->tag));
 
 	/* Update To tag. */

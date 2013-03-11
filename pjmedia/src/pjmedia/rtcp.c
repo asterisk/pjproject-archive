@@ -1,4 +1,4 @@
-/* $Id: rtcp.c 3999 2012-03-30 07:10:13Z bennylp $ */
+/* $Id: rtcp.c 4283 2012-10-12 06:19:32Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -752,7 +752,8 @@ static void parse_rtcp_bye(pjmedia_rtcp_session *sess,
 
     /* Check and get BYE reason */
     if (size > 8) {
-	reason.slen = *((pj_uint8_t*)pkt+8);
+	reason.slen = PJ_MIN(sizeof(sess->stat.peer_sdes_buf_),
+                             *((pj_uint8_t*)pkt+8));
 	pj_memcpy(sess->stat.peer_sdes_buf_, ((pj_uint8_t*)pkt+9),
 		  reason.slen);
 	reason.ptr = sess->stat.peer_sdes_buf_;

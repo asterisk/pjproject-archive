@@ -1,4 +1,4 @@
-/* $Id: vid_port.c 4168 2012-06-18 05:59:08Z ming $ */
+/* $Id: vid_port.c 4290 2012-11-01 03:06:33Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -332,9 +332,7 @@ PJ_DEF(pj_status_t) pjmedia_vid_port_create( pj_pool_t *pool,
 	                        PJMEDIA_SIG_VID_PORT,
 			        prm->vidparam.dir, &prm->vidparam.fmt);
 
-	if (vp->stream_role == ROLE_ACTIVE) {
-	    need_frame_buf = PJ_TRUE;
-	}
+        need_frame_buf = PJ_TRUE;
     }
 
     if (need_frame_buf) {
@@ -654,8 +652,10 @@ static pj_status_t convert_frame(pjmedia_vid_port *vp,
     pj_status_t status = PJ_SUCCESS;
 
     if (vp->conv.conv) {
-	dst_frame->buf  = vp->conv.conv_buf;
-	dst_frame->size = vp->conv.conv_buf_size;
+        if (!dst_frame->buf || dst_frame->size < vp->conv.conv_buf_size) {
+            dst_frame->buf  = vp->conv.conv_buf;
+	    dst_frame->size = vp->conv.conv_buf_size;
+        }
 	status = pjmedia_converter_convert(vp->conv.conv,
 					   src_frame, dst_frame);
     }
@@ -922,6 +922,7 @@ static pj_status_t vid_pasv_port_put_frame(struct pjmedia_port *this_port,
         pj_status_t status;
         pjmedia_frame frame_;
         
+        pj_bzero(&frame_, sizeof(frame_));
         status = convert_frame(vp, frame, &frame_);
         if (status != PJ_SUCCESS)
             return status;
