@@ -80,6 +80,21 @@ endif
 
 
 #
+# SRTP
+#
+#ifeq (@ac_external_srtp@,1)
+ifeq (0,1)
+# External SRTP
+export CFLAGS += -DPJMEDIA_EXTERNAL_SRTP=1
+else
+# Our SRTP in third_party
+export CFLAGS += -I$(THIRD_PARTY)/build/srtp \
+	 -I$(THIRD_PARTY)/srtp/crypto/include \
+	 -I$(THIRD_PARTY)/srtp/include
+
+endif
+
+#
 # PortAudio
 #
 ifneq ($(findstring pa,$(AC_PJMEDIA_SND)),)

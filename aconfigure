@@ -641,6 +641,7 @@ ac_pa_use_alsa
 ac_pa_cflags
 ac_external_pa
 ac_pjmedia_snd
+ac_external_srtp
 ac_external_gsm
 ac_external_speex
 ac_shared_libraries
@@ -733,6 +734,7 @@ enable_epoll
 enable_shared
 with_external_speex
 with_external_gsm
+with_external_srtp
 enable_sound
 with_external_pa
 enable_oss
@@ -1446,6 +1448,11 @@ Optional Packages:
                           make sure that the GSM include/lib files are
                           accessible to use (hint: use CFLAGS and LDFLAGS env
                           var to set the include/lib paths)
+  --with-external-srtp    Use external SRTP development files, not the one in
+                          "third_party" directory. When this option is set,
+                          make sure that SRTP is accessible to use (hint: use
+                          CFLAGS and LDFLAGS env var to set the include/lib
+                          paths)
   --with-external-pa      Use external PortAudio development files, not the
                           one in "third_party" directory. When this option is
                           set, make sure that PortAudio is accessible to use
@@ -5818,6 +5825,43 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 fi
 
+
+
+ac_external_srtp=0
+
+
+# Check whether --with-external-srtp was given.
+if test "${with_external_srtp+set}" = set; then :
+  withval=$with_external_srtp;
+	if test "x$with_external_srtp" != "xno"; then
+		# Test SRTP installation
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if external SRTP devkit is installed" >&5
+$as_echo_n "checking if external SRTP devkit is installed... " >&6; }
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <srtp/srtp.h>
+
+int
+main ()
+{
+srtp_init();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes!!" >&5
+$as_echo "yes!!" >&6; }
+				   ac_external_srtp="1"
+
+else
+  as_fn_error $? "Unable to use SRTP. If SRTP development files are not available in the default locations, use CFLAGS and LDFLAGS env var to set the include/lib paths" "$LINENO" 5
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+	fi
+
+
+fi
 
 
 
