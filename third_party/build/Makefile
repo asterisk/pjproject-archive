@@ -1,4 +1,4 @@
-DIRS = resample milenage
+DIRS = milenage
 
 include ../../build.mak
 include $(PJDIR)/build/common.mak

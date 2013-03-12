@@ -66,7 +66,7 @@ export PJMEDIA_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			event.o format.o ffmpeg_util.o \
 			g711.o jbuf.o master_port.o mem_capture.o mem_player.o \
 			null_port.o plc_common.o port.o splitcomb.o \
-			resample_resample.o resample_libsamplerate.o \
+			resample_resample.o resample_libsamplerate.o resample_speex.o \
 			resample_port.o rtcp.o rtcp_xr.o rtp.o \
 			sdp.o sdp_cmp.o sdp_neg.o session.o silencedet.o \
 			sound_legacy.o sound_port.o stereo_port.o stream_common.o \

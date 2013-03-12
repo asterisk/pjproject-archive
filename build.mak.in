@@ -44,6 +44,7 @@ APP_THIRD_PARTY_LIB_FILES += $(PJ_DIR)/third_party/lib/libsrtp.$(SHLIB_SUFFIX).$
 endif
 endif
 
+ifeq (@ac_pjmedia_resample@,libresample)
 APP_THIRD_PARTY_LIB_FILES += $(PJ_DIR)/third_party/lib/libresample-$(LIB_SUFFIX)
 ifeq ($(PJ_SHARED_LIBRARIES),)
 ifeq (@ac_resample_dll@,1)
@@ -56,6 +57,7 @@ endif
 else
 APP_THIRD_PARTY_LIBS += -lresample
 APP_THIRD_PARTY_LIB_FILES += $(PJ_DIR)/third_party/lib/libresample.$(SHLIB_SUFFIX).$(PJ_VERSION_MAJOR) $(PJ_DIR)/third_party/lib/libresample.$(SHLIB_SUFFIX)
+endif
 endif
 
 ifneq (@ac_no_gsm_codec@,1)
