@@ -141,6 +141,28 @@ export CFLAGS += -I$(THIRD_PARTY)/build/srtp \
 endif
 
 #
+# Resample
+#
+AC_PJMEDIA_RESAMPLE=@ac_pjmedia_resample@
+
+ifeq ($(AC_PJMEDIA_RESAMPLE),none)
+# No resample support
+export CFLAGS += -DPJMEDIA_RESAMPLE_IMP=PJMEDIA_RESAMPLE_NONE
+endif
+
+ifeq ($(AC_PJMEDIA_RESAMPLE),libresample)
+export CFLAGS += -DPJMEDIA_RESAMPLE_IMP=PJMEDIA_RESAMPLE_LIBRESAMPLE
+endif
+
+ifeq ($(AC_PJMEDIA_RESAMPLE),libsamplerate)
+export CFLAGS += -DPJMEDIA_RESAMPLE_IMP=PJMEDIA_RESAMPLE_LIBSAMPLERATE
+endif
+
+ifeq ($(AC_PJMEDIA_RESAMPLE),speex)
+export CFLAGS += -DPJMEDIA_RESAMPLE_IMP=PJMEDIA_RESAMPLE_SPEEX
+endif
+
+#
 # PortAudio
 #
 ifneq ($(findstring pa,$(AC_PJMEDIA_SND)),)

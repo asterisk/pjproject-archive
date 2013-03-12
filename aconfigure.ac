@@ -546,6 +546,17 @@ AC_ARG_WITH(external-srtp,
     )
 
 
+dnl # Resample implementation
+AC_SUBST(ac_pjmedia_resample,libresample)
+AC_ARG_ENABLE(resample,
+	      AC_HELP_STRING([--disable-resample],
+			     [Disable resampling implementations]),
+	      [if test "$enable_resample" = "no"; then
+		[ac_pjmedia_resample=none]
+		AC_MSG_RESULT([Checking if resampling is disabled...yes])
+	       fi]
+	      )
+
 dnl # Sound device backend selection
 AC_SUBST(ac_pjmedia_snd)
 AC_ARG_ENABLE(sound,
@@ -838,8 +849,9 @@ AC_ARG_ENABLE(ilbc-codec,
 dnl # Include libsamplerate
 AC_ARG_ENABLE(libsamplerate,
 	      AC_HELP_STRING([--enable-libsamplerate],
-			     [Link with libsamplerate when available. Note that PJMEDIA_RESAMPLE_IMP must also be configured]),
-	      [ AC_CHECK_LIB(samplerate,src_new) ],
+			     [Link with libsamplerate when available.]),
+	      [ AC_CHECK_LIB(samplerate,src_new) ]
+	      [ac_pjmedia_resample=libsamplerate],
 	      AC_MSG_RESULT([Skipping libsamplerate detection])
 	     )
 
