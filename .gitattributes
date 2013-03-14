@@ -46,6 +46,13 @@ pjlib-util/docs/doxygen.cfg -text
 pjlib-util/docs/doxygen.css -text
 pjlib-util/docs/footer.html -text
 pjlib-util/docs/header.html -text
+pjlib-util/include/pjlib-util/cli.h -text
+pjlib-util/include/pjlib-util/cli_console.h -text
+pjlib-util/include/pjlib-util/cli_imp.h -text
+pjlib-util/include/pjlib-util/cli_telnet.h -text
+pjlib-util/src/pjlib-util/cli.c -text
+pjlib-util/src/pjlib-util/cli_console.c -text
+pjlib-util/src/pjlib-util/cli_telnet.c -text
 pjlib/build/cacert.pem -text
 pjlib/build/os-auto.mak.in eol=lf
 pjlib/build/pjlib.vcproj -text
@@ -132,6 +139,10 @@ pjsip-apps/src/ipjsystest/TestViewController.xib -text
 pjsip-apps/src/ipjsystest/ipjsystest-Info.plist -text
 pjsip-apps/src/ipjsystest/ipjsystest.xcodeproj/project.pbxproj -text
 pjsip-apps/src/ipjsystest/ipjsystest_Prefix.pch -text
+pjsip-apps/src/pjsua/pjsua_cli_cmd.c -text
+pjsip-apps/src/pjsua/pjsua_cmd.c -text
+pjsip-apps/src/pjsua/pjsua_cmd.h -text
+pjsip-apps/src/pjsua/pjsua_ui_cmd.c -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
@@ -154,6 +165,7 @@ pjsip-apps/src/pocketpj/res/offline.bmp -text
 pjsip-apps/src/pocketpj/res/offline.ico -text
 pjsip-apps/src/pocketpj/res/online.bmp -text
 pjsip-apps/src/pocketpj/res/online.ico -text
+pjsip-apps/src/samples/clidemo.c -text
 pjsip-apps/src/symbian_ua/symbian_ua_reg.rss -text
 pjsip-apps/src/symbian_ua_gui/application.uidesign -text
 pjsip-apps/src/symbian_ua_gui/data/symbian_ua_gui.l01 -text
