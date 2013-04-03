@@ -139,10 +139,6 @@ pjsip-apps/src/ipjsystest/TestViewController.xib -text
 pjsip-apps/src/ipjsystest/ipjsystest-Info.plist -text
 pjsip-apps/src/ipjsystest/ipjsystest.xcodeproj/project.pbxproj -text
 pjsip-apps/src/ipjsystest/ipjsystest_Prefix.pch -text
-pjsip-apps/src/pjsua/pjsua_cli_cmd.c -text
-pjsip-apps/src/pjsua/pjsua_cmd.c -text
-pjsip-apps/src/pjsua/pjsua_cmd.h -text
-pjsip-apps/src/pjsua/pjsua_ui_cmd.c -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
