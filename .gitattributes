@@ -2,6 +2,7 @@
 /COPYING -text
 /aconfigure eol=lf
 /aconfigure.ac eol=lf
+/bb10-config.mak -text
 /build.mak.in eol=lf
 build.symbian/libg7221codec.mmp -text
 build.symbian/libresample.mmp -text
