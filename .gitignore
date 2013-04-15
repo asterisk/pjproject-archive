@@ -4,6 +4,7 @@
 /*.opt
 /*.suo
 /.cdtproject
+/.cproject
 /.project
 /.settings
 /build.mak
@@ -198,6 +199,7 @@ pjsip-apps/src/vidgui/debug
 pjsip-apps/src/vidgui/moc_*
 pjsip-apps/src/vidgui/release
 pjsip-apps/src/vidgui/vidgui
+/pjsip.pri
 pjsip/bin/*
 pjsip/build/*.htm
 pjsip/build/*.html
