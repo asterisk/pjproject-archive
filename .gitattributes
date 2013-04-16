@@ -140,6 +140,8 @@ pjsip-apps/src/ipjsystest/TestViewController.xib -text
 pjsip-apps/src/ipjsystest/ipjsystest-Info.plist -text
 pjsip-apps/src/ipjsystest/ipjsystest.xcodeproj/project.pbxproj -text
 pjsip-apps/src/ipjsystest/ipjsystest_Prefix.pch -text
+pjsip-apps/src/pjsua/bb10/.cproject -text
+pjsip-apps/src/pjsua/bb10/.project -text
 pjsip-apps/src/pjsua/bb10/Makefile -text
 pjsip-apps/src/pjsua/bb10/PjsuaBB.pro -text
 pjsip-apps/src/pjsua/bb10/assets/.assets.index -text
@@ -149,9 +151,6 @@ pjsip-apps/src/pjsua/bb10/bar-descriptor.xml -text
 pjsip-apps/src/pjsua/bb10/config.pri -text
 pjsip-apps/src/pjsua/bb10/icon.png -text
 pjsip-apps/src/pjsua/bb10/precompiled.h -text
-pjsip-apps/src/pjsua/bb10/src/applicationui.cpp -text
-pjsip-apps/src/pjsua/bb10/src/applicationui.h -text
-pjsip-apps/src/pjsua/bb10/src/main.cpp -text
 pjsip-apps/src/pjsua/bb10/translations/Makefile -text
 pjsip-apps/src/pjsua/bb10/translations/PjsuaBB.pro -text
 pjsip-apps/src/pjsua/bb10/translations/PjsuaBB.ts -text

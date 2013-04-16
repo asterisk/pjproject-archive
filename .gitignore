@@ -145,9 +145,7 @@ pjsip-apps/build/wince-evc4/*.vco
 pjsip-apps/build/wince-evc4/output/*
 pjsip-apps/lib/*
 pjsip-apps/src/confbot/*.pyc
-pjsip-apps/src/pjsua/bb10/.cproject
 pjsip-apps/src/pjsua/bb10/.device
-pjsip-apps/src/pjsua/bb10/.project
 pjsip-apps/src/pjsua/bb10/.settings
 pjsip-apps/src/pjsua/bb10/arm
 pjsip-apps/src/pjsua/bb10/translations/PjsuaBB.qm
