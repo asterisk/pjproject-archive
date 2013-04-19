@@ -169,6 +169,12 @@ pjsip-apps/src/pjsua/ios/ipjsua/ipjsuaViewController.h -text
 pjsip-apps/src/pjsua/ios/ipjsua/ipjsuaViewController.m -text
 pjsip-apps/src/pjsua/ios/ipjsua/main.m -text
 pjsip-apps/src/pjsua/ios/ipjsua/pjsua.png -text
+pjsip-apps/src/pjsua/symbian/gfx/list_icon.bmp -text
+pjsip-apps/src/pjsua/symbian/gfx/list_icon_mask.bmp -text
+pjsip-apps/src/pjsua/symbian/gfx/mark_icon.bmp -text
+pjsip-apps/src/pjsua/symbian/gfx/mark_icon_mask.bmp -text
+pjsip-apps/src/pjsua/symbian/gfx/pjsua.bmp -text
+pjsip-apps/src/pjsua/symbian/gfx/qgn_menu_pjsua.svg -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
