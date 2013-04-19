@@ -172,6 +172,7 @@ pjsip-apps/src/pjsua/symbian/gfx/mark_icon.bmp -text
 pjsip-apps/src/pjsua/symbian/gfx/mark_icon_mask.bmp -text
 pjsip-apps/src/pjsua/symbian/gfx/pjsua.bmp -text
 pjsip-apps/src/pjsua/symbian/gfx/qgn_menu_pjsua.svg -text
+pjsip-apps/src/pjsua/wm/pjsua.bmp -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.ico -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.rc -text
 pjsip-apps/src/pjsua_wince/pjsua_wince.vcp -text
