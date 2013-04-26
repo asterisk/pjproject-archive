@@ -122,6 +122,7 @@ pjsip-apps/bin/*
 pjsip-apps/bin/samples/*
 pjsip-apps/build/*.LOG
 pjsip-apps/build/*.WAV
+pjsip-apps/build/*.aps
 pjsip-apps/build/*.htm
 pjsip-apps/build/*.log
 pjsip-apps/build/*.ncb
@@ -149,6 +150,10 @@ pjsip-apps/src/pjsua/bb10/.device
 pjsip-apps/src/pjsua/bb10/.settings
 pjsip-apps/src/pjsua/bb10/arm
 pjsip-apps/src/pjsua/bb10/translations/PjsuaBB.qm
+pjsip-apps/src/pjsua/symbian/.cproject
+pjsip-apps/src/pjsua/symbian/.project
+pjsip-apps/src/pjsua/symbian/sis/*.sis*
+pjsip-apps/src/pjsystest/*.aps
 pjsip-apps/src/py_pjsua/build
 pjsip-apps/src/python/*.html
 pjsip-apps/src/python/*.pyc
