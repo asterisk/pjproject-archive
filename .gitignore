@@ -150,6 +150,8 @@ pjsip-apps/src/pjsua/android/.*
 pjsip-apps/src/pjsua/android/.settings
 pjsip-apps/src/pjsua/android/bin
 pjsip-apps/src/pjsua/android/gen
+pjsip-apps/src/pjsua/android/jni/.*
+pjsip-apps/src/pjsua/android/jni/pjsua.cpp
 pjsip-apps/src/pjsua/android/jni/pjsua_wrap.cpp
 pjsip-apps/src/pjsua/android/jni/pjsua_wrap.h
 pjsip-apps/src/pjsua/android/libs
