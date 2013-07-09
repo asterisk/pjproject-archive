@@ -79,7 +79,7 @@ print_common:
 
 print_bin: print_common
 	@echo EXE=$(subst /,$(HOST_PSEP),$(BINDIR)/$(EXE))
- 	@echo BINDIR=$(BINDIR)
+	@echo BINDIR=$(BINDIR)
  
 print_lib: print_common
 ifneq ($(LIB),)
