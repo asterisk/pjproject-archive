@@ -113,9 +113,21 @@ install:
 		cp -RLf $$d/include/* $(DESTDIR)$(includedir)/; \
 	done
 	mkdir -p $(DESTDIR)$(libdir)/pkgconfig
-	sed -e "s!@PREFIX@!$(DESTDIR)$(prefix)!" libpjproject.pc.in | \
-		sed -e "s!@INCLUDEDIR@!$(DESTDIR)$(includedir)!" | \
-		sed -e "s!@LIBDIR@!$(DESTDIR)$(libdir)!" | \
+	sed -e "s!@PREFIX@!$(prefix)!" libpjproject.pc.in | \
+		sed -e "s!@INCLUDEDIR@!$(includedir)!" | \
+		sed -e "s!@LIBDIR@!$(libdir)!" | \
 		sed -e "s/@PJ_VERSION@/$(PJ_VERSION)/" | \
 		sed -e "s!@PJ_LDLIBS@!$(PJ_LDLIBS)!" | \
 		sed -e "s!@PJ_INSTALL_CFLAGS@!$(PJ_INSTALL_CFLAGS)!" > $(DESTDIR)/$(libdir)/pkgconfig/libpjproject.pc
+
+uninstall:
+	$(RM) $(DESTDIR)$(libdir)/pkgconfig/libpjproject.pc
+	-rmdir $(DESTDIR)$(libdir)/pkgconfig 2> /dev/null
+	for d in pjlib pjlib-util pjnath pjmedia pjsip; do \
+		for f in $$d/include/*; do \
+			$(RM) -r "$(DESTDIR)$(includedir)/`basename $$f`"; \
+		done; \
+	done
+	-rmdir $(DESTDIR)$(includedir) 2> /dev/null
+	$(RM) $(addprefix $(DESTDIR)$(libdir)/,$(notdir $(APP_LIB_FILES)))
+	-rmdir $(DESTDIR)$(libdir) 2> /dev/null

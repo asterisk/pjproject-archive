@@ -13,7 +13,7 @@ SHLIB = $($(APP)_SHLIB)
 SONAME = $($(APP)_SONAME)
 
 ifeq ($(SHLIB_SUFFIX),so)
-SHLIB_OPT := -shared -Wl,-soname,$(SONAME)
+SHLIB_OPT := -shared -Wl,-soname,$(SHLIB)
 else ifeq ($(SHLIB_SUFFIX),dylib)
 SHLIB_OPT := -dynamiclib -undefined dynamic_lookup -flat_namespace
 else
