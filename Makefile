@@ -113,9 +113,9 @@ install:
 		cp -RLf $$d/include/* $(DESTDIR)$(includedir)/; \
 	done
 	mkdir -p $(DESTDIR)$(libdir)/pkgconfig
-	sed -e "s!@PREFIX@!$(DESTDIR)$(prefix)!" libpjproject.pc.in | \
-		sed -e "s!@INCLUDEDIR@!$(DESTDIR)$(includedir)!" | \
-		sed -e "s!@LIBDIR@!$(DESTDIR)$(libdir)!" | \
+	sed -e "s!@PREFIX@!$(prefix)!" libpjproject.pc.in | \
+		sed -e "s!@INCLUDEDIR@!$(includedir)!" | \
+		sed -e "s!@LIBDIR@!$(libdir)!" | \
 		sed -e "s/@PJ_VERSION@/$(PJ_VERSION)/" | \
 		sed -e "s!@PJ_LDLIBS@!$(PJ_LDLIBS)!" | \
 		sed -e "s!@PJ_INSTALL_CFLAGS@!$(PJ_INSTALL_CFLAGS)!" > $(DESTDIR)/$(libdir)/pkgconfig/libpjproject.pc
