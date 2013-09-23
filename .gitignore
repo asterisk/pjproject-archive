@@ -175,6 +175,11 @@ pjsip-apps/src/python/*.html
 pjsip-apps/src/python/*.pyc
 pjsip-apps/src/python/build
 pjsip-apps/src/python/samples/*.pyc
+pjsip-apps/src/swig/java/output/*
+pjsip-apps/src/swig/python/build
+pjsip-apps/src/swig/python/pjsua2.py
+pjsip-apps/src/swig/python/pjsua2_wrap.cpp
+pjsip-apps/src/swig/python/pjsua2_wrap.h
 pjsip-apps/src/vidgui/*.idb
 pjsip-apps/src/vidgui/*.log
 pjsip-apps/src/vidgui/*.pdb
