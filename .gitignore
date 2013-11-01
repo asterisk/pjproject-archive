@@ -171,6 +171,8 @@ pjsip-apps/src/pjsua/symbian/.project
 pjsip-apps/src/pjsua/symbian/sis/*.sis*
 pjsip-apps/src/pjsystest/*.aps
 pjsip-apps/src/py_pjsua/build
+pjsip-apps/src/pygui/pygui.dat
+pjsip-apps/src/pygui/pygui.log
 pjsip-apps/src/python/*.html
 pjsip-apps/src/python/*.pyc
 pjsip-apps/src/python/build
