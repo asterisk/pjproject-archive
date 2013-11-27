@@ -194,6 +194,7 @@ pjsip/build/pjsip_core.vcproj -text
 pjsip/build/pjsip_simple.vcproj -text
 pjsip/build/pjsip_test.vcproj -text
 pjsip/build/pjsip_ua.vcproj -text
+pjsip/build/pjsua2_lib.vcproj -text
 pjsip/build/pjsua_lib.vcproj -text
 pjsip/build/wince-evc4/pjsip_core_wince.vcp eol=crlf
 pjsip/build/wince-evc4/pjsip_simple_wince.vcp eol=crlf
