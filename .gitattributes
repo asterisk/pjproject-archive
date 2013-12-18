@@ -210,10 +210,12 @@ pjsip-apps/src/samples/clidemo.c -text
 pjsip-apps/src/swig/java/android/.classpath -text
 pjsip-apps/src/swig/java/android/.project -text
 pjsip-apps/src/swig/java/android/.settings/org.eclipse.jdt.core.prefs -text
-pjsip-apps/src/swig/java/android/AndroidManifest.xml -text
+pjsip-apps/src/swig/java/android/AndroidManifest.xml eol=lf
 pjsip-apps/src/swig/java/android/ic_launcher-web.png -text
+pjsip-apps/src/swig/java/android/jni/Android.mk -text
+pjsip-apps/src/swig/java/android/jni/Application.mk -text
 pjsip-apps/src/swig/java/android/proguard-project.txt -text
-pjsip-apps/src/swig/java/android/project.properties -text
+pjsip-apps/src/swig/java/android/project.properties eol=lf
 pjsip-apps/src/swig/java/android/res/drawable-hdpi/ic_launcher.png -text
 pjsip-apps/src/swig/java/android/res/drawable-mdpi/ic_launcher.png -text
 pjsip-apps/src/swig/java/android/res/drawable-xhdpi/ic_launcher.png -text

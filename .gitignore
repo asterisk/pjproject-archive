@@ -178,9 +178,12 @@ pjsip-apps/src/python/*.html
 pjsip-apps/src/python/*.pyc
 pjsip-apps/src/python/build
 pjsip-apps/src/python/samples/*.pyc
+pjsip-apps/src/swig/java/android/.cproject
 pjsip-apps/src/swig/java/android/bin
 pjsip-apps/src/swig/java/android/gen
 pjsip-apps/src/swig/java/android/libs/android-support-*.jar
+pjsip-apps/src/swig/java/android/libs/armeabi/*
+pjsip-apps/src/swig/java/android/obj
 pjsip-apps/src/swig/java/android/src/org/pjsip/pjsua2/*.class
 pjsip-apps/src/swig/java/android/src/org/pjsip/pjsua2/*.java
 pjsip-apps/src/swig/java/output/*
