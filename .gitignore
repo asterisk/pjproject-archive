@@ -188,6 +188,7 @@ pjsip-apps/src/swig/java/android/obj
 pjsip-apps/src/swig/java/android/src/org/pjsip/pjsua2/*.class
 pjsip-apps/src/swig/java/android/src/org/pjsip/pjsua2/*.java
 pjsip-apps/src/swig/java/output/*
+pjsip-apps/src/swig/python/*.exe
 pjsip-apps/src/swig/python/_pjsua2.pyd
 pjsip-apps/src/swig/python/build
 pjsip-apps/src/swig/python/pjsua2.py
