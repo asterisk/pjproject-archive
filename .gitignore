@@ -27,6 +27,8 @@ build/cc-auto.mak
 build/os-auto.mak
 /config.log
 /config.status
+doc/pjsip-book/_build/*
+doc/pjsip-book/xml
 lib/*
 pjlib-util/bin/*
 pjlib-util/build/*.bsc
