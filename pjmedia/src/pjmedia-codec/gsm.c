@@ -1,4 +1,4 @@
-/* $Id: gsm.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: gsm.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -530,7 +530,7 @@ static pj_status_t gsm_codec_encode( pjmedia_codec *codec,
 {
     struct gsm_data *gsm_data = (struct gsm_data*) codec->codec_data;
     pj_int16_t *pcm_in;
-    unsigned in_size;
+    pj_size_t in_size;
 
     pj_assert(gsm_data && input && output);
     

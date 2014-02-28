@@ -1,4 +1,4 @@
-/* $Id: ffmpeg_util.c 4158 2012-06-06 09:56:14Z nanang $ */
+/* $Id: ffmpeg_util.c 4613 2013-10-08 09:08:13Z bennylp $ */
 /*
  * Copyright (C) 2010-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -103,7 +103,7 @@ static void ffmpeg_log_cb(void* ptr, int level, const char* fmt, va_list vl)
     const char *LOG_SENDER = "ffmpeg";
     enum { LOG_LEVEL = 5 };
     char buf[100];
-    int bufsize = sizeof(buf), len;
+    pj_size_t bufsize = sizeof(buf), len;
     pj_str_t fmt_st;
 
     /* Custom callback needs to filter log level by itself */
@@ -114,6 +114,8 @@ static void ffmpeg_log_cb(void* ptr, int level, const char* fmt, va_list vl)
     if (ptr) {
 	AVClass* avc = *(AVClass**)ptr;
 	len = pj_ansi_snprintf(buf, bufsize, "%s: ", avc->item_name(ptr));
+	if (len < 1 || len >= bufsize)
+	    len = bufsize - 1;
 	bufsize -= len;
     }
 

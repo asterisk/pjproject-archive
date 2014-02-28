@@ -1,4 +1,4 @@
-/* $Id: sip_100rel.c 4208 2012-07-18 07:52:33Z ming $ */
+/* $Id: sip_100rel.c 4713 2014-01-23 08:13:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -50,9 +50,9 @@ static void on_retransmit(pj_timer_heap_t *timer_heap,
 			  struct pj_timer_entry *entry);
 
 
-const pj_str_t tag_100rel = { "100rel", 6 };
-const pj_str_t RSEQ = { "RSeq", 4 };
-const pj_str_t RACK = { "RAck", 4 };
+static const pj_str_t tag_100rel = { "100rel", 6 };
+static const pj_str_t RSEQ = { "RSeq", 4 };
+static const pj_str_t RACK = { "RAck", 4 };
 
 
 /* 100rel module */
@@ -344,6 +344,9 @@ PJ_DEF(pj_status_t) pjsip_100rel_create_prack( pjsip_inv_session *inv,
 				 rseq, rdata->msg_info.cseq->cseq,
 				 (int)tsx->method.name.slen,
 				 tsx->method.name.ptr);
+    if (rack.slen < 1 || rack.slen >= (int)sizeof(rack_buf)) {
+	return PJ_ETOOSMALL;
+    }
     rack_hdr = pjsip_generic_string_hdr_create(tdata->pool, &RACK, &rack);
     pjsip_msg_add_hdr(tdata->msg, (pjsip_hdr*) rack_hdr);
 

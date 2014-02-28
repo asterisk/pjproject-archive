@@ -1,4 +1,4 @@
-/* $Id: stream.h 3841 2011-10-24 09:28:13Z ming $ */
+/* $Id: stream.h 4739 2014-02-11 04:46:49Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -341,7 +341,10 @@ PJ_DECL(pj_status_t) pjmedia_stream_resume(pjmedia_stream *stream,
  * only valid for audio stream.
  *
  * @param stream	The media stream.
- * @param ascii_digit	String containing digits to be sent to remote.
+ * @param ascii_digit	String containing digits to be sent to remote as 
+ *			described on RFC 2833 section 3.10. Character 'R' is 
+ *			used to represent the event type 16 (flash) as stated 
+ *			in RFC 4730.
  *			Currently the maximum number of digits are 32.
  *
  * @return		PJ_SUCCESS on success.

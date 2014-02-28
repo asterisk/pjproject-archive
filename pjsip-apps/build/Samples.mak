@@ -1,13 +1,16 @@
-
+include ../../build.mak
+include ../../version.mak
 include ../../build/common.mak
 
+RULES_MAK := $(PJDIR)/build/rules.mak
 
 ###############################################################################
 # Gather all flags.
 #
 export _CFLAGS 	:= $(PJ_CFLAGS) $(CFLAGS)
-export _CXXFLAGS:= $(PJ_CXXFLAGS)
+export _CXXFLAGS:= $(PJ_CXXFLAGS) $(CFLAGS)
 export _LDFLAGS := $(PJ_LDFLAGS) $(PJ_LDLIBS) $(LDFLAGS)
+export _LDXXFLAGS := $(PJ_LDXXFLAGS) $(PJ_LDXXLIBS) $(LDFLAGS)
 
 SRCDIR := ../src/samples
 OBJDIR := ./output/samples-$(TARGET_NAME)
@@ -16,7 +19,7 @@ BINDIR := ../bin/samples/$(TARGET_NAME)
 SAMPLES := auddemo \
 	   aviplay \
 	   aectest \
-	   aviplay \
+	   clidemo \
 	   confsample \
 	   encdec \
 	   httpdemo \
@@ -44,35 +47,29 @@ SAMPLES := auddemo \
 	   tonegen \
 	   vid_streamutil
 
-EXES := $(foreach file, $(SAMPLES), $(BINDIR)/$(file)$(HOST_EXE))
+PJSUA2_SAMPLES := pjsua2_demo
 
-all: $(BINDIR) $(OBJDIR) $(EXES)
+EXES := $(foreach file, $(SAMPLES), $(file)$(HOST_EXE))
+PJSUA2_EXES := $(foreach file, $(PJSUA2_SAMPLES), $(file)$(HOST_EXE))
 
-$(BINDIR)/%$(HOST_EXE): $(OBJDIR)/%$(OBJEXT) $(PJ_LIB_FILES)
-	$(LD) $(LDOUT)$(subst /,$(HOST_PSEP),$@) \
-	    $(subst /,$(HOST_PSEP),$<) \
-	    $(_LDFLAGS)
+.PHONY: $(EXES)
+.PHONY: $(PJSUA2_EXES)
 
-$(OBJDIR)/%$(OBJEXT): $(SRCDIR)/%.c
-	$(CC) $(_CFLAGS) \
-	  $(CC_OUT)$(subst /,$(HOST_PSEP),$@) \
-	  $(subst /,$(HOST_PSEP),$<) 
+all: $(EXES) $(PJSUA2_EXES)
 
-$(OBJDIR):
-	$(subst @@,$(subst /,$(HOST_PSEP),$@),$(HOST_MKDIR)) 
+$(EXES):
+	$(MAKE) --no-print-directory -f $(RULES_MAK) SAMPLE_SRCDIR=$(SRCDIR) SAMPLE_OBJS=$@.o SAMPLE_CFLAGS="$(_CFLAGS)" SAMPLE_CXXFLAGS="$(_CXXFLAGS)" SAMPLE_LDFLAGS="$(_LDFLAGS)" SAMPLE_EXE=$@ APP=SAMPLE app=sample $(subst /,$(HOST_PSEP),$(BINDIR)/$@)
 
-$(BINDIR):
-	$(subst @@,$(subst /,$(HOST_PSEP),$@),$(HOST_MKDIR)) 
+$(PJSUA2_EXES):
+	$(MAKE) --no-print-directory -f $(RULES_MAK) PJSUA2_SAMPLE_SRCDIR=$(SRCDIR) PJSUA2_SAMPLE_OBJS=$@.o PJSUA2_SAMPLE_CFLAGS="$(_CFLAGS)" PJSUA2_SAMPLE_CXXFLAGS="$(_CXXFLAGS)" PJSUA2_SAMPLE_LDFLAGS="$(_LDXXFLAGS)" PJSUA2_SAMPLE_EXE=$@ APP=PJSUA2_SAMPLE app=pjsua2_sample $(subst /,$(HOST_PSEP),$(BINDIR)/$@)
 
 depend:
 
 clean:
-	$(subst @@,$(subst /,$(HOST_PSEP),$(OBJDIR)/*),$(HOST_RMR))
-	$(subst @@,$(subst /,$(HOST_PSEP),$(OBJDIR)),$(HOST_RMDIR))
+	$(MAKE) -f $(RULES_MAK) APP=SAMPLE app=sample $@
 	$(subst @@,$(EXES),$(HOST_RM))
-	rm -rf $(BINDIR)
+	$(subst @@,$(BINDIR),$(HOST_RMDIR))
 
 distclean realclean: clean
-#	$(subst @@,$(subst /,$(HOST_PSEP),$(EXES)) $(subst /,$(HOST_PSEP),$(EXES)),$(HOST_RM))
-#	$(subst @@,$(DEP_FILE),$(HOST_RM))
+	$(MAKE) -f $(RULES_MAK) APP=SAMPLE app=sample $@
 

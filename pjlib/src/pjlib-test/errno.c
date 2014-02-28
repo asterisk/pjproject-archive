@@ -1,4 +1,4 @@
-/* $Id: errno.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: errno.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -28,7 +28,8 @@
 
 #define THIS_FILE   "errno"
 
-#if defined(PJ_WIN32) && PJ_WIN32 != 0
+#if (defined(PJ_WIN32) && PJ_WIN32 != 0) || \
+    (defined(PJ_WIN64) && PJ_WIN64 != 0)
 #   include <windows.h>
 #endif
 
@@ -59,7 +60,7 @@ int my_strncasecmp(const char *s1, const char *s2, int max_len)
 
 const char *my_stristr(const char *whole, const char *part)
 {
-    int part_len = strlen(part);
+    int part_len = (int)strlen(part);
     while (*whole) {
         if (my_strncasecmp(whole, part, part_len) == 0)
             return whole;

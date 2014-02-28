@@ -1,4 +1,4 @@
-/* $Id: crc32.c 2511 2009-03-13 12:28:00Z bennylp $ */
+/* $Id: crc32.c 4537 2013-06-19 06:47:43Z riza $ */
 /*
  * This is an implementation of CRC32. See ISO 3309 and ITU-T V.42 
  * for a formal specification
@@ -159,7 +159,7 @@ PJ_DEF(pj_uint32_t) pj_crc32_update(pj_crc32_context *ctx,
 {
     pj_uint32_t crc = ctx->crc_state ^ CRC32_NEGL;
 
-    for( ; (((unsigned long)data) & 0x03) && nbytes > 0; --nbytes) {
+    for( ; (((unsigned long)(pj_ssize_t)data) & 0x03) && nbytes > 0; --nbytes) {
 	crc = crc_tab[CRC32_INDEX(crc) ^ *data++] ^ CRC32_SHIFTED(crc);
     }
 

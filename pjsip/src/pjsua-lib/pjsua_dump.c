@@ -1,4 +1,4 @@
-/* $Id: pjsua_dump.c 4300 2012-11-26 02:04:17Z ming $ */
+/* $Id: pjsua_dump.c 4613 2013-10-08 09:08:13Z bennylp $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -128,9 +128,9 @@ static unsigned dump_media_stat(const char *indent,
 	   ""
 	   );
 
-    if (len < 1 || len > end-p) {
+    if (len < 1 || len >= end-p) {
 	*p = '\0';
-	return (p-buf);
+	return (unsigned)(p-buf);
     }
     p += len;
 
@@ -186,9 +186,9 @@ static unsigned dump_media_stat(const char *indent,
 	   pj_math_stat_get_stddev(&stat->tx.jitter) / 1000.0
 	   );
 
-    if (len < 1 || len > end-p) {
+    if (len < 1 || len >= end-p) {
 	*p = '\0';
-	return (p-buf);
+	return (unsigned)(p-buf);
     }
     p += len;
 
@@ -201,13 +201,13 @@ static unsigned dump_media_stat(const char *indent,
 	   stat->rtt.last / 1000.0,
 	   pj_math_stat_get_stddev(&stat->rtt) / 1000.0
 	   );
-    if (len < 1 || len > end-p) {
+    if (len < 1 || len >= end-p) {
 	*p = '\0';
-	return (p-buf);
+	return (unsigned)(p-buf);
     }
     p += len;
 
-    return (p-buf);
+    return (unsigned)(p-buf);
 }
 
 
@@ -259,7 +259,7 @@ static void dump_media_session(const char *indent,
 	    len = pj_ansi_snprintf(p, end-p,
 		      "%s  #%d %s deactivated\n",
 		      indent, i, media_type_str);
-	    if (len < 1 || len > end-p) {
+	    if (len < 1 || len >= end-p) {
 		*p = '\0';
 		return;
 	    }
@@ -363,7 +363,7 @@ static void dump_media_session(const char *indent,
 		  codec_info,
 		  dir_str,
 		  rem_addr);
-	if (len < 1 || len > end-p) {
+	if (len < 1 || len >= end-p) {
 	    *p = '\0';
 	    return;
 	}
@@ -382,12 +382,16 @@ static void dump_media_session(const char *indent,
 		    {
 			pjmedia_srtp_info *srtp_info =
 				    (pjmedia_srtp_info*) tp_info.spc_info[j].buffer;
+			const char *policy_name = srtp_info->tx_policy.name.ptr;
+
+			if (!policy_name)
+			    policy_name = "";
 
 			len = pj_ansi_snprintf(p, end-p,
 					       "   %s  SRTP status: %s Crypto-suite: %s",
 					       indent,
 					       (srtp_info->active?"Active":"Not active"),
-					       srtp_info->tx_policy.name.ptr);
+					       policy_name);
 			if (len > 0 && len < end-p) {
 			    p += len;
 			    *p++ = '\n';
@@ -443,7 +447,7 @@ static void dump_media_session(const char *indent,
 
 
 	if (has_stat) {
-	    len = dump_media_stat(indent, p, end-p, &stat,
+	    len = dump_media_stat(indent, p, (unsigned)(end-p), &stat,
 				  rx_info, tx_info);
 	    p += len;
 	}
@@ -466,7 +470,7 @@ static void dump_media_session(const char *indent,
 	    sprintf(s, "%d", v)
 
 #   define VALIDATE_PRINT_BUF() \
-	if (len < 1 || len > end-p) { *p = '\0'; return; } \
+	if (len < 1 || len >= end-p) { *p = '\0'; return; } \
 	p += len; *p++ = '\n'; *p = '\0'
 
 
@@ -944,7 +948,7 @@ PJ_DEF(pj_status_t) pjsua_call_dump( pjsua_call_id call_id,
 
     print_call(indent, call_id, tmp, sizeof(tmp));
 
-    len = pj_ansi_strlen(tmp);
+    len = (int)pj_ansi_strlen(tmp);
     pj_ansi_strcpy(buffer, tmp);
 
     p += len;
@@ -989,7 +993,7 @@ PJ_DEF(pj_status_t) pjsua_call_dump( pjsua_call_id call_id,
 
     /* Dump session statistics */
     if (with_media)
-	dump_media_session(indent, p, end-p, call);
+	dump_media_session(indent, p, (unsigned)(end-p), call);
 
     pjsip_dlg_dec_lock(dlg);
 

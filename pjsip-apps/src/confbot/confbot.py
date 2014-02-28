@@ -1,4 +1,4 @@
-# $Id: confbot.py 2912 2009-08-24 11:56:13Z bennylp $
+# $Id: confbot.py 4724 2014-01-31 08:52:09Z nanang $
 #
 # SIP Conference Bot
 #
@@ -197,7 +197,7 @@ class Member:
 		self.bot.broadcast_pager(None, msg)
 
 	def on_call_transfer_request(self, call, dst, code):
-		msg = "%(uri)s is transfering the call to %(dst)s" % \
+		msg = "%(uri)s is transferring the call to %(dst)s" % \
 			  {'uri': self.uri, 'dst': dst}
 		self.bot.broadcast_pager(None, msg)
 		return 202

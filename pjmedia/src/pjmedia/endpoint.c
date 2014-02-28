@@ -1,4 +1,4 @@
-/* $Id: endpoint.c 4240 2012-08-31 09:03:36Z ming $ */
+/* $Id: endpoint.c 4739 2014-02-11 04:46:49Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -209,20 +209,8 @@ PJ_DEF(pjmedia_codec_mgr*) pjmedia_endpt_get_codec_mgr(pjmedia_endpt *endpt)
 PJ_DEF(pj_status_t) pjmedia_endpt_destroy (pjmedia_endpt *endpt)
 {
     exit_cb *ecb;
-    unsigned i;
 
-    PJ_ASSERT_RETURN(endpt, PJ_EINVAL);
-
-    endpt->quit_flag = 1;
-
-    /* Destroy threads */
-    for (i=0; i<endpt->thread_cnt; ++i) {
-	if (endpt->thread[i]) {
-	    pj_thread_join(endpt->thread[i]);
-	    pj_thread_destroy(endpt->thread[i]);
-	    endpt->thread[i] = NULL;
-	}
-    }
+    pjmedia_endpt_stop_threads(endpt);
 
     /* Destroy internal ioqueue */
     if (endpt->ioqueue && endpt->own_ioqueue) {
@@ -311,6 +299,29 @@ PJ_DEF(pj_thread_t*) pjmedia_endpt_get_thread(pjmedia_endpt *endpt,
     /* here should be an assert on index >= 0 < endpt->thread_cnt */
 
     return endpt->thread[index];
+}
+
+/**
+ * Stop and destroy the worker threads of the media endpoint
+ */
+PJ_DEF(pj_status_t) pjmedia_endpt_stop_threads(pjmedia_endpt *endpt)
+{
+    unsigned i;
+
+    PJ_ASSERT_RETURN(endpt, PJ_EINVAL);
+
+    endpt->quit_flag = 1;
+
+    /* Destroy threads */
+    for (i=0; i<endpt->thread_cnt; ++i) {
+	if (endpt->thread[i]) {
+	    pj_thread_join(endpt->thread[i]);
+	    pj_thread_destroy(endpt->thread[i]);
+	    endpt->thread[i] = NULL;
+	}
+    }
+
+    return PJ_SUCCESS;
 }
 
 /**
@@ -479,17 +490,17 @@ PJ_DEF(pj_status_t) pjmedia_endpt_create_audio_sdp(pjmedia_endpt *endpt,
 	    pjmedia_codec_fmtp *dec_fmtp = &codec_param.setting.dec_fmtp;
 
 	    /* Print codec PT */
-	    buf_len += pj_ansi_snprintf(buf, 
-					MAX_FMTP_STR_LEN - buf_len, 
-					"%d", 
+	    buf_len += pj_ansi_snprintf(buf,
+					MAX_FMTP_STR_LEN - buf_len,
+					"%d",
 					codec_info->pt);
 
 	    for (i = 0; i < dec_fmtp->cnt; ++i) {
-		unsigned test_len = 2;
+		pj_size_t test_len = 2;
 
 		/* Check if buf still available */
 		test_len = dec_fmtp->param[i].val.slen + 
-			   dec_fmtp->param[i].name.slen;
+			   dec_fmtp->param[i].name.slen + 2;
 		if (test_len + buf_len >= MAX_FMTP_STR_LEN)
 		    return PJ_ETOOBIG;
 
@@ -547,7 +558,7 @@ PJ_DEF(pj_status_t) pjmedia_endpt_create_audio_sdp(pjmedia_endpt *endpt,
 	/* Add fmtp */
 	attr = PJ_POOL_ZALLOC_T(pool, pjmedia_sdp_attr);
 	attr->name = pj_str("fmtp");
-	attr->value = pj_str(PJMEDIA_RTP_PT_TELEPHONE_EVENTS_STR " 0-15");
+	attr->value = pj_str(PJMEDIA_RTP_PT_TELEPHONE_EVENTS_STR " 0-16");
 	m->attr[m->attr_count++] = attr;
     }
 #endif
@@ -671,11 +682,11 @@ PJ_DEF(pj_status_t) pjmedia_endpt_create_video_sdp(pjmedia_endpt *endpt,
 					codec_info[i].pt);
 
 	    for (j = 0; j < dec_fmtp->cnt; ++j) {
-		unsigned test_len = 2;
+		pj_size_t test_len = 2;
 
 		/* Check if buf still available */
 		test_len = dec_fmtp->param[j].val.slen + 
-			   dec_fmtp->param[j].name.slen;
+			   dec_fmtp->param[j].name.slen + 2;
 		if (test_len + buf_len >= MAX_FMTP_STR_LEN)
 		    return PJ_ETOOBIG;
 

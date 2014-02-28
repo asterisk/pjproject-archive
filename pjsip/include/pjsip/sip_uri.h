@@ -1,4 +1,4 @@
-/* $Id: sip_uri.h 4370 2013-02-26 05:30:00Z nanang $ */
+/* $Id: sip_uri.h 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -300,7 +300,8 @@ PJ_INLINE(int) pjsip_uri_print(pjsip_uri_context_e context,
 			       const void *uri,
 			       char *buf, pj_size_t size)
 {
-    return (*((const pjsip_uri*)uri)->vptr->p_print)(context, uri, buf, size);
+    return (int)(*((const pjsip_uri*)uri)->vptr->p_print)(context, uri, 
+							  buf, size);
 }
 
 /**

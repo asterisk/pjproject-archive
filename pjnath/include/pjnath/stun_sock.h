@@ -1,4 +1,4 @@
-/* $Id: stun_sock.h 4360 2013-02-21 11:26:35Z bennylp $ */
+/* $Id: stun_sock.h 4606 2013-10-01 05:00:57Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -295,6 +295,26 @@ typedef struct pj_stun_sock_cfg
      */
     pj_bool_t qos_ignore_error;
 
+    /**
+     * Specify target value for socket receive buffer size. It will be
+     * applied using setsockopt(). When it fails to set the specified size,
+     * it will try with lower value until the highest possible is
+     * successfully set.
+     *
+     * Default: 0 (OS default)
+     */
+    unsigned so_rcvbuf_size;
+
+    /**
+     * Specify target value for socket send buffer size. It will be
+     * applied using setsockopt(). When it fails to set the specified size,
+     * it will try with lower value until the highest possible is
+     * successfully set.
+     *
+     * Default: 0 (OS default)
+     */
+    unsigned so_sndbuf_size;
+
 } pj_stun_sock_cfg;
 
 
@@ -411,6 +431,16 @@ PJ_DECL(pj_status_t) pj_stun_sock_set_user_data(pj_stun_sock *stun_sock,
  * @return		The user/application data.
  */
 PJ_DECL(void*) pj_stun_sock_get_user_data(pj_stun_sock *stun_sock);
+
+
+/**
+ * Get the group lock for this STUN transport.
+ *
+ * @param stun_sock	The STUN transport instance.
+ *
+ * @return	        The group lock.
+ */
+PJ_DECL(pj_grp_lock_t *) pj_stun_sock_get_grp_lock(pj_stun_sock *stun_sock);
 
 
 /**

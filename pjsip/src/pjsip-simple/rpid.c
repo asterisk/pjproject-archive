@@ -1,4 +1,4 @@
-/* $Id: rpid.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: rpid.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -66,7 +66,7 @@ static void update_namespaces(pjpidf_pres *pres,
 /* Comparison function to find node name substring */
 static pj_bool_t substring_match(const pj_xml_node *node, 
 				 const char *part_name,
-				 int part_len)
+				 pj_ssize_t part_len)
 {
     pj_str_t end_name;
 
@@ -88,7 +88,7 @@ static pj_xml_node *find_node(const pj_xml_node *parent,
 {
     const pj_xml_node *node = parent->node_head.next, 
 		      *head = (pj_xml_node*) &parent->node_head;
-    int part_len = pj_ansi_strlen(part_name);
+    pj_ssize_t part_len = pj_ansi_strlen(part_name);
 
     while (node != head) {
 	if (substring_match(node, part_name, part_len))

@@ -1,4 +1,4 @@
-/* $Id: pjsua_media.c 4412 2013-03-05 03:12:32Z riza $ */
+/* $Id: pjsua_media.c 4750 2014-02-19 04:11:43Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -28,9 +28,6 @@
 #ifndef PJSUA_REQUIRE_CONSECUTIVE_RTCP_PORT
 #   define PJSUA_REQUIRE_CONSECUTIVE_RTCP_PORT	0
 #endif
-
-/* Next RTP port to be used */
-static pj_uint16_t next_rtp_port;
 
 static void pjsua_media_config_dup(pj_pool_t *pool,
 				   pjsua_media_config *dst,
@@ -182,15 +179,20 @@ pj_status_t pjsua_media_subsys_start(void)
  */
 pj_status_t pjsua_media_subsys_destroy(unsigned flags)
 {
-    unsigned i;
+    PJ_UNUSED_ARG(flags);
 
     PJ_LOG(4,(THIS_FILE, "Shutting down media.."));
     pj_log_push_indent();
 
     if (pjsua_var.med_endpt) {
+        /* Wait for media endpoint's worker threads to quit. */
+        pjmedia_endpt_stop_threads(pjsua_var.med_endpt);
+
 	pjsua_aud_subsys_destroy();
     }
 
+#if 0
+    // This part has been moved out to pjsua_destroy() (see also #1717).
     /* Close media transports */
     for (i=0; i<pjsua_var.ua_cfg.max_calls; ++i) {
         /* TODO: check if we're not allowed to send to network in the
@@ -199,6 +201,7 @@ pj_status_t pjsua_media_subsys_destroy(unsigned flags)
 	PJ_UNUSED_ARG(flags);
 	pjsua_media_channel_deinit(i);
     }
+#endif
 
     /* Destroy media endpoint. */
     if (pjsua_var.med_endpt) {
@@ -215,9 +218,6 @@ pj_status_t pjsua_media_subsys_destroy(unsigned flags)
 	// in pjmedia_endpt_destroy().
 	//pjmedia_snd_deinit();
     }
-
-    /* Reset RTP port */
-    next_rtp_port = 0;
 
     pj_log_pop_indent();
 
@@ -242,10 +242,10 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
     pj_sockaddr mapped_addr[2];
     pj_status_t status = PJ_SUCCESS;
     char addr_buf[PJ_INET6_ADDRSTRLEN+10];
+    pjsua_acc *acc = &pjsua_var.acc[call_med->call->acc_id];
     pj_sock_t sock[2];
 
-    use_ipv6 = (pjsua_var.acc[call_med->call->acc_id].cfg.ipv6_media_use !=
-		PJSUA_IPV6_DISABLED);
+    use_ipv6 = (acc->cfg.ipv6_media_use != PJSUA_IPV6_DISABLED);
     af = use_ipv6 ? pj_AF_INET6() : pj_AF_INET();
 
     /* Make sure STUN server resolution has completed */
@@ -257,11 +257,11 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 	}
     }
 
-    if (next_rtp_port == 0)
-	next_rtp_port = (pj_uint16_t)cfg->port;
+    if (acc->next_rtp_port == 0)
+	acc->next_rtp_port = (pj_uint16_t)cfg->port;
 
-    if (next_rtp_port == 0)
-	next_rtp_port = (pj_uint16_t)40000;
+    if (acc->next_rtp_port == 0)
+	acc->next_rtp_port = (pj_uint16_t)DEFAULT_RTP_PORT;
 
     for (i=0; i<2; ++i)
 	sock[i] = PJ_INVALID_SOCKET;
@@ -277,7 +277,14 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
     }
 
     /* Loop retry to bind RTP and RTCP sockets. */
-    for (i=0; i<RTP_RETRY; ++i, next_rtp_port += 2) {
+    for (i=0; i<RTP_RETRY; ++i, acc->next_rtp_port += 2) {
+
+        if (cfg->port > 0 && cfg->port_range > 0 &&
+            (acc->next_rtp_port > cfg->port + cfg->port_range ||
+             acc->next_rtp_port < cfg->port))
+        {
+            acc->next_rtp_port = (pj_uint16_t)cfg->port;
+        }
 
 	/* Create RTP socket. */
 	status = pj_sock_socket(af, pj_SOCK_DGRAM(), 0, &sock[0]);
@@ -292,7 +299,7 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 				    2, THIS_FILE, "RTP socket");
 
 	/* Bind RTP socket */
-	pj_sockaddr_set_port(&bound_addr, next_rtp_port);
+	pj_sockaddr_set_port(&bound_addr, acc->next_rtp_port);
 	status=pj_sock_bind(sock[0], &bound_addr,
 	                    pj_sockaddr_get_len(&bound_addr));
 	if (status != PJ_SUCCESS) {
@@ -315,7 +322,7 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 				    2, THIS_FILE, "RTCP socket");
 
 	/* Bind RTCP socket */
-	pj_sockaddr_set_port(&bound_addr, (pj_uint16_t)(next_rtp_port+1));
+	pj_sockaddr_set_port(&bound_addr, (pj_uint16_t)(acc->next_rtp_port+1));
 	status=pj_sock_bind(sock[1], &bound_addr,
 	                    pj_sockaddr_get_len(&bound_addr));
 	if (status != PJ_SUCCESS) {
@@ -407,18 +414,31 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 	} else if (cfg->public_addr.slen) {
 
 	    status = pj_sockaddr_init(af, &mapped_addr[0], &cfg->public_addr,
-				      (pj_uint16_t)next_rtp_port);
+				      (pj_uint16_t)acc->next_rtp_port);
 	    if (status != PJ_SUCCESS)
 		goto on_error;
 
 	    status = pj_sockaddr_init(af, &mapped_addr[1], &cfg->public_addr,
-				      (pj_uint16_t)(next_rtp_port+1));
+				      (pj_uint16_t)(acc->next_rtp_port+1));
 	    if (status != PJ_SUCCESS)
 		goto on_error;
 
 	    break;
 
 	} else {
+	    if (acc->cfg.allow_sdp_nat_rewrite && acc->reg_mapped_addr.slen) {
+		pj_status_t status;
+
+		/* Take the address from mapped addr as seen by registrar */
+		status = pj_sockaddr_set_str_addr(af, &bound_addr,
+		                                  &acc->reg_mapped_addr);
+		if (status != PJ_SUCCESS) {
+		    /* just leave bound_addr with whatever it was
+		    pj_bzero(pj_sockaddr_get_addr(&bound_addr),
+		             pj_sockaddr_get_addr_len(&bound_addr));
+		     */
+		}
+	    }
 
 	    if (!pj_sockaddr_has_addr(&bound_addr)) {
 		pj_sockaddr addr;
@@ -435,7 +455,7 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 		pj_sockaddr_init(af, &mapped_addr[i], NULL, 0);
 		pj_sockaddr_copy_addr(&mapped_addr[i], &bound_addr);
 		pj_sockaddr_set_port(&mapped_addr[i],
-		                     (pj_uint16_t)(next_rtp_port+i));
+		                     (pj_uint16_t)(acc->next_rtp_port+i));
 	    }
 
 	    break;
@@ -462,7 +482,7 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 	      pj_sockaddr_print(&skinfo->rtcp_addr_name, addr_buf,
 				sizeof(addr_buf), 3)));
 
-    next_rtp_port += 2;
+    acc->next_rtp_port += 2;
     return PJ_SUCCESS;
 
 on_error:
@@ -589,7 +609,7 @@ static void ice_init_complete_cb(void *user_data)
 /* Deferred callback to notify ICE negotiation failure */
 static void ice_failed_nego_cb(void *user_data)
 {
-    int call_id = (int)(long)user_data;
+    int call_id = (int)(pj_ssize_t)user_data;
     pjsua_call *call = NULL;
     pjsip_dialog *dlg = NULL;
 
@@ -638,7 +658,7 @@ static void on_ice_complete(pjmedia_transport *tp,
 	    if (call && pjsua_var.ua_cfg.cb.on_call_media_state) {
 		/* Defer the callback to a timer */
 		pjsua_schedule_timer2(&ice_failed_nego_cb,
-				      (void*)(long)call->index, 1);
+				      (void*)(pj_ssize_t)call->index, 1);
 	    }
         }
 	/* Check if default ICE transport address is changed */
@@ -809,10 +829,23 @@ static pj_status_t create_ice_media_transport(
     /* Wait until transport is initialized, or time out */
     if (!async) {
 	pj_bool_t has_pjsua_lock = PJSUA_LOCK_IS_LOCKED();
+	pjsip_dialog *dlg = call_med->call->inv ?
+				call_med->call->inv->dlg : NULL;
         if (has_pjsua_lock)
 	    PJSUA_UNLOCK();
+        if (dlg) {
+            /* Don't lock otherwise deadlock:
+             * https://trac.pjsip.org/repos/ticket/1737
+             */
+            ++dlg->sess_count;
+            pjsip_dlg_dec_lock(dlg);
+        }
         while (call_med->tp_ready == PJ_EPENDING) {
 	    pjsua_handle_events(100);
+        }
+        if (dlg) {
+            pjsip_dlg_inc_lock(dlg);
+            --dlg->sess_count;
         }
 	if (has_pjsua_lock)
 	    PJSUA_LOCK();
@@ -1271,6 +1304,20 @@ on_return:
     return status;
 }
 
+/* Determine if call's media is being changed, for example when video is being
+ * added. Then we can reject incoming re-INVITE, for example. This is the
+ * solution for https://trac.pjsip.org/repos/ticket/1738
+ */
+pj_bool_t  pjsua_call_media_is_changing(pjsua_call *call)
+{
+    /* The problem in #1738 occurs because we do handle_events() loop while
+     * adding media, which could cause incoming re-INVITE to be processed and
+     * cause havoc. Since the handle_events() loop only happens while adding
+     * media, it is sufficient to only check if "prov > cnt" for now.
+     */
+    return call->med_prov_cnt > call->med_cnt;
+}
+
 /* Initialize the media line */
 pj_status_t pjsua_call_media_init(pjsua_call_media *call_med,
                                   pjmedia_type type,
@@ -1366,7 +1413,7 @@ static pj_status_t media_channel_init_cb(pjsua_call_id call_id,
          * by the last media transport to finish.
          */
         if (info->status != PJ_SUCCESS)
-            pj_memcpy(&call->med_ch_info, info, sizeof(info));
+            pj_memcpy(&call->med_ch_info, info, sizeof(*info));
 
         /* Check whether all the call's medias have finished calling their
          * callbacks.
@@ -2576,8 +2623,11 @@ pj_status_t pjsua_media_channel_update(pjsua_call_id call_id,
 		continue;
 	    }
 
+            /* Codec parameter of stream info (si->param) can be NULL if
+             * the stream is rejected or disabled.
+             */
 	    /* Override ptime, if this option is specified. */
-	    if (pjsua_var.media_cfg.ptime != 0) {
+	    if (pjsua_var.media_cfg.ptime != 0 && si->param) {
 	        si->param->setting.frm_per_pkt = (pj_uint8_t)
 		    (pjsua_var.media_cfg.ptime / si->param->info.frm_ptime);
 	        if (si->param->setting.frm_per_pkt == 0)
@@ -2585,7 +2635,7 @@ pj_status_t pjsua_media_channel_update(pjsua_call_id call_id,
 	    }
 
 	    /* Disable VAD, if this option is specified. */
-	    if (pjsua_var.media_cfg.no_vad) {
+	    if (pjsua_var.media_cfg.no_vad && si->param) {
 	        si->param->setting.vad = 0;
 	    }
 

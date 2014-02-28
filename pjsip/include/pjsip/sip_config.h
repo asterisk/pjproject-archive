@@ -1,4 +1,4 @@
-/* $Id: sip_config.h 4285 2012-10-19 04:23:57Z nanang $ */
+/* $Id: sip_config.h 4720 2014-01-29 09:53:06Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -110,6 +110,23 @@ typedef struct pjsip_cfg_t
 	 * Default is PJSIP_DONT_SWITCH_TO_TCP.
 	 */
 	pj_bool_t disable_tcp_switch;
+
+	/**
+	 * Enable call media session to always be updated to the latest
+	 * received early media SDP when receiving forked early media
+	 * (multiple 183 responses with different To tag).
+	 *
+	 * Default is PJSIP_FOLLOW_EARLY_MEDIA_FORK.
+	 */
+	pj_bool_t follow_early_media_fork;
+
+	/**
+	 * Specify whether "alias" param should be added to the Via header
+	 * in any outgoing request with connection oriented transport.
+	 *
+	 * Default is PJSIP_REQ_HAS_VIA_ALIAS.
+	 */
+	pj_bool_t req_has_via_alias;
 
     } endpt;
 
@@ -288,6 +305,35 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
  */
 #ifndef PJSIP_DONT_SWITCH_TO_TCP
 #   define PJSIP_DONT_SWITCH_TO_TCP	0
+#endif
+
+
+/**
+ * Specify whether the call media session should be updated to the latest
+ * received early media SDP when receiving forked early media (multiple 183
+ * responses with different To tag).
+ *
+ * This option can also be controlled at run-time by the
+ * \a follow_early_media_fork setting in pjsip_cfg_t.
+ *
+ * Default is PJ_TRUE.
+ */
+#ifndef PJSIP_FOLLOW_EARLY_MEDIA_FORK
+#   define PJSIP_FOLLOW_EARLY_MEDIA_FORK	    PJ_TRUE
+#endif
+
+
+/**
+ * Specify whether "alias" param should be added to the Via header
+ * in any outgoing request with connection oriented transport.
+ *
+ * This option can also be controlled at run-time by the
+ * \a req_has_via_alias setting in pjsip_cfg_t.
+ *
+ * Default is PJ_TRUE.
+ */
+#ifndef PJSIP_REQ_HAS_VIA_ALIAS
+#   define PJSIP_REQ_HAS_VIA_ALIAS		    PJ_TRUE
 #endif
 
 
@@ -523,6 +569,24 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
 
 
 /**
+ * Specify whether TCP listener should use SO_REUSEADDR option. This constant
+ * will be used as the default value for the "reuse_addr" field in the
+ * pjsip_tcp_transport_cfg structure.
+ *
+ * Default is FALSE on Windows and TRUE on non-Windows.
+ *
+ * @see PJSIP_TLS_TRANSPORT_REUSEADDR
+ */
+#ifndef PJSIP_TCP_TRANSPORT_REUSEADDR
+# if (defined(PJ_WIN32) && PJ_WIN32) || (defined(PJ_WIN64) && PJ_WIN64)
+#   define PJSIP_TCP_TRANSPORT_REUSEADDR	0
+# else
+#   define PJSIP_TCP_TRANSPORT_REUSEADDR	1
+# endif
+#endif
+
+
+/**
  * Set the interval to send keep-alive packet for TCP transports.
  * If the value is zero, keep-alive will be disabled for TCP.
  *
@@ -629,6 +693,21 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
 #   define PJSIP_TLS_TRANSPORT_BACKLOG	    5
 #endif
 
+
+/**
+ * Specify whether TLS listener should use SO_REUSEADDR option.
+ *
+ * Default is FALSE on Windows and TRUE on non-Windows.
+ *
+ * @see PJSIP_TCP_TRANSPORT_REUSEADDR
+ */
+#ifndef PJSIP_TLS_TRANSPORT_REUSEADDR
+# if (defined(PJ_WIN32) && PJ_WIN32) || (defined(PJ_WIN64) && PJ_WIN64)
+#   define PJSIP_TLS_TRANSPORT_REUSEADDR	0
+# else
+#   define PJSIP_TLS_TRANSPORT_REUSEADDR	1
+# endif
+#endif
 
 
 /* Endpoint. */
@@ -863,6 +942,9 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
  * Specify support for IMS/3GPP digest AKA authentication version 1 and 2
  * (AKAv1-MD5 and AKAv2-MD5 respectively).
  *
+ * Note that if this is enabled, application would need to link with
+ * <b>libmilenage</b> library from \a third_party directory.
+ *
  * Default: 0 (for now)
  */
 #ifndef PJSIP_HAS_DIGEST_AKA_AUTH
@@ -1050,6 +1132,21 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
  */
 #ifndef PJSIP_MWI_DEFAULT_EXPIRES
 #   define PJSIP_MWI_DEFAULT_EXPIRES		3600
+#endif
+
+
+/**
+ * Specify whether transport manager should maintain a list of transmit
+ * buffer instances, so any possible dangling instance can be cleaned up
+ * when the transport manager is shutdown (see also ticket #1671).
+ * Note that this feature will have slight impact on the performance as
+ * mutex is employed in updating the list, i.e: on creation and destruction
+ * of transmit data.
+ *
+ * Default: 0 (no)
+ */
+#ifndef PJSIP_HAS_TX_DATA_LIST
+#   define PJSIP_HAS_TX_DATA_LIST		0
 #endif
 
 

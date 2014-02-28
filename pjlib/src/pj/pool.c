@@ -1,4 +1,4 @@
-/* $Id: pool.c 4298 2012-11-22 05:00:01Z nanang $ */
+/* $Id: pool.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -31,8 +31,8 @@
 #  include <pj/pool_i.h>
 #endif
 
-#define LOG(expr)   			PJ_LOG(6,expr)
-#define ALIGN_PTR(PTR,ALIGNMENT)	(PTR + (-(long)(PTR) & (ALIGNMENT-1)))
+#define LOG(expr)   		    PJ_LOG(6,expr)
+#define ALIGN_PTR(PTR,ALIGNMENT)    (PTR + (-(pj_ssize_t)(PTR) & (ALIGNMENT-1)))
 
 PJ_DEF_DATA(int) PJ_NO_MEMORY_EXCEPTION;
 
@@ -92,7 +92,7 @@ PJ_DEF(void*) pj_pool_allocate_find(pj_pool_t *pool, pj_size_t size)
 {
     pj_pool_block *block = pool->block_list.next;
     void *p;
-    unsigned block_size;
+    pj_size_t block_size;
 
     PJ_CHECK_STACK();
 

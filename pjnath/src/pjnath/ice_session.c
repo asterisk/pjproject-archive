@@ -1,4 +1,4 @@
-/* $Id: ice_session.c 4365 2013-02-21 18:06:51Z bennylp $ */
+/* $Id: ice_session.c 4713 2014-01-23 08:13:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -80,7 +80,7 @@ enum timer_type
 };
 
 /* Candidate type preference */
-static pj_uint8_t cand_type_prefs[4] =
+static pj_uint8_t cand_type_prefs[PJ_ICE_CAND_TYPE_MAX] =
 {
 #if PJ_ICE_CAND_TYPE_PREF_BITS < 8
     /* Keep it to 2 bits */
@@ -101,7 +101,7 @@ static pj_uint8_t cand_type_prefs[4] =
 #define CHECK_NAME_LEN		128
 #define LOG4(expr)		PJ_LOG(4,expr)
 #define LOG5(expr)		PJ_LOG(4,expr)
-#define GET_LCAND_ID(cand)	(cand - ice->lcand)
+#define GET_LCAND_ID(cand)	(unsigned)(cand - ice->lcand)
 #define GET_CHECK_ID(cl, chk)	(chk - (cl)->checks)
 
 
@@ -545,9 +545,9 @@ PJ_DEF(pj_status_t) pj_ice_sess_set_prefs(pj_ice_sess *ice,
 {
     unsigned i;
     PJ_ASSERT_RETURN(ice && prefs, PJ_EINVAL);
-    ice->prefs = (pj_uint8_t*) pj_pool_calloc(ice->pool, PJ_ARRAY_SIZE(prefs),
+    ice->prefs = (pj_uint8_t*) pj_pool_calloc(ice->pool, PJ_ICE_CAND_TYPE_MAX,
 					      sizeof(pj_uint8_t));
-    for (i=0; i<4; ++i) {
+    for (i=0; i<PJ_ICE_CAND_TYPE_MAX; ++i) {
 #if PJ_ICE_CAND_TYPE_PREF_BITS < 8
 	pj_assert(prefs[i] < (2 << PJ_ICE_CAND_TYPE_PREF_BITS));
 #endif
@@ -898,9 +898,6 @@ static const char *dump_check(char *buffer, unsigned bufsize,
     int len;
 
     PJ_CHECK_STACK();
-
-    pj_ansi_strcpy(laddr, pj_sockaddr_print(&lcand->addr, laddr,
-                                            sizeof(laddr), 0));
 
     len = pj_ansi_snprintf(buffer, bufsize,
 			   "%d: [%d] %s:%d-->%s:%d",
@@ -1989,8 +1986,8 @@ static void periodic_timer(pj_timer_heap_t *th,
 
 
 /* Utility: find string in string array */
-const pj_str_t *find_str(const pj_str_t *strlist[], unsigned count,
-			 const pj_str_t *str)
+static const pj_str_t *find_str(const pj_str_t *strlist[], unsigned count,
+				const pj_str_t *str)
 {
     unsigned i;
     for (i=0; i<count; ++i) {

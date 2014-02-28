@@ -1,4 +1,4 @@
-/* $Id: config.h 4150 2012-06-01 04:29:56Z ming $ */
+/* $Id: config.h 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -50,11 +50,28 @@ PJ_BEGIN_DECL
  */
 #ifndef PJMEDIA_AUDIO_DEV_HAS_PORTAUDIO
 #   if (defined(PJ_WIN32) && PJ_WIN32!=0) || \
+       (defined(PJ_WIN64) && PJ_WIN64!=0) || \
        (defined(PJ_SYMBIAN) && PJ_SYMBIAN!=0)
 #	define PJMEDIA_AUDIO_DEV_HAS_PORTAUDIO	0
 #   else
 #	define PJMEDIA_AUDIO_DEV_HAS_PORTAUDIO	1
 #   endif
+#endif
+
+/**
+ * This setting controls whether Android OpenSL audio support should be
+ * included.
+ */
+#ifndef PJMEDIA_AUDIO_DEV_HAS_OPENSL
+#   define PJMEDIA_AUDIO_DEV_HAS_OPENSL		0
+#endif
+
+/**
+ * This setting controls whether Android JNI audio support should be
+ * included.
+ */
+#ifndef PJMEDIA_AUDIO_DEV_HAS_ANDROID_JNI
+#   define PJMEDIA_AUDIO_DEV_HAS_ANDROID_JNI    0
 #endif
 
 /**
@@ -94,6 +111,14 @@ PJ_BEGIN_DECL
  */
 #ifndef PJMEDIA_AUDIO_DEV_HAS_WMME
 #   define PJMEDIA_AUDIO_DEV_HAS_WMME		1
+#endif
+
+ 
+/**
+ * This setting controls whether BDIMAD support should be included.
+ */
+#ifndef PJMEDIA_AUDIO_DEV_HAS_BDIMAD
+#	define PJMEDIA_AUDIO_DEV_HAS_BDIMAD	0
 #endif
 
 

@@ -1,4 +1,4 @@
-/* $Id: dshow_dev.c 4253 2012-09-13 08:35:24Z ming $ */
+/* $Id: dshow_dev.c 4722 2014-01-29 10:40:40Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -23,7 +23,8 @@
 #include <pj/unicode.h>
 
 
-#if defined(PJMEDIA_VIDEO_DEV_HAS_DSHOW) && PJMEDIA_VIDEO_DEV_HAS_DSHOW != 0
+#if defined(PJMEDIA_HAS_VIDEO) && PJMEDIA_HAS_VIDEO != 0 && \
+    defined(PJMEDIA_VIDEO_DEV_HAS_DSHOW) && PJMEDIA_VIDEO_DEV_HAS_DSHOW != 0
 
 
 #ifdef _MSC_VER
@@ -633,7 +634,7 @@ static pj_status_t dshow_stream_put_frame(pjmedia_vid_dev_stream *strm,
     }
 
     hr = SourceFilter_Deliver(stream->dgraph.csource_filter,
-                              frame->buf, frame->size);
+                              frame->buf, (long)frame->size);
     if (FAILED(hr))
         return hr;
 

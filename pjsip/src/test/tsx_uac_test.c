@@ -1,4 +1,4 @@
-/* $Id: tsx_uac_test.c 4208 2012-07-18 07:52:33Z ming $ */
+/* $Id: tsx_uac_test.c 4420 2013-03-05 11:59:54Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -220,10 +220,13 @@ static void tsx_user_on_tsx_state(pjsip_transaction *tsx, pjsip_event *e)
 	if (tsx->state == PJSIP_TSX_STATE_TERMINATED) {
 
 	    /* Test the status code. */
-	    if (tsx->status_code != PJSIP_SC_TSX_TRANSPORT_ERROR) {
+	    if (tsx->status_code != PJSIP_SC_TSX_TRANSPORT_ERROR &&
+		tsx->status_code != PJSIP_SC_BAD_GATEWAY)
+	    {
 		PJ_LOG(3,(THIS_FILE, 
-			  "    error: status code is %d instead of %d",
-			  tsx->status_code, PJSIP_SC_TSX_TRANSPORT_ERROR));
+			  "    error: status code is %d instead of %d or %d",
+			  tsx->status_code, PJSIP_SC_TSX_TRANSPORT_ERROR,
+			  PJSIP_SC_BAD_GATEWAY));
 		test_complete = -720;
 	    }
 
@@ -688,7 +691,7 @@ static pj_bool_t msg_receiver_on_rx_request(pjsip_rx_data *rdata)
 	    tsx = pjsip_tsx_layer_find_tsx(&key, PJ_TRUE);
 	    if (tsx) {
 		pjsip_tsx_terminate(tsx, PJSIP_SC_REQUEST_TERMINATED);
-		pj_mutex_unlock(tsx->mutex);
+		pj_grp_lock_release(tsx->grp_lock);
 	    } else {
 		PJ_LOG(3,(THIS_FILE, "    error: uac transaction not found!"));
 		test_complete = -633;
@@ -1027,7 +1030,7 @@ static int perform_tsx_test(int dummy, char *target_uri, char *from_uri,
 	tsx = pjsip_tsx_layer_find_tsx(&tsx_key, PJ_TRUE);
 	if (tsx) {
 	    pjsip_tsx_terminate(tsx, PJSIP_SC_REQUEST_TERMINATED);
-	    pj_mutex_unlock(tsx->mutex);
+	    pj_grp_lock_release(tsx->grp_lock);
 	    flush_events(1000);
 	}
 	pjsip_tx_data_dec_ref(tdata);

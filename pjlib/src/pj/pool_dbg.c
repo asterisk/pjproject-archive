@@ -1,4 +1,4 @@
-/* $Id: pool_dbg.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: pool_dbg.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -32,8 +32,9 @@
 #endif
 
 
-#if defined(PJ_WIN32) && PJ_WIN32!=0 && defined(PJ_DEBUG) && PJ_DEBUG!=0 \
-    && !PJ_NATIVE_STRING_IS_UNICODE
+#if ((defined(PJ_WIN32) && PJ_WIN32!=0) || \
+     (defined(PJ_WIN64) && PJ_WIN64 != 0)) && \
+     defined(PJ_DEBUG) && PJ_DEBUG!=0 && !PJ_NATIVE_STRING_IS_UNICODE
 #   include <windows.h>
 #   define TRACE_(msg)	OutputDebugString(msg)
 #endif

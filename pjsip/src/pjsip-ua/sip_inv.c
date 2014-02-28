@@ -1,4 +1,4 @@
-/* $Id: sip_inv.c 4367 2013-02-21 20:49:19Z nanang $ */
+/* $Id: sip_inv.c 4754 2014-02-21 07:24:18Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -192,8 +192,8 @@ static pj_status_t mod_inv_unload(void)
 /*
  * Set session state.
  */
-void inv_set_state(pjsip_inv_session *inv, pjsip_inv_state state,
-		   pjsip_event *e)
+static void inv_set_state(pjsip_inv_session *inv, pjsip_inv_state state,
+			  pjsip_event *e)
 {
     pjsip_inv_state prev_state = inv->state;
     pj_bool_t dont_notify = PJ_FALSE;
@@ -263,6 +263,10 @@ void inv_set_state(pjsip_inv_session *inv, pjsip_inv_state state,
 	    pjsip_tx_data_dec_ref(inv->invite_req);
 	    inv->invite_req = NULL;
 	}
+	if (inv->pending_bye) {
+	    pjsip_tx_data_dec_ref(inv->pending_bye);
+	    inv->pending_bye = NULL;
+	}
 	pjsip_100rel_end_session(inv);
 	pjsip_timer_end_session(inv);
 	pjsip_dlg_dec_session(inv->dlg, &mod_inv.mod);
@@ -279,8 +283,8 @@ void inv_set_state(pjsip_inv_session *inv, pjsip_inv_state state,
 /*
  * Set cause code.
  */
-void inv_set_cause(pjsip_inv_session *inv, int cause_code,
-		   const pj_str_t *cause_text)
+static void inv_set_cause(pjsip_inv_session *inv, int cause_code,
+			  const pj_str_t *cause_text)
 {
     if (cause_code > inv->cause) {
 	inv->cause = (pjsip_status_code) cause_code;
@@ -355,6 +359,26 @@ static const pjmedia_sdp_session *inv_has_pending_answer(pjsip_inv_session *inv,
     return sdp;
 }
 
+/* Process pending disconnection
+ *  http://trac.pjsip.org/repos/ticket/1712
+ */
+static void inv_perform_pending_bye(pjsip_inv_session *inv)
+{
+    if (inv->pending_bye) {
+	pjsip_tx_data *bye = inv->pending_bye;
+	pj_status_t status;
+
+	PJ_LOG(4,(inv->dlg->obj_name, "Sending pending BYE"));
+
+	inv->pending_bye = NULL;
+	status = pjsip_inv_send_msg(inv, bye);
+
+	if (status != PJ_SUCCESS) {
+	    PJ_PERROR(1,(inv->dlg->obj_name, status,
+			 "Failed sending pending BYE"));
+	}
+    }
+}
 
 /*
  * Send ACK for 2xx response.
@@ -373,6 +397,11 @@ static pj_status_t inv_send_ack(pjsip_inv_session *inv, pjsip_event *e)
 	pj_assert(!"Unsupported event type");
 	return PJ_EBUG;
     }
+
+    /* Note that with https://trac.pjsip.org/repos/ticket/1725, this
+     * function can be called to send ACK for previous INVITE 200/OK
+     * retransmission
+     */
 
     PJ_LOG(5,(inv->obj_name, "Received %s, sending ACK",
 	      pjsip_rx_data_get_info(rdata)));
@@ -528,6 +557,14 @@ static pj_bool_t mod_inv_on_rx_request(pjsip_rx_data *rdata)
 
 	    PJSIP_EVENT_INIT_RX_MSG(event, rdata);
 	    inv_set_state(inv, PJSIP_INV_STATE_CONFIRMED, &event);
+
+	    /* Send pending BYE if any:
+	     *   http://trac.pjsip.org/repos/ticket/1712
+	     * Do this after setting the state to CONFIRMED, so that we
+	     * have consistent CONFIRMED state between caller and callee.
+	     */
+	    if (inv->pending_bye)
+		inv_perform_pending_bye(inv);
 	}
     }
 
@@ -586,15 +623,23 @@ static pj_bool_t mod_inv_on_rx_response(pjsip_rx_data *rdata)
      * If it is, we need to send ACK.
      */
     if (msg->type == PJSIP_RESPONSE_MSG && msg->line.status.code/100==2 &&
-	rdata->msg_info.cseq->method.id == PJSIP_INVITE_METHOD &&
-	inv->invite_tsx == NULL) 
+	rdata->msg_info.cseq->method.id == PJSIP_INVITE_METHOD)
     {
-	pjsip_event e;
+	/* The code inside "if" is called the second time 200/OK
+	 * retransmission is received. Also handle the situation
+	 * when we have another re-INVITE on going and 200/OK
+	 * retransmission is received. See:
+	 * https://trac.pjsip.org/repos/ticket/1725
+	 */
+	if (inv->invite_tsx == NULL ||
+	    (inv->last_ack && inv->last_ack_cseq==rdata->msg_info.cseq->cseq))
+	{
+	    pjsip_event e;
 
-	PJSIP_EVENT_INIT_RX_MSG(e, rdata);
-	inv_send_ack(inv, &e);
-	return PJ_TRUE;
-
+	    PJSIP_EVENT_INIT_RX_MSG(e, rdata);
+	    inv_send_ack(inv, &e);
+	    return PJ_TRUE;
+	}
     }
 
     /* No other processing needs to be done here. */
@@ -623,17 +668,37 @@ static void mod_inv_on_tsx_state(pjsip_transaction *tsx, pjsip_event *e)
     /* Call state handler for the invite session. */
     (*inv_state_handler[inv->state])(inv, e);
 
-    /* Call on_tsx_state */
-    if (mod_inv.cb.on_tsx_state_changed && inv->notify)
+    /* Clear invite transaction when tsx is terminated. 
+     * Necessary for app that wants to send a new re-INVITE request immediately
+     * after the transaction is terminated. 
+     */
+    if (tsx->state==PJSIP_TSX_STATE_TERMINATED  && tsx == inv->invite_tsx) {
+	inv->invite_tsx = NULL;    
+
+	if (inv->last_answer) {
+		pjsip_tx_data_dec_ref(inv->last_answer);
+		inv->last_answer = NULL;
+	}
+    }
+
+    /* Call on_tsx_state. CANCEL request is a special case and has been
+     * reported earlier in inv_respond_incoming_cancel()
+     */
+    if (mod_inv.cb.on_tsx_state_changed && inv->notify &&
+        !(tsx->method.id==PJSIP_CANCEL_METHOD &&
+          e->body.tsx_state.type==PJSIP_EVENT_RX_MSG))
+    {
 	(*mod_inv.cb.on_tsx_state_changed)(inv, tsx, e);
+    }
 
     /* Clear invite transaction when tsx is confirmed.
      * Previously we set invite_tsx to NULL only when transaction has
      * terminated, but this didn't work when ACK has the same Via branch
      * value as the INVITE (see http://www.pjsip.org/trac/ticket/113)
      */
-    if (tsx->state>=PJSIP_TSX_STATE_CONFIRMED && tsx == inv->invite_tsx) {
-        inv->invite_tsx = NULL;
+    if (tsx->state>=PJSIP_TSX_STATE_CONFIRMED && tsx == inv->invite_tsx) {	
+	inv->invite_tsx = NULL;
+
 	if (inv->last_answer) {
 		pjsip_tx_data_dec_ref(inv->last_answer);
 		inv->last_answer = NULL;
@@ -1735,35 +1800,40 @@ static pj_status_t inv_check_sdp_in_incoming_msg( pjsip_inv_session *inv,
      */
     if (tsx_inv_data->sdp_done) {
 	pj_str_t res_tag;
+	int st_code;
 
 	res_tag = rdata->msg_info.to->tag;
+	st_code = rdata->msg_info.msg->line.status.code;
 
-	/* Allow final response after SDP has been negotiated in early
-	 * media, IF this response is a final response with different
+	/* Allow final/early response after SDP has been negotiated in early
+	 * media, IF this response is a final/early response with different
 	 * tag.
 	 */
 	if (tsx->role == PJSIP_ROLE_UAC &&
-	    rdata->msg_info.msg->line.status.code/100 == 2 &&
+	    (st_code/100 == 2 ||
+	     (st_code==183 && pjsip_cfg()->endpt.follow_early_media_fork)) &&
 	    tsx_inv_data->done_early &&
 	    pj_stricmp(&tsx_inv_data->done_tag, &res_tag))
 	{
 	    const pjmedia_sdp_session *reoffer_sdp = NULL;
 
-	    PJ_LOG(4,(inv->obj_name, "Received forked final response "
+	    PJ_LOG(4,(inv->obj_name, "Received forked %s response "
 		      "after SDP negotiation has been done in early "
-		      "media. Renegotiating SDP.."));
+		      "media. Renegotiating SDP..",
+		      (st_code==183? "early" : "final" )));
 
 	    /* Retrieve original SDP offer from INVITE request */
 	    reoffer_sdp = (const pjmedia_sdp_session*) 
 			  tsx->last_tx->msg->body->data;
 
 	    /* Feed the original offer to negotiator */
-	    status = pjmedia_sdp_neg_modify_local_offer(inv->pool_prov, 
-							inv->neg,
-						        reoffer_sdp);
+	    status = pjmedia_sdp_neg_modify_local_offer2(inv->pool_prov, 
+							 inv->neg,
+                                                         inv->sdp_neg_flags,
+						         reoffer_sdp);
 	    if (status != PJ_SUCCESS) {
 		PJ_LOG(1,(inv->obj_name, "Error updating local offer for "
-			  "forked 2xx response (err=%d)", status));
+			  "forked 2xx/183 response (err=%d)", status));
 		return status;
 	    }
 
@@ -1824,6 +1894,17 @@ static pj_status_t inv_check_sdp_in_incoming_msg( pjsip_inv_session *inv,
 	if (pjmedia_sdp_neg_get_state(inv->neg) !=
 		PJMEDIA_SDP_NEG_STATE_WAIT_NEGO)
 	{
+            if (mod_inv.cb.on_rx_reinvite && inv->notify &&
+                msg->type == PJSIP_REQUEST_MSG &&
+                msg->line.req.method.id == PJSIP_INVITE_METHOD)
+            {
+                /* Do not return failure first, allow the application
+                 * to set the answer in the on_rx_reinvite() callback.
+                 */
+        	PJ_LOG(5,(inv->obj_name, "Ignoring on_rx_offer() status "
+        		  "because on_rx_reinvite() is implemented"));
+                return PJ_SUCCESS;
+            }
 	    return PJ_EINVALIDOP;
 	}
 
@@ -1961,6 +2042,16 @@ static pj_status_t process_answer( pjsip_inv_session *inv,
 	}
     }
 
+    /* Cancel SDP negotiation if this is a negative reply to a re-INVITE */
+    if (st_code >= 300 && inv->neg != NULL &&
+        inv->state == PJSIP_INV_STATE_CONFIRMED)
+    {
+        pjmedia_sdp_neg_state neg_state;
+        neg_state = pjmedia_sdp_neg_get_state(inv->neg);
+        if (neg_state == PJMEDIA_SDP_NEG_STATE_REMOTE_OFFER) {
+            pjmedia_sdp_neg_cancel_offer(inv->neg);
+        }
+    }
 
     return PJ_SUCCESS;
 }
@@ -2041,8 +2132,7 @@ on_return:
 
 
 /*
- * Answer initial INVITE
- * Re-INVITE will be answered automatically, and will not use this function.
+ * Answer INVITE request.
  */ 
 PJ_DEF(pj_status_t) pjsip_inv_answer(	pjsip_inv_session *inv,
 					int st_code,
@@ -2120,8 +2210,9 @@ PJ_DEF(pj_status_t) pjsip_inv_set_local_sdp(pjsip_inv_session *inv,
         {
             status = pjsip_inv_set_sdp_answer(inv, sdp);
         }  else if (neg_state == PJMEDIA_SDP_NEG_STATE_DONE) {
-            status = pjmedia_sdp_neg_modify_local_offer(inv->pool,
-                                                        inv->neg, sdp);
+            status = pjmedia_sdp_neg_modify_local_offer2(inv->pool, inv->neg,
+                                                         inv->sdp_neg_flags,
+                                                         sdp);
         } else
             return PJMEDIA_SDPNEG_EINSTATE;
     } else {
@@ -2264,6 +2355,62 @@ PJ_DEF(pj_status_t) pjsip_inv_end_session(  pjsip_inv_session *inv,
     *p_tdata = tdata;
 
     pj_log_pop_indent();
+    return PJ_SUCCESS;
+}
+
+/*
+ * Cancel re-INVITE transaction.
+ */
+PJ_DEF(pj_status_t) pjsip_inv_cancel_reinvite( pjsip_inv_session *inv,
+                                               pjsip_tx_data **p_tdata )
+{
+    pjsip_tx_data *tdata;
+    pj_status_t status;
+
+    /* Verify arguments. */
+    PJ_ASSERT_RETURN(inv && p_tdata, PJ_EINVAL);
+    
+    pj_log_push_indent();
+
+    /* Create appropriate message. */
+    switch (inv->state) {
+    case PJSIP_INV_STATE_CONFIRMED:
+        /* MUST have the original UAC INVITE transaction  */
+        PJ_ASSERT_RETURN(inv->invite_tsx != NULL, PJ_EBUG);
+
+        /* CANCEL should only be called when we have received a
+         * provisional response.
+         */
+        if (inv->invite_tsx->status_code < 100) {
+            inv->cancelling = PJ_TRUE;
+            inv->pending_cancel = PJ_TRUE;
+            *p_tdata = NULL;
+            PJ_LOG(4, (inv->obj_name, "Delaying CANCEL since no "
+                       "provisional response is received yet"));
+            pj_log_pop_indent();
+            return PJ_SUCCESS;
+        }
+
+        status = pjsip_endpt_create_cancel(inv->dlg->endpt, 
+                                           inv->invite_tsx->last_tx,
+                                           &tdata);
+        if (status != PJ_SUCCESS) {
+            pj_log_pop_indent();
+            return status;
+        }
+	break;
+
+    default:
+        /* We cannot send CANCEL to a re-INVITE if the INVITE session is
+         * not confirmed.
+         */
+        pj_log_pop_indent();
+        return PJ_EINVALIDOP;
+    }
+
+    pj_log_pop_indent();
+
+    *p_tdata = tdata;
     return PJ_SUCCESS;
 }
 
@@ -2458,7 +2605,7 @@ PJ_DEF(pj_status_t) pjsip_inv_process_redirect( pjsip_inv_session *inv,
 				      dlg->remote.info->uri, tmp, TMP_LEN);
 		if (len < 1) {
 		    pj_ansi_strcpy(tmp, "<-error: uri too long->");
-		    len = pj_ansi_strlen(tmp);
+		    len = (int)pj_ansi_strlen(tmp);
 		}
 		pj_strdup2_with_null(dlg->pool, &dlg->remote.info_str, tmp);
 
@@ -2588,9 +2735,9 @@ PJ_DEF(pj_status_t) pjsip_inv_reinvite( pjsip_inv_session *inv,
 		break;
 
 	    case PJMEDIA_SDP_NEG_STATE_DONE:
-		status = pjmedia_sdp_neg_modify_local_offer(inv->pool_prov,
-							    inv->neg,
-							    new_offer);
+		status = pjmedia_sdp_neg_modify_local_offer2(
+                             inv->pool_prov, inv->neg,
+                             inv->sdp_neg_flags, new_offer);
 		if (status != PJ_SUCCESS)
 		    goto on_return;
 		break;
@@ -2650,8 +2797,8 @@ PJ_DEF(pj_status_t) pjsip_inv_update (	pjsip_inv_session *inv,
 	/* Notify negotiator about the new offer. This will fix the offer
 	 * with correct SDP origin.
 	 */
-	status = pjmedia_sdp_neg_modify_local_offer(inv->pool_prov, inv->neg,
-						    offer);
+	status = pjmedia_sdp_neg_modify_local_offer2(inv->pool_prov, inv->neg,
+						     inv->sdp_neg_flags, offer);
 	if (status != PJ_SUCCESS)
 	    goto on_error;
 
@@ -2801,6 +2948,25 @@ PJ_DEF(pj_status_t) pjsip_inv_send_msg( pjsip_inv_session *inv,
 	    goto on_error;
 	}
 
+	/* Don't send BYE before ACK is received
+	 * http://trac.pjsip.org/repos/ticket/1712
+	 */
+	if (tdata->msg->line.req.method.id == PJSIP_BYE_METHOD &&
+	    inv->role == PJSIP_ROLE_UAS &&
+	    inv->state == PJSIP_INV_STATE_CONNECTING &&
+	    inv->cause != PJSIP_SC_REQUEST_TIMEOUT &&
+	    inv->cause != PJSIP_SC_TSX_TRANSPORT_ERROR)
+	{
+	    if (inv->pending_bye)
+		pjsip_tx_data_dec_ref(inv->pending_bye);
+
+	    inv->pending_bye = tdata;
+	    PJ_LOG(4, (inv->obj_name, "Delaying BYE request until "
+		       "ACK is received"));
+	    pjsip_dlg_dec_lock(inv->dlg);
+	    goto on_return;
+	}
+
 	/* Associate our data in outgoing invite transaction */
 	tsx_inv_data = PJ_POOL_ZALLOC_T(inv->pool, struct tsx_inv_data);
 	tsx_inv_data->inv = inv;
@@ -2836,6 +3002,7 @@ PJ_DEF(pj_status_t) pjsip_inv_send_msg( pjsip_inv_session *inv,
     }
 
     /* Done */
+on_return:
     pj_log_pop_indent();
     return PJ_SUCCESS;
 
@@ -2850,12 +3017,28 @@ on_error:
  */
 static void inv_respond_incoming_cancel(pjsip_inv_session *inv,
 					pjsip_transaction *cancel_tsx,
-					pjsip_rx_data *rdata)
+					pjsip_event *e)
 {
     pjsip_tx_data *tdata;
     pjsip_transaction *invite_tsx;
+    pjsip_rx_data *rdata;
     pj_str_t key;
     pj_status_t status;
+
+    pj_assert(e->body.tsx_state.type == PJSIP_EVENT_RX_MSG);
+    rdata = e->body.tsx_state.src.rdata;
+
+    /* https://trac.pjsip.org/repos/ticket/1651
+     * Special treatment for CANCEL. Since here we're responding to CANCEL
+     * automatically (including 487 to INVITE), application will see the
+     * 200/OK response to CANCEL first in the callback, and then 487 to
+     * INVITE, before the CANCEL request itself. And worse, pjsua application
+     * may not see the CANCEL request at all because by the time the CANCEL
+     * request is reported, call has been disconnected and further events
+     * from the INVITE session has been suppressed.
+     */
+    if (mod_inv.cb.on_tsx_state_changed && inv->notify)
+	(*mod_inv.cb.on_tsx_state_changed)(inv, cancel_tsx, e);
 
     /* See if we have matching INVITE server transaction: */
 
@@ -2910,7 +3093,7 @@ static void inv_respond_incoming_cancel(pjsip_inv_session *inv,
     }
 
     if (invite_tsx)
-	pj_mutex_unlock(invite_tsx->mutex);
+	pj_grp_lock_release(invite_tsx->grp_lock);
 }
 
 
@@ -3166,6 +3349,15 @@ static pj_bool_t inv_handle_update_response( pjsip_inv_session *inv,
 					     e->body.tsx_state.src.rdata);
 	handled = PJ_TRUE;
     }
+
+    /* Process 502/503 error */
+    else if ((tsx->state == PJSIP_TSX_STATE_TERMINATED) &&
+	     (tsx->status_code == 503 || tsx->status_code == 502))
+    {
+	status = pjsip_timer_handle_refresh_error(inv, e);
+
+	handled = PJ_TRUE;
+    }
     
     /* Get/attach invite session's transaction data */
     else 
@@ -3290,11 +3482,11 @@ static void inv_on_state_null( pjsip_inv_session *inv, pjsip_event *e)
 
 	if (dlg->role == PJSIP_ROLE_UAC) {
 
-	    /* Save the original INVITE request, if on_redirected() callback
-	     * is implemented. We may need to resend the INVITE if we receive
-	     * redirection response.
+	    /* Save the original INVITE request.
+             * We may need to resend the INVITE if we receive redirection
+             * or session timer too small response.
 	     */
-	    if (mod_inv.cb.on_redirected) {
+	    if (1) {
 		if (inv->invite_req) {
 		    pjsip_tx_data_dec_ref(inv->invite_req);
 		    inv->invite_req = NULL;
@@ -3438,7 +3630,16 @@ static pj_bool_t handle_uac_tsx_response(pjsip_inv_session *inv,
 
 	return PJ_TRUE;	/* Handled */
 
-    } else {
+    } 
+    /* Process 502/503 error */
+    else if ((tsx->state == PJSIP_TSX_STATE_TERMINATED) &&
+	     (tsx->status_code == 503 || tsx->status_code == 502))
+    {
+	pjsip_timer_handle_refresh_error(inv, e);
+
+	return PJ_TRUE;
+    }    
+    else {
 	return PJ_FALSE; /* Unhandled */
     }
 }
@@ -3531,7 +3732,9 @@ static void handle_uac_call_rejection(pjsip_inv_session *inv, pjsip_event *e)
 	 * Resend the request with requested session timer setting.
 	 */
 	status = handle_timer_response(inv, e->body.tsx_state.src.rdata,
-				       PJ_TRUE);
+				       PJ_FALSE);
+	if (status != PJ_SUCCESS)
+	    goto terminate_session;
 
     } else if (PJSIP_IS_STATUS_IN_CLASS(tsx->status_code, 600)) {
 	/* Global error */
@@ -3680,6 +3883,16 @@ static void inv_on_state_calling( pjsip_inv_session *inv, pjsip_event *e)
 	    inv_set_cause(inv, tsx->status_code, &tsx->status_text);
 	    inv_set_state(inv, PJSIP_INV_STATE_DISCONNECTED, e);
 	}
+    } else if (tsx->role == PJSIP_ROLE_UAS &&
+	       tsx->state == PJSIP_TSX_STATE_TRYING &&
+	       pjsip_method_cmp(&tsx->method, &pjsip_update_method)==0)
+    {
+	/*
+	 * Handle a very early UPDATE
+	 */
+	inv_respond_incoming_update(inv, e->body.tsx_state.src.rdata);
+
+
     }
 }
 
@@ -3750,7 +3963,7 @@ static void inv_on_state_incoming( pjsip_inv_session *inv, pjsip_event *e)
 	 * Handle incoming CANCEL request.
 	 */
 
-	inv_respond_incoming_cancel(inv, tsx, e->body.tsx_state.src.rdata);
+	inv_respond_incoming_cancel(inv, tsx, e);
 
     }
 }
@@ -3861,6 +4074,7 @@ static void inv_on_state_early( pjsip_inv_session *inv, pjsip_event *e)
 
 	default:
 	    pj_assert(!"Unexpected INVITE tsx state");
+	    break;
 	}
 
     } else if (inv->role == PJSIP_ROLE_UAS &&
@@ -3874,7 +4088,7 @@ static void inv_on_state_early( pjsip_inv_session *inv, pjsip_event *e)
 	 * Handle incoming CANCEL request.
 	 */
 
-	inv_respond_incoming_cancel(inv, tsx, e->body.tsx_state.src.rdata);
+	inv_respond_incoming_cancel(inv, tsx, e);
 
     } else if (tsx->role == PJSIP_ROLE_UAS &&
 	       tsx->state == PJSIP_TSX_STATE_TRYING &&
@@ -3976,6 +4190,15 @@ static void inv_on_state_connecting( pjsip_inv_session *inv, pjsip_event *e)
 		}
 
 		inv_set_state(inv, PJSIP_INV_STATE_CONFIRMED, e);
+
+		/* Send pending BYE if any:
+		 *   http://trac.pjsip.org/repos/ticket/1712
+		 * Do this after setting the state to CONFIRMED, so that we
+		 * have consistent CONFIRMED state between caller and callee.
+		 */
+		if (inv->pending_bye)
+		    inv_perform_pending_bye(inv);
+
 	    }
 	    break;
 
@@ -3991,6 +4214,8 @@ static void inv_on_state_connecting( pjsip_inv_session *inv, pjsip_event *e)
 		} else {
 		    pjsip_tx_data *bye;
 		    pj_status_t status;
+
+		    inv_set_cause(inv, tsx->status_code, &tsx->status_text);
 
 		    /* Send BYE */
 		    status = pjsip_dlg_create_request(inv->dlg,
@@ -4009,6 +4234,7 @@ static void inv_on_state_connecting( pjsip_inv_session *inv, pjsip_event *e)
 
 	default:
 	    pj_assert(!"Unexpected state");
+	    break;
 	}
 
     } else if (tsx->role == PJSIP_ROLE_UAS &&
@@ -4042,17 +4268,9 @@ static void inv_on_state_connecting( pjsip_inv_session *inv, pjsip_event *e)
     {
 
 	/*
-	 * Handle strandled incoming CANCEL.
+	 * Handle strandled incoming CANCEL or CANCEL for re-INVITE
 	 */
-	pjsip_rx_data *rdata = e->body.tsx_state.src.rdata;
-	pjsip_tx_data *tdata;
-	pj_status_t status;
-
-	status = pjsip_dlg_create_response(dlg, rdata, 200, NULL, &tdata);
-	if (status != PJ_SUCCESS) return;
-
-	status = pjsip_dlg_send_response(dlg, tsx, tdata);
-	if (status != PJ_SUCCESS) return;
+        inv_respond_incoming_cancel(inv, tsx, e);
 
     } else if (tsx->role == PJSIP_ROLE_UAS &&
 	       tsx->state == PJSIP_TSX_STATE_TRYING &&
@@ -4163,18 +4381,9 @@ static void inv_on_state_confirmed( pjsip_inv_session *inv, pjsip_event *e)
     {
 
 	/*
-	 * Handle strandled incoming CANCEL.
+	 * Handle strandled incoming CANCEL or CANCEL for re-INVITE
 	 */
-	pjsip_rx_data *rdata = e->body.tsx_state.src.rdata;
-	pjsip_tx_data *tdata;
-	pj_status_t status;
-
-	status = pjsip_dlg_create_response(dlg, rdata, 200, NULL, &tdata);
-	if (status != PJ_SUCCESS) return;
-
-	status = pjsip_dlg_send_response(dlg, tsx, tdata);
-	if (status != PJ_SUCCESS) return;
-
+        inv_respond_incoming_cancel(inv, tsx, e);
     }
     else if (tsx->method.id == PJSIP_INVITE_METHOD &&
 	     tsx->role == PJSIP_ROLE_UAS)
@@ -4188,7 +4397,7 @@ static void inv_on_state_confirmed( pjsip_inv_session *inv, pjsip_event *e)
 	    pjsip_rx_data *rdata = e->body.tsx_state.src.rdata;
 	    pjsip_tx_data *tdata;
 	    pj_status_t status;
-	    pjsip_rdata_sdp_info *sdp_info;
+	    pjsip_rdata_sdp_info *sdp_info = NULL;
 	    pjsip_status_code st_code;
 
 	    /* Check if we have INVITE pending. */
@@ -4261,6 +4470,33 @@ static void inv_on_state_confirmed( pjsip_inv_session *inv, pjsip_event *e)
 	    /* Process SDP in incoming message. */
 	    status = inv_check_sdp_in_incoming_msg(inv, tsx, rdata);
 
+            if (status == PJ_SUCCESS && mod_inv.cb.on_rx_reinvite &&
+                inv->notify)
+            {
+        	pj_status_t rc;
+
+	        sdp_info = pjsip_rdata_get_sdp_info(rdata);
+                rc = (*mod_inv.cb.on_rx_reinvite)(inv, sdp_info->sdp,
+                				  rdata);
+                if (rc == PJ_SUCCESS) {
+                    /* Application will send its own response.
+                     * Our job is done. */
+		    PJ_LOG(5,(inv->obj_name, "on_rx_reinvite() returns %d",
+			      rc));
+                    return;
+                }
+
+                /* If application lets us answer the re-INVITE,
+                 * application must set the SDP answer with
+                 * #pjsip_inv_set_sdp_answer().
+                 */
+                if (pjmedia_sdp_neg_get_state(inv->neg) !=
+		    PJMEDIA_SDP_NEG_STATE_WAIT_NEGO)
+                {
+                    status = PJ_EINVALIDOP;
+                }
+            }
+
 	    if (status != PJ_SUCCESS) {
 
 		/* Not Acceptable */
@@ -4302,7 +4538,8 @@ static void inv_on_state_confirmed( pjsip_inv_session *inv, pjsip_event *e)
 	    /* If the INVITE request has SDP body, send answer.
 	     * Otherwise generate offer from local active SDP.
 	     */
-	    sdp_info = pjsip_rdata_get_sdp_info(rdata);
+            if (!sdp_info)
+                sdp_info = pjsip_rdata_get_sdp_info(rdata);
 	    if (sdp_info->sdp != NULL) {
 		status = process_answer(inv, 200, tdata, NULL);
 	    } else {
@@ -4320,9 +4557,9 @@ static void inv_on_state_confirmed( pjsip_inv_session *inv, pjsip_event *e)
 			 * fix the offer with correct SDP origin.
 			 */
 			status = 
-			    pjmedia_sdp_neg_modify_local_offer(inv->pool_prov,
-							       inv->neg,
-							       sdp);
+			    pjmedia_sdp_neg_modify_local_offer2(
+                                inv->pool_prov, inv->neg,
+                                inv->sdp_neg_flags, sdp);
 
 			/* Retrieve the "fixed" offer from negotiator */
 			if (status==PJ_SUCCESS) {
@@ -4419,6 +4656,20 @@ static void inv_on_state_confirmed( pjsip_inv_session *inv, pjsip_event *e)
 	    /* Save pending invite transaction */
 	    inv->invite_tsx = tsx;
 
+        } else if (tsx->state == PJSIP_TSX_STATE_PROCEEDING) {
+            
+            /* CANCEL the re-INVITE if necessary */
+            if (inv->pending_cancel) {
+	        pj_status_t status;
+		pjsip_tx_data *cancel;
+
+		inv->pending_cancel = PJ_FALSE;
+
+		status = pjsip_inv_cancel_reinvite(inv, &cancel);
+		if (status == PJ_SUCCESS && cancel)
+		    status = pjsip_inv_send_msg(inv, cancel);
+            }
+
 	} else if (tsx->state == PJSIP_TSX_STATE_TERMINATED &&
 		   tsx->status_code/100 == 2) 
 	{
@@ -4452,7 +4703,13 @@ static void inv_on_state_confirmed( pjsip_inv_session *inv, pjsip_event *e)
 	    /* Handle response that terminates dialog */
 	    /* Nothing to do (already handled) */
 
-	} else if (tsx->status_code >= 300 && tsx->status_code < 700) {
+	} else if (tsx->status_code >= 300 && tsx->status_code < 700 &&
+		   e->body.tsx_state.prev_state != PJSIP_TSX_STATE_COMPLETED)
+	{
+	    /* Ticket #1654: do not cancel SDP offer when tsx state changing
+	     * from 'completed' to 'terminated', as it should have already
+	     * been cancelled when tsx state is 'completed'.
+	     */
 
 	    pjmedia_sdp_neg_state neg_state;
 	    struct tsx_inv_data *tsx_inv_data;

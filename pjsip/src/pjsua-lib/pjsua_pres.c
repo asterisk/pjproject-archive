@@ -1,4 +1,4 @@
-/* $Id: pjsua_pres.c 4294 2012-11-06 05:02:10Z nanang $ */
+/* $Id: pjsua_pres.c 4713 2014-01-23 08:13:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -74,10 +74,10 @@ struct buddy_lock
 };
 
 /* Acquire lock to the specified buddy_id */
-pj_status_t lock_buddy(const char *title,
-		       pjsua_buddy_id buddy_id,
-		       struct buddy_lock *lck,
-		       unsigned _unused_)
+static pj_status_t lock_buddy(const char *title,
+			      pjsua_buddy_id buddy_id,
+			      struct buddy_lock *lck,
+			      unsigned _unused_)
 {
     enum { MAX_RETRY=50 };
     pj_bool_t has_pjsua_lock = PJ_FALSE;
@@ -223,7 +223,7 @@ PJ_DEF(pj_status_t) pjsua_enum_buddies( pjsua_buddy_id ids[],
 PJ_DEF(pj_status_t) pjsua_buddy_get_info( pjsua_buddy_id buddy_id,
 					  pjsua_buddy_info *info)
 {
-    unsigned total=0;
+    pj_size_t total=0;
     struct buddy_lock lck;
     pjsua_buddy *buddy;
     pj_status_t status;
@@ -1065,7 +1065,7 @@ PJ_DEF(pj_status_t) pjsua_pres_notify( pjsua_acc_id acc_id,
     PJ_ASSERT_RETURN(pjsua_var.acc[acc_id].valid, PJ_EINVALIDOP);
 
     PJ_LOG(4,(THIS_FILE, "Acc %d: sending NOTIFY for srv_pres=0x%p..",
-	      acc_id, (int)(long)srv_pres));
+	      acc_id, (int)(pj_ssize_t)srv_pres));
     pj_log_push_indent();
 
     PJSUA_LOCK();
@@ -2094,7 +2094,7 @@ pj_status_t pjsua_start_mwi(pjsua_acc_id acc_id, pj_bool_t force_renew)
 
     acc = &pjsua_var.acc[acc_id];
 
-    if (!acc->cfg.mwi_enabled) {
+    if (!acc->cfg.mwi_enabled || !acc->regc) {
 	if (acc->mwi_sub) {
 	    /* Terminate MWI subscription */
 	    pjsip_evsub *sub = acc->mwi_sub;

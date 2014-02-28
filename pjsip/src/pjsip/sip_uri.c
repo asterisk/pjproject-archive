@@ -1,4 +1,4 @@
-/* $Id: sip_uri.c 4228 2012-08-13 07:26:03Z bennylp $ */
+/* $Id: sip_uri.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -358,9 +358,9 @@ static pj_ssize_t pjsip_url_print(  pjsip_uri_context_e context,
     }
 
     /* Other param. */
-    printed = pjsip_param_print_on(&url->other_param, buf, endbuf-buf, 
-				   &pc->pjsip_PARAM_CHAR_SPEC, 
-				   &pc->pjsip_PARAM_CHAR_SPEC, ';');
+    printed = (int)pjsip_param_print_on(&url->other_param, buf, endbuf-buf, 
+					&pc->pjsip_PARAM_CHAR_SPEC, 
+					&pc->pjsip_PARAM_CHAR_SPEC, ';');
     if (printed < 0)
 	return -1;
     buf += printed;
@@ -371,9 +371,9 @@ static pj_ssize_t pjsip_url_print(  pjsip_uri_context_e context,
      *	- PJSIP_URI_IN_OTHER
      */
     if (context == PJSIP_URI_IN_CONTACT_HDR || context == PJSIP_URI_IN_OTHER) {
-	printed = pjsip_param_print_on(&url->header_param, buf, endbuf-buf,
-				       &pc->pjsip_HDR_CHAR_SPEC, 
-				       &pc->pjsip_HDR_CHAR_SPEC, '?');
+	printed = (int)pjsip_param_print_on(&url->header_param, buf, endbuf-buf,
+					    &pc->pjsip_HDR_CHAR_SPEC, 
+					    &pc->pjsip_HDR_CHAR_SPEC, '?');
 	if (printed < 0)
 	    return -1;
 	buf += printed;

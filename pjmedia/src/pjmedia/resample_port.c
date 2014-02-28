@@ -1,4 +1,4 @@
-/* $Id: resample_port.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: resample_port.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -192,7 +192,7 @@ static pj_status_t resample_get_frame(pjmedia_port *this_port,
 	if (tmp_frame.size) {
 	    pjmedia_copy_samples((pj_int16_t*)frame->buf, 
 				 (const pj_int16_t*)tmp_frame.buf, 
-				 frame->size >> 1);
+				 (unsigned)frame->size >> 1);
 	}
 	return PJ_SUCCESS;
     }

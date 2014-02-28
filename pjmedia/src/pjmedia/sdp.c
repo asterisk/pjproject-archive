@@ -1,4 +1,4 @@
-/* $Id: sdp.c 4367 2013-02-21 20:49:19Z nanang $ */
+/* $Id: sdp.c 4613 2013-10-08 09:08:13Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -503,7 +503,7 @@ PJ_DEF(pj_status_t) pjmedia_sdp_rtpmap_to_attr(pj_pool_t *pool,
 			   (int)rtpmap->param.slen,
 			   rtpmap->param.ptr);
 
-    if (len < 1 || len > (int)sizeof(tempbuf))
+    if (len < 1 || len >= (int)sizeof(tempbuf))
 	return PJMEDIA_SDP_ERTPMAPTOOLONG;
 
     attr->value.slen = len;
@@ -526,7 +526,7 @@ static int print_connection_info( pjmedia_sdp_conn *c, char *buf, int len)
 			       c->addr_type.ptr,
 			       (int)c->addr.slen,
 			       c->addr.ptr);
-    if (printed < 1 || printed > len)
+    if (printed < 1 || printed >= len)
 	return -1;
 
     return printed;
@@ -640,7 +640,7 @@ static int print_media_desc( pjmedia_sdp_media *m, char *buf, int len)
 
     /* print connection info, if present. */
     if (m->conn) {
-	printed = print_connection_info(m->conn, p, end-p);
+	printed = print_connection_info(m->conn, p, (int)(end-p));
 	if (printed < 0) {
 	    return -1;
 	}
@@ -649,7 +649,7 @@ static int print_media_desc( pjmedia_sdp_media *m, char *buf, int len)
     
     /* print optional bandwidth info. */
     for (i=0; i<m->bandw_count; ++i) {
-	printed = print_bandw(m->bandw[i], p, end-p);
+	printed = (int)print_bandw(m->bandw[i], p, end-p);
 	if (printed < 0) {
 	    return -1;
 	}
@@ -658,14 +658,14 @@ static int print_media_desc( pjmedia_sdp_media *m, char *buf, int len)
 
     /* print attributes. */
     for (i=0; i<m->attr_count; ++i) {
-	printed = print_attr(m->attr[i], p, end-p);
+	printed = (int)print_attr(m->attr[i], p, end-p);
 	if (printed < 0) {
 	    return -1;
 	}
 	p += printed;
     }
 
-    return p-buf;
+    return (int)(p-buf);
 }
 
 PJ_DEF(pjmedia_sdp_media*) pjmedia_sdp_media_clone(
@@ -805,7 +805,7 @@ static int print_session(const pjmedia_sdp_session *ses,
 
     /* Connection line (c=) if exist. */
     if (ses->conn) {
-	printed = print_connection_info(ses->conn, p, end-p);
+	printed = print_connection_info(ses->conn, p, (int)(end-p));
 	if (printed < 1) {
 	    return -1;
 	}
@@ -814,7 +814,7 @@ static int print_session(const pjmedia_sdp_session *ses,
 
     /* print optional bandwidth info. */
     for (i=0; i<ses->bandw_count; ++i) {
-	printed = print_bandw(ses->bandw[i], p, end-p);
+	printed = (int)print_bandw(ses->bandw[i], p, end-p);
 	if (printed < 1) {
 	    return -1;
 	}
@@ -837,7 +837,7 @@ static int print_session(const pjmedia_sdp_session *ses,
 
     /* Print all attribute (a=) lines. */
     for (i=0; i<ses->attr_count; ++i) {
-	printed = print_attr(ses->attr[i], p, end-p);
+	printed = (int)print_attr(ses->attr[i], p, end-p);
 	if (printed < 0) {
 	    return -1;
 	}
@@ -846,14 +846,14 @@ static int print_session(const pjmedia_sdp_session *ses,
 
     /* Print media (m=) lines. */
     for (i=0; i<ses->media_count; ++i) {
-	printed = print_media_desc(ses->media[i], p, end-p);
+	printed = print_media_desc(ses->media[i], p, (int)(end-p));
 	if (printed < 0) {
 	    return -1;
 	}
 	p += printed;
     }
 
-    return p-buf;
+    return (int)(p-buf);
 }
 
 /******************************************************************************

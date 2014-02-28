@@ -1,4 +1,4 @@
-# $Id: transfer-attended.py 4188 2012-06-29 09:01:17Z nanang $
+# $Id: transfer-attended.py 4724 2014-01-31 08:52:09Z nanang $
 #
 import inc_const as const
 
@@ -41,11 +41,11 @@ PJSUA_EXPECTS = [
 		 # B transfer A to C
 		 [1, "", "X"],
 		 [1, "", "1"],
-		 [0, "Call .* is being transfered", ""],
+		 [0, "Call .* is being transferred", ""],
 		 [1, "Subscription state .* ACCEPTED", ""],
 		 [0, const.STATE_CALLING, ""],
 		 [2, "Call .* is being replaced", ""],
-		 [1, "call transfered successfully", ""],
+		 [1, "call transferred successfully", ""],
 		 [0, const.MEDIA_ACTIVE, ""],
 		 [2, const.MEDIA_ACTIVE, ""],
 		 [1, const.STATE_DISCONNECTED, ""]

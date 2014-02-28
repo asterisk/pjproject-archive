@@ -1,4 +1,4 @@
-/* $Id: server.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: server.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -732,7 +732,7 @@ static pj_bool_t alloc_on_data_recvfrom(pj_activesock_t *asock,
 
     pj_sockaddr_cp(&pa->sockaddr, src_addr);
     da->data = (pj_uint8_t*)data;
-    da->length = size;
+    da->length = (unsigned)size;
 
     /* Encode Data indication */
     status = pj_stun_msg_encode(alloc->data_ind, buffer, sizeof(buffer), 0,

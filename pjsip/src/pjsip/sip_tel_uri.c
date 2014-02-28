@@ -1,4 +1,4 @@
-/* $Id: sip_tel_uri.c 4322 2013-01-17 10:09:09Z bennylp $ */
+/* $Id: sip_tel_uri.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -210,9 +210,9 @@ static pj_ssize_t tel_uri_print( pjsip_uri_context_e context,
 
 
     /* Print other parameters. */
-    printed = pjsip_param_print_on(&uri->other_param, buf, (endbuf-buf), 
-				   &pjsip_TEL_PNAME_SPEC, 
-				   &pjsip_TEL_PVALUE_SPEC, ';');
+    printed = (int)pjsip_param_print_on(&uri->other_param, buf, (endbuf-buf), 
+					&pjsip_TEL_PNAME_SPEC, 
+					&pjsip_TEL_PVALUE_SPEC, ';');
     if (printed < 0)
 	return -1;
     buf += printed;

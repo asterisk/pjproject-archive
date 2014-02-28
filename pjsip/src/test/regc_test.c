@@ -1,4 +1,4 @@
-/* $Id: regc_test.c 4094 2012-04-26 09:31:00Z bennylp $ */
+/* $Id: regc_test.c 4712 2014-01-23 08:09:29Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -347,7 +347,10 @@ static int do_test(const char *title,
 		  client_cfg->error, client_result.error));
 	return -210;
     }
-    if (client_result.code != client_cfg->code) {
+    if (client_result.code != client_cfg->code &&
+	client_cfg->code != 502 && client_cfg->code != 503 &&
+	client_result.code != 502 && client_result.code != 503)
+    {
 	PJ_LOG(3,(THIS_FILE, "    error: expecting code=%d, got code=%d",
 		  client_cfg->code, client_result.code));
 	return -220;
@@ -542,7 +545,7 @@ static int update_test(const pj_str_t *registrar_uri)
 
     pjsip_regc *regc;
     pjsip_contact_hdr *h1, *h2;
-    pjsip_sip_uri *u1, *u2;
+    pjsip_sip_uri *u1;
     unsigned i;
     pj_status_t status;
     pjsip_tx_data *tdata = NULL;
@@ -599,7 +602,6 @@ static int update_test(const pj_str_t *registrar_uri)
     }
 
     u1 = (pjsip_sip_uri*) pjsip_uri_get_uri(h1->uri);
-    u2 = (pjsip_sip_uri*) pjsip_uri_get_uri(h2->uri);
 
     if (*u1->host.ptr == 'a') {
 	if (h1->expires != 0) {

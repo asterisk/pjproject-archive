@@ -1,4 +1,4 @@
-/* $Id: timer.c 4359 2013-02-21 11:18:36Z bennylp $ */
+/* $Id: timer.c 4567 2013-07-19 06:31:28Z bennylp $ */
 /* 
  * The PJLIB's timer heap is based (or more correctly, copied and modied)
  * from ACE library by Douglas C. Schmidt. ACE is an excellent OO framework
@@ -44,6 +44,13 @@
 
 
 #define DEFAULT_MAX_TIMED_OUT_PER_POLL  (64)
+
+enum
+{
+    F_DONT_CALL = 1,
+    F_DONT_ASSERT = 2,
+    F_SET_ID = 4
+};
 
 
 /**
@@ -117,7 +124,8 @@ PJ_INLINE(void) unlock_timer_heap( pj_timer_heap_t *ht )
 }
 
 
-static void copy_node( pj_timer_heap_t *ht, int slot, pj_timer_entry *moved_node )
+static void copy_node( pj_timer_heap_t *ht, pj_size_t slot, 
+		       pj_timer_entry *moved_node )
 {
     PJ_CHECK_STACK();
 
@@ -125,7 +133,7 @@ static void copy_node( pj_timer_heap_t *ht, int slot, pj_timer_entry *moved_node
     ht->heap[slot] = moved_node;
     
     // Update the corresponding slot in the parallel <timer_ids_> array.
-    ht->timer_ids[moved_node->_timer_id] = slot;
+    ht->timer_ids[moved_node->_timer_id] = (int)slot;
 }
 
 static pj_timer_id_t pop_freelist( pj_timer_heap_t *ht )
@@ -228,7 +236,7 @@ static pj_timer_entry * remove_node( pj_timer_heap_t *ht, size_t slot)
     
     if (slot < ht->cur_size)
     {
-	int parent;
+	pj_size_t parent;
 	pj_timer_entry *moved_node = ht->heap[ht->cur_size];
 	
 	// Move the end node to the location being removed and update
@@ -313,7 +321,7 @@ static pj_status_t schedule_entry( pj_timer_heap_t *ht,
 
 static int cancel( pj_timer_heap_t *ht, 
 		   pj_timer_entry *entry, 
-		   int dont_call)
+		   unsigned flags)
 {
   long timer_node_slot;
 
@@ -330,14 +338,15 @@ static int cancel( pj_timer_heap_t *ht,
 
   if (entry != ht->heap[timer_node_slot])
     {
-      pj_assert(entry == ht->heap[timer_node_slot]);
+      if ((flags & F_DONT_ASSERT) == 0)
+	  pj_assert(entry == ht->heap[timer_node_slot]);
       return 0;
     }
   else
     {
       remove_node( ht, timer_node_slot);
 
-      if (dont_call == 0)
+      if ((flags & F_DONT_CALL) == 0)
         // Call the close hook.
 	(*ht->callback)(ht, entry);
       return 1;
@@ -457,6 +466,11 @@ PJ_DEF(pj_timer_entry*) pj_timer_entry_init( pj_timer_entry *entry,
     return entry;
 }
 
+PJ_DEF(pj_bool_t) pj_timer_entry_running( pj_timer_entry *entry )
+{
+    return (entry->_timer_id >= 1);
+}
+
 #if PJ_TIMER_DEBUG
 static pj_status_t schedule_w_grp_lock_dbg(pj_timer_heap_t *ht,
                                            pj_timer_entry *entry,
@@ -551,7 +565,7 @@ PJ_DEF(pj_status_t) pj_timer_heap_schedule_w_grp_lock(pj_timer_heap_t *ht,
 
 static int cancel_timer(pj_timer_heap_t *ht,
 			pj_timer_entry *entry,
-			pj_bool_t set_id,
+			unsigned flags,
 			int id_val)
 {
     int count;
@@ -559,8 +573,8 @@ static int cancel_timer(pj_timer_heap_t *ht,
     PJ_ASSERT_RETURN(ht && entry, PJ_EINVAL);
 
     lock_timer_heap(ht);
-    count = cancel(ht, entry, 1);
-    if (set_id) {
+    count = cancel(ht, entry, flags | F_DONT_CALL);
+    if (flags & F_SET_ID) {
 	entry->id = id_val;
     }
     if (entry->_grp_lock) {
@@ -576,14 +590,14 @@ static int cancel_timer(pj_timer_heap_t *ht,
 PJ_DEF(int) pj_timer_heap_cancel( pj_timer_heap_t *ht,
 				  pj_timer_entry *entry)
 {
-    return cancel_timer(ht, entry, PJ_FALSE, 0);
+    return cancel_timer(ht, entry, 0, 0);
 }
 
 PJ_DEF(int) pj_timer_heap_cancel_if_active(pj_timer_heap_t *ht,
                                            pj_timer_entry *entry,
                                            int id_val)
 {
-    return cancel_timer(ht, entry, PJ_TRUE, id_val);
+    return cancel_timer(ht, entry, F_SET_ID | F_DONT_ASSERT, id_val);
 }
 
 PJ_DEF(unsigned) pj_timer_heap_poll( pj_timer_heap_t *ht, 

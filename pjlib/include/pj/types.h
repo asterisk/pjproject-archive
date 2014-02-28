@@ -1,4 +1,4 @@
-/* $Id: types.h 4359 2013-02-21 11:18:36Z bennylp $ */
+/* $Id: types.h 4704 2014-01-16 05:30:46Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -58,7 +58,11 @@ typedef unsigned char	pj_uint8_t;
 typedef size_t		pj_size_t;
 
 /** Large signed integer. */
-typedef long		pj_ssize_t;
+#if defined(PJ_WIN64) && PJ_WIN64!=0
+    typedef pj_int64_t     pj_ssize_t;
+#else
+    typedef long           pj_ssize_t;
+#endif
 
 /** Status code. */
 typedef int		pj_status_t;
@@ -82,15 +86,18 @@ typedef int		pj_bool_t;
 #   define PJ_T(literal_str)	literal_str
 #endif
 
+/** Some constants */
+enum pj_constants_
+{
+    /** Status is OK. */
+    PJ_SUCCESS=0,
 
-/** Status is OK. */
-#define PJ_SUCCESS  0
+    /** True value. */
+    PJ_TRUE=1,
 
-/** True value. */
-#define PJ_TRUE	    1
-
-/** False value. */
-#define PJ_FALSE    0
+    /** False value. */
+    PJ_FALSE=0
+};
 
 /**
  * File offset type.
@@ -250,7 +257,11 @@ typedef struct pj_pipe_t pj_pipe_t;
 typedef void *pj_oshandle_t;
 
 /** Socket handle. */
-typedef long pj_sock_t;
+#if defined(PJ_WIN64) && PJ_WIN64!=0
+    typedef pj_int64_t pj_sock_t;
+#else
+    typedef long pj_sock_t;
+#endif
 
 /** Generic socket address. */
 typedef void pj_sockaddr_t;

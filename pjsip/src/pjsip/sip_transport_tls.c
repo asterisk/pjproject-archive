@@ -1,4 +1,4 @@
-/* $Id: sip_transport_tls.c 4411 2013-03-04 04:34:38Z nanang $ */
+/* $Id: sip_transport_tls.c 4726 2014-02-04 04:56:50Z ming $ */
 /* 
  * Copyright (C) 2009-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -183,7 +183,7 @@ static void tls_init_shutdown(struct tls_transport *tls, pj_status_t status)
     if (tls->close_reason == PJ_SUCCESS)
 	tls->close_reason = status;
 
-    if (tls->base.is_shutdown)
+    if (tls->base.is_shutdown || tls->base.is_destroying)
 	return;
 
     /* Prevent immediate transport destroy by application, as transport
@@ -212,6 +212,12 @@ static void tls_init_shutdown(struct tls_transport *tls, pj_status_t status)
 	}
 
 	(*state_cb)(&tls->base, PJSIP_TP_STATE_DISCONNECTED, &state_info);
+    }
+
+    /* check again */
+    if (tls->base.is_shutdown || tls->base.is_destroying) {
+        pjsip_transport_dec_ref(&tls->base);
+	return;
     }
 
     /* We can not destroy the transport since high level objects may
@@ -337,6 +343,7 @@ PJ_DEF(pj_status_t) pjsip_tls_transport_start2( pjsip_endpoint *endpt,
 	ssock_param.read_buffer_size = PJSIP_MAX_PKT_LEN;
     ssock_param.ciphers_num = listener->tls_setting.ciphers_num;
     ssock_param.ciphers = listener->tls_setting.ciphers;
+    ssock_param.reuse_addr = listener->tls_setting.reuse_addr;
     ssock_param.qos_type = listener->tls_setting.qos_type;
     ssock_param.qos_ignore_error = listener->tls_setting.qos_ignore_error;
     pj_memcpy(&ssock_param.qos_params, &listener->tls_setting.qos_params,
@@ -833,7 +840,7 @@ static pj_status_t tls_destroy(pjsip_transport *transport,
 static pj_status_t tls_start_read(struct tls_transport *tls)
 {
     pj_pool_t *pool;
-    pj_ssize_t size;
+    pj_uint32_t size;
     pj_sockaddr *rem_addr;
     void *readbuf[1];
     pj_status_t status;
@@ -1218,7 +1225,7 @@ static pj_bool_t on_data_sent(pj_ssl_sock_t *ssock,
 		  bytes_sent));
 
 	status = (bytes_sent == 0) ? PJ_RETURN_OS_ERROR(OSERR_ENOTCONN) :
-				     -bytes_sent;
+				     (pj_status_t)-bytes_sent;
 
 	tls_init_shutdown(tls, status);
 
@@ -1580,8 +1587,25 @@ static pj_bool_t on_connect_complete(pj_ssl_sock_t *ssock,
      */
     is_shutdown = tls->base.is_shutdown;
     pjsip_transport_dec_ref(&tls->base);
-    if (is_shutdown)
+    if (is_shutdown) {
+	status = tls->close_reason;
+	tls_perror(tls->base.obj_name, "TLS connect() error", status);
+
+	/* Cancel all delayed transmits */
+	while (!pj_list_empty(&tls->delayed_list)) {
+	    struct delayed_tdata *pending_tx;
+	    pj_ioqueue_op_key_t *op_key;
+
+	    pending_tx = tls->delayed_list.next;
+	    pj_list_erase(pending_tx);
+
+	    op_key = (pj_ioqueue_op_key_t*)pending_tx->tdata_op_key;
+
+	    on_data_sent(tls->ssock, op_key, -status);
+	}
+
 	return PJ_FALSE;
+    }
 
 
     /* Mark that pending connect() operation has completed. */

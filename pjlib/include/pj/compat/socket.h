@@ -1,4 +1,4 @@
-/* $Id: socket.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: socket.h 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -152,7 +152,8 @@
  * Define common errors.
  */
 #if (defined(PJ_WIN32) && PJ_WIN32!=0) || \
-    (defined(PJ_WIN32_WINCE) && PJ_WIN32_WINCE!=0)
+    (defined(PJ_WIN32_WINCE) && PJ_WIN32_WINCE!=0) || \
+    (defined(PJ_WIN64) && PJ_WIN64!=0)
 #  define OSERR_EWOULDBLOCK    WSAEWOULDBLOCK
 #  define OSERR_EINPROGRESS    WSAEINPROGRESS
 #  define OSERR_ECONNRESET     WSAECONNRESET
@@ -175,6 +176,7 @@
  */
 #undef s_addr
 #undef s6_addr
+#undef sin_zero
 
 /*
  * Linux kernel specifics

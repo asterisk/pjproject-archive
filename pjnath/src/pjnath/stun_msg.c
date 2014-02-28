@@ -1,4 +1,4 @@
-/* $Id: stun_msg.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: stun_msg.c 4712 2014-01-23 08:09:29Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1111,7 +1111,7 @@ static pj_status_t encode_sockaddr_attr(const void *a, pj_uint8_t *buf,
     }
 
     /* Done */
-    *printed = buf - start_buf;
+    *printed = (unsigned)(buf - start_buf);
 
     return PJ_SUCCESS;
 }
@@ -1137,11 +1137,11 @@ PJ_DEF(pj_status_t) pj_stun_string_attr_init( pj_stun_string_attr *attr,
 					      int attr_type,
 					      const pj_str_t *value)
 {
-    INIT_ATTR(attr, attr_type, value->slen);
-    if (value && value->slen)
+    INIT_ATTR(attr, attr_type, 0);
+    if (value && value->slen) {
+	attr->value.slen = value->slen;
 	pj_strdup(pool, &attr->value, value);
-    else
-	attr->value.slen = 0;
+    }
     return PJ_SUCCESS;
 }
 
@@ -1227,7 +1227,7 @@ static pj_status_t encode_string_attr(const void *a, pj_uint8_t *buf,
     PJ_UNUSED_ARG(msghdr);
 
     /* Calculated total attr_len (add padding if necessary) */
-    *printed = (ca->value.slen + ATTR_HDR_LEN + 3) & (~3);
+    *printed = ((unsigned)ca->value.slen + ATTR_HDR_LEN + 3) & (~3);
     if (len < *printed) {
 	*printed = 0;
 	return PJ_ETOOSMALL;
@@ -1795,7 +1795,7 @@ static pj_status_t encode_errcode_attr(const void *a, pj_uint8_t *buf,
     pj_memcpy(buf + ATTR_HDR_LEN + 4, ca->reason.ptr, ca->reason.slen);
 
     /* Done */
-    *printed = (ATTR_HDR_LEN + 4 + ca->reason.slen + 3) & (~3);
+    *printed = (ATTR_HDR_LEN + 4 + (unsigned)ca->reason.slen + 3) & (~3);
 
     return PJ_SUCCESS;
 }
@@ -2190,7 +2190,7 @@ PJ_DEF(pj_status_t) pj_stun_msg_add_attr(pj_stun_msg *msg,
 PJ_DEF(pj_status_t) pj_stun_msg_check(const pj_uint8_t *pdu, pj_size_t pdu_len,
 				      unsigned options)
 {
-    pj_size_t msg_len;
+    pj_uint32_t msg_len;
 
     PJ_ASSERT_RETURN(pdu, PJ_EINVAL);
 
@@ -2300,7 +2300,6 @@ PJ_DEF(pj_status_t) pj_stun_msg_decode(pj_pool_t *pool,
 {
     
     pj_stun_msg *msg;
-    unsigned uattr_cnt;
     const pj_uint8_t *start_pdu = pdu;
     pj_bool_t has_msg_int = PJ_FALSE;
     pj_bool_t has_fingerprint = PJ_FALSE;
@@ -2339,7 +2338,6 @@ PJ_DEF(pj_status_t) pj_stun_msg_decode(pj_pool_t *pool,
 	p_response = NULL;
 
     /* Parse attributes */
-    uattr_cnt = 0;
     while (pdu_len >= 4) {
 	unsigned attr_type, attr_val_len;
 	const struct attr_desc *adesc;
@@ -2451,7 +2449,8 @@ PJ_DEF(pj_status_t) pj_stun_msg_decode(pj_pool_t *pool,
 					     "%s in %s",
 					     err_msg1,
 					     pj_stun_get_attr_name(attr_type));
-
+		    if (e.slen < 1 || e.slen >= (int)sizeof(err_msg2))
+			e.slen = sizeof(err_msg2) - 1;
 		    pj_stun_msg_create_response(pool, msg,
 						PJ_STUN_SC_BAD_REQUEST,
 						&e, p_response);
@@ -2626,15 +2625,15 @@ PJ_DEF(pj_status_t) pj_stun_msg_encode(pj_stun_msg *msg,
 
 	adesc = find_attr_desc(attr_hdr->type);
 	if (adesc) {
-	    status = adesc->encode_attr(attr_hdr, buf, buf_size, &msg->hdr, 
-					&printed);
+	    status = adesc->encode_attr(attr_hdr, buf, (unsigned)buf_size, 
+					&msg->hdr, &printed);
 	} else {
 	    /* This may be a generic attribute */
 	    const pj_stun_binary_attr *bin_attr = (const pj_stun_binary_attr*) 
 						   attr_hdr;
 	    PJ_ASSERT_RETURN(bin_attr->magic == PJ_STUN_MAGIC, PJ_EBUG);
-	    status = encode_binary_attr(bin_attr, buf, buf_size, &msg->hdr,
-					&printed);
+	    status = encode_binary_attr(bin_attr, buf, (unsigned)buf_size, 
+					&msg->hdr, &printed);
 	}
 
 	if (status != PJ_SUCCESS)
@@ -2725,8 +2724,10 @@ PJ_DEF(pj_status_t) pj_stun_msg_encode(pj_stun_msg *msg,
 	/* Calculate HMAC-SHA1 digest, add zero padding to input
 	 * if necessary to make the input 64 bytes aligned.
 	 */
-	pj_hmac_sha1_init(&ctx, (const pj_uint8_t*)key->ptr, key->slen);
-	pj_hmac_sha1_update(&ctx, (const pj_uint8_t*)start, buf-start);
+	pj_hmac_sha1_init(&ctx, (const pj_uint8_t*)key->ptr, 
+			  (unsigned)key->slen);
+	pj_hmac_sha1_update(&ctx, (const pj_uint8_t*)start, 
+			    (unsigned)(buf-start));
 #if PJ_STUN_OLD_STYLE_MI_FINGERPRINT
 	// These are obsoleted in rfc3489bis-08
 	if ((buf-start) & 0x3F) {
@@ -2738,7 +2739,7 @@ PJ_DEF(pj_status_t) pj_stun_msg_encode(pj_stun_msg *msg,
 	pj_hmac_sha1_final(&ctx, amsgint->hmac);
 
 	/* Put this attribute in the message */
-	status = encode_msgint_attr(amsgint, buf, buf_size, 
+	status = encode_msgint_attr(amsgint, buf, (unsigned)buf_size, 
 			            &msg->hdr, &printed);
 	if (status != PJ_SUCCESS)
 	    return status;
@@ -2760,7 +2761,7 @@ PJ_DEF(pj_status_t) pj_stun_msg_encode(pj_stun_msg *msg,
 	afingerprint->value ^= STUN_XOR_FINGERPRINT;
 
 	/* Put this attribute in the message */
-	status = encode_uint_attr(afingerprint, buf, buf_size, 
+	status = encode_uint_attr(afingerprint, buf, (unsigned)buf_size, 
 				  &msg->hdr, &printed);
 	if (status != PJ_SUCCESS)
 	    return status;

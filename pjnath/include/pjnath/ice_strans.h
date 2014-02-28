@@ -1,4 +1,4 @@
-/* $Id: ice_strans.h 4133 2012-05-21 14:00:17Z bennylp $ */
+/* $Id: ice_strans.h 4606 2013-10-01 05:00:57Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -370,6 +370,40 @@ typedef struct pj_ice_strans_cfg
 	 */
 	pj_qos_params qos_params;
 
+	/**
+	 * Specify target value for socket receive buffer size. It will be
+	 * applied using setsockopt(). When it fails to set the specified
+	 * size, it will try with lower value until the highest possible is
+	 * successfully set.
+	 *
+	 * When this is set to zero, this component will apply socket receive
+	 * buffer size settings specified in STUN and TURN socket config
+	 * above, i.e: \a stun::cfg::so_rcvbuf_size and
+	 * \a turn::cfg::so_rcvbuf_size. Otherwise, this setting will be
+	 * applied to STUN and TURN sockets for this component, overriding
+	 * the setting specified in STUN/TURN socket config.
+	 *
+	 * Default: 0
+	 */
+	unsigned so_rcvbuf_size;
+
+	/**
+	 * Specify target value for socket send buffer size. It will be
+	 * applied using setsockopt(). When it fails to set the specified
+	 * size, it will try with lower value until the highest possible is
+	 * successfully set.
+	 *
+	 * When this is set to zero, this component will apply socket send
+	 * buffer size settings specified in STUN and TURN socket config
+	 * above, i.e: \a stun::cfg::so_sndbuf_size and
+	 * \a turn::cfg::so_sndbuf_size. Otherwise, this setting will be
+	 * applied to STUN and TURN sockets for this component, overriding
+	 * the setting specified in STUN/TURN socket config.
+	 *
+	 * Default: 0
+	 */
+	unsigned so_sndbuf_size;
+
     } comp[PJ_ICE_MAX_COMP];
 
 } pj_ice_strans_cfg;
@@ -530,6 +564,14 @@ PJ_DECL(pj_status_t) pj_ice_strans_get_options(pj_ice_strans *ice_st,
 PJ_DECL(pj_status_t) pj_ice_strans_set_options(pj_ice_strans *ice_st,
 					       const pj_ice_sess_options *opt);
 
+/**
+ * Get the group lock for this ICE stream transport.
+ *
+ * @param ice_st	The ICE stream transport.
+ *
+ * @return		The group lock.
+ */
+PJ_DECL(pj_grp_lock_t *) pj_ice_strans_get_grp_lock(pj_ice_strans *ice_st);
 
 /**
  * Initialize the ICE session in the ICE stream transport.

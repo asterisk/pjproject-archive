@@ -1,4 +1,4 @@
-/* $Id: srv_resolver.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: srv_resolver.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -102,7 +102,7 @@ PJ_DEF(pj_status_t) pj_dns_srv_resolve( const pj_str_t *domain_name,
 					pj_dns_srv_resolver_cb *cb,
 					pj_dns_srv_async_query **p_query)
 {
-    int len;
+    pj_size_t len;
     pj_str_t target_name;
     pj_dns_srv_async_query *query_job;
     pj_status_t status;

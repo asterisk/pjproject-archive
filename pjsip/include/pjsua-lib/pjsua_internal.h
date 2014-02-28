@@ -1,4 +1,4 @@
-/* $Id: pjsua_internal.h 4342 2013-02-06 13:48:45Z nanang $ */
+/* $Id: pjsua_internal.h 4750 2014-02-19 04:11:43Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -214,6 +214,7 @@ typedef struct pjsua_acc
     int		     index;	    /**< Index in accounts array.	*/
     pj_str_t	     display;	    /**< Display name, if any.		*/
     pj_str_t	     user_part;	    /**< User part of local URI.	*/
+    pj_bool_t	     is_sips;	    /**< Local URI uses "sips"?		*/
     pj_str_t	     contact;	    /**< Our Contact header.		*/
     pj_str_t         reg_contact;   /**< Contact header for REGISTER.
 				         It may be different than acc
@@ -228,6 +229,10 @@ typedef struct pjsua_acc
     pjsip_regc	    *regc;	    /**< Client registration session.   */
     pj_status_t	     reg_last_err;  /**< Last registration error.	*/
     int		     reg_last_code; /**< Last status last register.	*/
+
+    pj_str_t         reg_mapped_addr;/**< Our addr as seen by reg srv.
+                                          Only if allow_sdp_nat_rewrite
+                                          is set                        */
 
     struct {
 	pj_bool_t	 active;    /**< Flag of reregister status.	*/
@@ -263,6 +268,8 @@ typedef struct pjsua_acc
 
     pjsip_evsub	    *mwi_sub;	    /**< MWI client subscription	*/
     pjsip_dialog    *mwi_dlg;	    /**< Dialog for MWI sub.		*/
+
+    pj_uint16_t      next_rtp_port; /**< Next RTP port to be used.      */
 } pjsua_acc;
 
 
@@ -628,6 +635,12 @@ pj_status_t pjsua_media_channel_update(pjsua_call_id call_id,
 				       const pjmedia_sdp_session *remote_sdp);
 pj_status_t pjsua_media_channel_deinit(pjsua_call_id call_id);
 
+/*
+ * Error message when media operation is requested while another is in progress
+ */
+#define ERR_MEDIA_CHANGING  " because another media operation is in progress"
+
+pj_bool_t   pjsua_call_media_is_changing(pjsua_call *call);
 pj_status_t pjsua_call_media_init(pjsua_call_media *call_med,
                                   pjmedia_type type,
 				  const pjsua_transport_config *tcfg,

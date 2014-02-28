@@ -1,4 +1,4 @@
-/* $Id: sip_transport.c 4295 2012-11-06 05:22:11Z nanang $ */
+/* $Id: sip_transport.c 4713 2014-01-23 08:13:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -92,6 +92,11 @@ struct pjsip_tpmgr
     void           (*on_rx_msg)(pjsip_endpoint*, pj_status_t, pjsip_rx_data*);
     pj_status_t	   (*on_tx_msg)(pjsip_endpoint*, pjsip_tx_data*);
     pjsip_tp_state_callback tp_state_cb;
+
+    /* Transmit data list, for transmit data cleanup when transport manager
+     * is destroyed.
+     */
+    pjsip_tx_data    tdata_list;
 };
 
 
@@ -125,7 +130,7 @@ typedef struct transport_data
 /*
  * Transport names.
  */
-struct transport_names_t
+static struct transport_names_t
 {
     pjsip_transport_type_e type;	    /* Transport type	    */
     pj_uint16_t		   port;	    /* Default port number  */
@@ -212,7 +217,7 @@ static void tp_state_callback(pjsip_transport *tp,
 			      const pjsip_transport_state_info *info);
 
 
-struct transport_names_t *get_tpname(pjsip_transport_type_e type)
+static struct transport_names_t *get_tpname(pjsip_transport_type_e type)
 {
     unsigned i;
     for (i=0; i<PJ_ARRAY_SIZE(transport_names); ++i) {
@@ -419,6 +424,14 @@ PJ_DEF(pj_status_t) pjsip_tx_data_create( pjsip_tpmgr *mgr,
     }
 
     pj_ioqueue_op_key_init(&tdata->op_key.key, sizeof(tdata->op_key.key));
+    pj_list_init(tdata);
+
+#if defined(PJSIP_HAS_TX_DATA_LIST) && PJSIP_HAS_TX_DATA_LIST!=0
+    /* Append this just created tdata to transmit buffer list */
+    pj_lock_acquire(mgr->lock);
+    pj_list_push_back(&mgr->tdata_list, tdata);
+    pj_lock_release(mgr->lock);
+#endif
 
 #if defined(PJ_DEBUG) && PJ_DEBUG!=0
     pj_atomic_inc( tdata->mgr->tdata_counter );
@@ -437,6 +450,27 @@ PJ_DEF(void) pjsip_tx_data_add_ref( pjsip_tx_data *tdata )
     pj_atomic_inc(tdata->ref_cnt);
 }
 
+static void tx_data_destroy(pjsip_tx_data *tdata)
+{
+    PJ_LOG(5,(tdata->obj_name, "Destroying txdata %s",
+	      pjsip_tx_data_get_info(tdata)));
+    pjsip_tpselector_dec_ref(&tdata->tp_sel);
+#if defined(PJ_DEBUG) && PJ_DEBUG!=0
+    pj_atomic_dec( tdata->mgr->tdata_counter );
+#endif
+
+#if defined(PJSIP_HAS_TX_DATA_LIST) && PJSIP_HAS_TX_DATA_LIST!=0
+    /* Remove this tdata from transmit buffer list */
+    pj_lock_acquire(tdata->mgr->lock);
+    pj_list_erase(tdata);
+    pj_lock_release(tdata->mgr->lock);
+#endif
+
+    pj_atomic_destroy( tdata->ref_cnt );
+    pj_lock_destroy( tdata->lock );
+    pjsip_endpt_release_pool( tdata->mgr->endpt, tdata->pool );
+}
+
 /*
  * Decrease transport data reference, destroy it when the reference count
  * reaches zero.
@@ -445,15 +479,7 @@ PJ_DEF(pj_status_t) pjsip_tx_data_dec_ref( pjsip_tx_data *tdata )
 {
     pj_assert( pj_atomic_get(tdata->ref_cnt) > 0);
     if (pj_atomic_dec_and_get(tdata->ref_cnt) <= 0) {
-	PJ_LOG(5,(tdata->obj_name, "Destroying txdata %s",
-		  pjsip_tx_data_get_info(tdata)));
-	pjsip_tpselector_dec_ref(&tdata->tp_sel);
-#if defined(PJ_DEBUG) && PJ_DEBUG!=0
-	pj_atomic_dec( tdata->mgr->tdata_counter );
-#endif
-	pj_atomic_destroy( tdata->ref_cnt );
-	pj_lock_destroy( tdata->lock );
-	pjsip_endpt_release_pool( tdata->mgr->endpt, tdata->pool );
+	tx_data_destroy(tdata);
 	return PJSIP_EBUFDESTROYED;
     } else {
 	return PJ_SUCCESS;
@@ -551,13 +577,15 @@ static char *get_msg_info(pj_pool_t *pool, const char *obj_name,
 
 PJ_DEF(char*) pjsip_tx_data_get_info( pjsip_tx_data *tdata )
 {
+    PJ_ASSERT_RETURN(tdata, "NULL");
+
     /* tdata->info may be assigned by application so if it exists
      * just return it.
      */
     if (tdata->info)
 	return tdata->info;
 
-    if (tdata==NULL || tdata->msg==NULL)
+    if (tdata->msg==NULL)
 	return "NULL";
 
     pj_lock_acquire(tdata->lock);
@@ -1207,6 +1235,7 @@ PJ_DEF(pj_status_t) pjsip_tpmgr_create( pj_pool_t *pool,
     mgr->on_rx_msg = rx_cb;
     mgr->on_tx_msg = tx_cb;
     pj_list_init(&mgr->factory_list);
+    pj_list_init(&mgr->tdata_list);
 
     mgr->table = pj_hash_create(pool, PJSIP_TPMGR_HTABLE_SIZE);
     if (!mgr->table)
@@ -1218,14 +1247,14 @@ PJ_DEF(pj_status_t) pjsip_tpmgr_create( pj_pool_t *pool,
 
 #if defined(PJ_DEBUG) && PJ_DEBUG!=0
     status = pj_atomic_create(pool, 0, &mgr->tdata_counter);
-    if (status != PJ_SUCCESS)
-	return status;
+    if (status != PJ_SUCCESS) {
+    	pj_lock_destroy(mgr->lock);
+    	return status;
+    }
 #endif
 
     /* Set transport state callback */
-    status = pjsip_tpmgr_set_state_cb(mgr, &tp_state_callback);
-    if (status != PJ_SUCCESS)
-	return status;
+    pjsip_tpmgr_set_state_cb(mgr, &tp_state_callback);
 
     PJ_LOG(5, (THIS_FILE, "Transport manager created."));
 
@@ -1244,8 +1273,16 @@ static pj_status_t get_net_interface(pjsip_transport_type_e tp_type,
 
     af = (tp_type & PJSIP_TRANSPORT_IPV6)? PJ_AF_INET6 : PJ_AF_INET;
     status = pj_getipinterface(af, dst, &itf_addr, PJ_FALSE, NULL);
-    if (status != PJ_SUCCESS)
-	return status;
+    if (status != PJ_SUCCESS) {
+	/* If it fails, e.g: on WM6 (http://support.microsoft.com/kb/129065),
+	 * just fallback using pj_gethostip(), see ticket #1660.
+	 */
+	PJ_LOG(5,(THIS_FILE,"Warning: unable to determine local "
+			    "interface, fallback to default interface!"));
+	status = pj_gethostip(af, &itf_addr);
+	if (status != PJ_SUCCESS)
+	    return status;
+    }
 
     /* Print address */
     pj_sockaddr_print(&itf_addr, itf_str_addr->ptr,
@@ -1489,12 +1526,6 @@ PJ_DEF(pj_status_t) pjsip_tpmgr_destroy( pjsip_tpmgr *mgr )
     }
 
     pj_lock_release(mgr->lock);
-    pj_lock_destroy(mgr->lock);
-
-    /* Unregister mod_msg_print. */
-    if (mod_msg_print.id != -1) {
-	pjsip_endpt_unregister_module(endpt, &mod_msg_print);
-    }
 
 #if defined(PJ_DEBUG) && PJ_DEBUG!=0
     /* If you encounter assert error on this line, it means there are
@@ -1507,6 +1538,30 @@ PJ_DEF(pj_status_t) pjsip_tpmgr_destroy( pjsip_tpmgr *mgr )
 		  pj_atomic_get(mgr->tdata_counter)));
     }
 #endif
+
+    /*
+     * Destroy any dangling transmit buffer.
+     */
+    if (!pj_list_empty(&mgr->tdata_list)) {
+	pjsip_tx_data *tdata = mgr->tdata_list.next;
+	while (tdata != &mgr->tdata_list) {
+	    pjsip_tx_data *next = tdata->next;
+	    tx_data_destroy(tdata);
+	    tdata = next;
+	}
+	PJ_LOG(3,(THIS_FILE, "Cleaned up dangling transmit buffer(s)."));
+    }
+
+#if defined(PJ_DEBUG) && PJ_DEBUG!=0
+    pj_atomic_destroy(mgr->tdata_counter);
+#endif
+
+    pj_lock_destroy(mgr->lock);
+
+    /* Unregister mod_msg_print. */
+    if (mod_msg_print.id != -1) {
+	pjsip_endpt_unregister_module(endpt, &mod_msg_print);
+    }
 
     return PJ_SUCCESS;
 }
@@ -1573,7 +1628,7 @@ PJ_DEF(pj_ssize_t) pjsip_tpmgr_receive_packet( pjsip_tpmgr *mgr,
 	pj_bzero(&rdata->msg_info, sizeof(rdata->msg_info));
 	pj_list_init(&rdata->msg_info.parse_err);
 	rdata->msg_info.msg_buf = current_pkt;
-	rdata->msg_info.len = remaining_len;
+	rdata->msg_info.len = (int)remaining_len;
 
 	/* For TCP transport, check if the whole message has been received. */
 	if ((tr->flag & PJSIP_TRANSPORT_DATAGRAM) == 0) {
@@ -1593,7 +1648,7 @@ PJ_DEF(pj_ssize_t) pjsip_tpmgr_receive_packet( pjsip_tpmgr *mgr,
 	}
 
 	/* Update msg_info. */
-	rdata->msg_info.len = msg_fragment_size;
+	rdata->msg_info.len = (int)msg_fragment_size;
 
 	/* Null terminate packet */
 	saved = current_pkt[msg_fragment_size];

@@ -1,4 +1,4 @@
-/* $Id: dns.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: dns.c 4712 2014-01-23 08:09:29Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -59,9 +59,9 @@ PJ_DEF(pj_status_t) pj_dns_make_query( void *packet,
 				       int qtype,
 				       const pj_str_t *name)
 {
-    pj_uint8_t *query, *p = (pj_uint8_t*)packet;
+    pj_uint8_t *p = (pj_uint8_t*)packet;
     const char *startlabel, *endlabel, *endname;
-    unsigned d;
+    pj_size_t d;
 
     /* Sanity check */
     PJ_ASSERT_RETURN(packet && size && qtype && name, PJ_EINVAL);
@@ -80,7 +80,7 @@ PJ_DEF(pj_status_t) pj_dns_make_query( void *packet,
     write16(p+4, (pj_uint16_t)1);
 
     /* Initialize query */
-    query = p = ((pj_uint8_t*)packet)+sizeof(pj_dns_hdr);
+    p = ((pj_uint8_t*)packet)+sizeof(pj_dns_hdr);
 
     /* Tokenize name */
     startlabel = endlabel = name->ptr;
@@ -106,7 +106,7 @@ PJ_DEF(pj_status_t) pj_dns_make_query( void *packet,
     p += 2;
 
     /* Done, calculate length */
-    *size = p - (pj_uint8_t*)packet;
+    *size = (unsigned)(p - (pj_uint8_t*)packet);
 
     return 0;
 }

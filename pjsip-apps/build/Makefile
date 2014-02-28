@@ -1,6 +1,8 @@
 include ../../build.mak
 include $(PJDIR)/build/common.mak
 
+export LIBDIR := ../lib
+export BINDIR := ../bin
 
 RULES_MAK := $(PJDIR)/build/rules.mak
 
@@ -27,16 +29,20 @@ export _CFLAGS 	:= $(CC_CFLAGS) $(OS_CFLAGS) $(HOST_CFLAGS) $(M_CFLAGS) \
 		   $(CC_INC)../../pjmedia/include
 export _CXXFLAGS:= $(_CFLAGS) $(CC_CXXFLAGS) $(OS_CXXFLAGS) $(M_CXXFLAGS) \
 		   $(HOST_CXXFLAGS) $(CXXFLAGS)
+export _LDFLAGS := $(CC_LDFLAGS) $(OS_LDFLAGS) $(M_LDFLAGS) $(HOST_LDFLAGS) \
+		   $(APP_LDFLAGS) $(APP_LDLIBS) $(LDFLAGS) 
 
 ###############################################################################
 # Defines for building PJSUA
 #
 export PJSUA_SRCDIR = ../src/pjsua
 export PJSUA_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
-			main.o pjsua_app.o
-export PJSUA_CFLAGS += $(_CFLAGS)
-export PJSUA_LDFLAGS += $(APP_LDFLAGS) $(APP_LDLIBS) $(LDFLAGS)
-export PJSUA_EXE:=../bin/pjsua-$(TARGET_NAME)$(HOST_EXE)
+            main.o pjsua_app.o pjsua_app_cli.o pjsua_app_common.o \
+            pjsua_app_config.o pjsua_app_legacy.o
+export PJSUA_CFLAGS += $(PJ_CFLAGS) $(CFLAGS)
+export PJSUA_CXXFLAGS += $(PJ_CXXFLAGS) $(CFLAGS)
+export PJSUA_LDFLAGS += $(PJ_LDFLAGS) $(PJ_LDLIBS) $(LDFLAGS)
+export PJSUA_EXE:=pjsua-$(TARGET_NAME)$(HOST_EXE)
 
 
 ###############################################################################
@@ -45,49 +51,52 @@ export PJSUA_EXE:=../bin/pjsua-$(TARGET_NAME)$(HOST_EXE)
 export PJSYSTEST_SRCDIR = ../src/pjsystest
 export PJSYSTEST_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			systest.o main_console.o
-export PJSYSTEST_CFLAGS += $(_CFLAGS)
-export PJSYSTEST_LDFLAGS += $(APP_LDFLAGS) $(APP_LDLIBS) $(LDFLAGS)
-export PJSYSTEST_EXE:=../bin/pjsystest-$(TARGET_NAME)$(HOST_EXE)
+export PJSYSTEST_CFLAGS += $(PJ_CFLAGS) $(CFLAGS)
+export PJSYSTEST_CXXFLAGS += $(PJ_CXXFLAGS) $(CFLAGS)
+export PJSYSTEST_LDFLAGS += $(PJ_LDFLAGS) $(PJ_LDLIBS) $(LDFLAGS)
+export PJSYSTEST_EXE:=pjsystest-$(TARGET_NAME)$(HOST_EXE)
 
 
 export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT 
-###############################################################################
-# Main entry
-#
-#
-TARGETS := pjsua pjsystest samples
 
-.PHONY: $(TARGETS)
+TARGETS := $(PJSUA_EXE) $(PJSYSTEST_EXE) samples
 
 all: $(TARGETS)
 
+swig:
+	$(MAKE) -C ../src/swig
+	
 doc:
 
 dep: depend
 distclean: realclean
 
-.PHONY: dep depend pjsua clean realclean distclean
+.PHONY: all dep depend clean realclean distclean
+.PHONY: $(TARGETS)
+.PHONY: $(PJSUA_EXE) $(PJSYSTEST_EXE)
 
-pjsua:
-	$(MAKE) -f $(RULES_MAK) APP=PJSUA app=pjsua $(PJSUA_EXE)
+pjsua: $(PJSUA_EXE)
+$(PJSUA_EXE):
+	$(MAKE) -f $(RULES_MAK) APP=PJSUA app=pjsua $(subst /,$(HOST_PSEP),$(BINDIR)/$@)
 
-pjsystest:
-	$(MAKE) -f $(RULES_MAK) APP=PJSYSTEST app=pjsystest $(PJSYSTEST_EXE)
+pjsystest: $(PJSYSTEST_EXE)
+$(PJSYSTEST_EXE):
+	$(MAKE) -f $(RULES_MAK) APP=PJSYSTEST app=pjsystest $(subst /,$(HOST_PSEP),$(BINDIR)/$@)
 
 samples:
 	$(MAKE) -f Samples.mak
 
-.PHONY: ../lib/pjsua.ko
-../lib/pjsua.ko:
-	$(MAKE) -f $(RULES_MAK) APP=PJSUA app=pjsua $@
+.PHONY: pjsua.ko
+pjsua.ko:
+	$(MAKE) -f $(RULES_MAK) APP=PJSUA app=pjsua $(subst /,$(HOST_PSEP),$(LIBDIR)/$@)
 
 clean depend realclean:
 	$(MAKE) -f $(RULES_MAK) APP=PJSUA app=pjsua $@
 	$(MAKE) -f $(RULES_MAK) APP=PJSYSTEST app=pjsystest $@
 	$(MAKE) -f Samples.mak $@
 	@if test "$@" = "depend"; then \
-	  echo '$(PJSUA_EXE): $(APP_LIB_FILES)' >> .pjsua-$(TARGET_NAME).depend; \
-	  echo '$(PJSYSTEST_EXE): $(APP_LIB_FILES)' >> .pjsystest-$(TARGET_NAME).depend; \
+	  echo '$(BINDIR)/$(PJSUA_EXE): $(APP_LIB_FILES)' >> .pjsua-$(TARGET_NAME).depend; \
+	  echo '$(BINDIR)/$(PJSYSTEST_EXE): $(APP_LIB_FILES)' >> .pjsystest-$(TARGET_NAME).depend; \
 	fi
 
 

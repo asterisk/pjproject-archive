@@ -1,4 +1,4 @@
-/* $Id: sock_common.c 4343 2013-02-07 09:35:34Z nanang $ */
+/* $Id: sock_common.c 4538 2013-06-19 09:06:55Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1073,6 +1073,69 @@ PJ_DEF(pj_status_t) pj_sock_bind_random(  pj_sock_t sockfd,
 	status = pj_sock_bind(sockfd, &bind_addr, addr_len);
 	if (status == PJ_SUCCESS)
 	    break;
+    }
+
+    return status;
+}
+
+
+/*
+ * Adjust socket send/receive buffer size.
+ */
+PJ_DEF(pj_status_t) pj_sock_setsockopt_sobuf( pj_sock_t sockfd,
+					      pj_uint16_t optname,
+					      pj_bool_t auto_retry,
+					      unsigned *buf_size)
+{
+    pj_status_t status;
+    int try_size, cur_size, i, step, size_len;
+    enum { MAX_TRY = 20 };
+
+    PJ_CHECK_STACK();
+
+    PJ_ASSERT_RETURN(sockfd != PJ_INVALID_SOCKET &&
+		     buf_size &&
+		     *buf_size > 0 &&
+		     (optname == pj_SO_RCVBUF() ||
+		      optname == pj_SO_SNDBUF()),
+		     PJ_EINVAL);
+
+    size_len = sizeof(cur_size);
+    status = pj_sock_getsockopt(sockfd, pj_SOL_SOCKET(), optname,
+				&cur_size, &size_len);
+    if (status != PJ_SUCCESS)
+	return status;
+
+    try_size = *buf_size;
+    step = (try_size - cur_size) / MAX_TRY;
+    if (step < 4096)
+	step = 4096;
+
+    for (i = 0; i < (MAX_TRY-1); ++i) {
+	if (try_size <= cur_size) {
+	    /* Done, return current size */
+	    *buf_size = cur_size;
+	    break;
+	}
+
+	status = pj_sock_setsockopt(sockfd, pj_SOL_SOCKET(), optname,
+				    &try_size, sizeof(try_size));
+	if (status == PJ_SUCCESS) {
+	    status = pj_sock_getsockopt(sockfd, pj_SOL_SOCKET(), optname,
+					&cur_size, &size_len);
+	    if (status != PJ_SUCCESS) {
+		/* Ops! No info about current size, just return last try size
+		 * and quit.
+		 */
+		*buf_size = try_size;
+		break;
+	    }
+	}
+
+	if (!auto_retry)
+	    break;
+
+	try_size -= step;
     }
 
     return status;

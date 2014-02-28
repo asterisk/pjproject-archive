@@ -1,4 +1,4 @@
-/* $Id: xml.c 3999 2012-03-30 07:10:13Z bennylp $ */
+/* $Id: xml.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -235,7 +235,7 @@ static int xml_print_node( const pj_xml_node *node, int indent,
 	*p++ = ' ';
 	*p++ = '/';
 	*p++ = '>';
-	return p-buf;
+	return (int)(p-buf);
     }
 
     /* Enclosing '>' */
@@ -287,7 +287,7 @@ static int xml_print_node( const pj_xml_node *node, int indent,
 
 #undef SIZE_LEFT
 
-    return p - buf;
+    return (int)(p-buf);
 }
 
 PJ_DEF(int) pj_xml_print(const pj_xml_node *node, char *buf, pj_size_t len,
@@ -304,7 +304,7 @@ PJ_DEF(int) pj_xml_print(const pj_xml_node *node, char *buf, pj_size_t len,
 	if ((int)len < prolog.slen)
 	    return -1;
 	pj_memcpy(buf, prolog.ptr, prolog.slen);
-	prolog_len = prolog.slen;
+	prolog_len = (int)prolog.slen;
     }
 
     printed = xml_print_node(node, 0, buf+prolog_len, len-prolog_len) + prolog_len;

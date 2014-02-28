@@ -1,4 +1,4 @@
-/* $Id: sip_transport_tcp.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sip_transport_tcp.h 4506 2013-04-26 06:01:43Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -62,6 +62,12 @@ typedef struct pjsip_tcp_transport_cfg
      * PJ_INADDR_ANY and to any available port.
      */
     pj_sockaddr		bind_addr;
+
+    /**
+     * Should SO_REUSEADDR be used for the listener socket.
+     * Default value is PJSIP_TCP_TRANSPORT_REUSEADDR.
+     */
+    pj_bool_t		reuse_addr;
 
     /**
      * Optional published address, which is the address to be

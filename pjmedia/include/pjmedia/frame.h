@@ -1,4 +1,4 @@
-/* $Id: frame.h 3715 2011-08-19 09:35:25Z nanang $ */
+/* $Id: frame.h 4537 2013-06-19 06:47:43Z riza $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -231,7 +231,7 @@ pjmedia_frame_ext_pop_subframes(pjmedia_frame_ext *frm, unsigned n)
 {
     pjmedia_frame_ext_subframe *sf;
     pj_uint8_t *move_src;
-    unsigned move_len;
+    pj_size_t move_len;
 
     if (frm->subframe_cnt <= n) {
 	frm->subframe_cnt = 0;
@@ -241,8 +241,8 @@ pjmedia_frame_ext_pop_subframes(pjmedia_frame_ext *frm, unsigned n)
 
     move_src = (pj_uint8_t*)pjmedia_frame_ext_get_subframe(frm, n);
     sf = pjmedia_frame_ext_get_subframe(frm, frm->subframe_cnt-1);
-    move_len = (pj_uint8_t*)sf - move_src + sizeof(sf->bitlen) +
-	       ((sf->bitlen+7) >> 3);
+    move_len = ((pj_uint8_t*)sf - move_src + sizeof(sf->bitlen) +
+	       ((sf->bitlen+7) >> 3));
     pj_memmove((pj_uint8_t*)frm+sizeof(pjmedia_frame_ext),
 	       move_src, move_len);
 

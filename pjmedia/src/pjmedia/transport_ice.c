@@ -1,4 +1,4 @@
-/* $Id: transport_ice.c 4350 2013-02-15 03:57:31Z nanang $ */
+/* $Id: transport_ice.c 4613 2013-10-08 09:08:13Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -225,6 +225,7 @@ PJ_DEF(pj_status_t) pjmedia_ice_create3(pjmedia_endpt *endpt,
 {
     pj_pool_t *pool;
     pj_ice_strans_cb ice_st_cb;
+    pj_ice_strans_cfg ice_st_cfg;
     struct transport_ice *tp_ice;
     pj_status_t status;
 
@@ -245,6 +246,7 @@ PJ_DEF(pj_status_t) pjmedia_ice_create3(pjmedia_endpt *endpt,
     tp_ice->oa_role = ROLE_NONE;
     tp_ice->use_ice = PJ_FALSE;
 
+    pj_memcpy(&ice_st_cfg, cfg, sizeof(pj_ice_strans_cfg));
     if (cb)
 	pj_memcpy(&tp_ice->cb, cb, sizeof(pjmedia_ice_cb));
 
@@ -258,8 +260,18 @@ PJ_DEF(pj_status_t) pjmedia_ice_create3(pjmedia_endpt *endpt,
     ice_st_cb.on_ice_complete = &ice_on_ice_complete;
     ice_st_cb.on_rx_data = &ice_on_rx_data;
 
+    /* Configure RTP socket buffer settings, if not set */
+    if (ice_st_cfg.comp[COMP_RTP-1].so_rcvbuf_size == 0) {
+	ice_st_cfg.comp[COMP_RTP-1].so_rcvbuf_size = 
+			    PJMEDIA_TRANSPORT_SO_RCVBUF_SIZE;
+    }
+    if (ice_st_cfg.comp[COMP_RTP-1].so_sndbuf_size == 0) {
+	ice_st_cfg.comp[COMP_RTP-1].so_sndbuf_size = 
+			    PJMEDIA_TRANSPORT_SO_SNDBUF_SIZE;
+    }
+
     /* Create ICE */
-    status = pj_ice_strans_create(name, cfg, comp_cnt, tp_ice, 
+    status = pj_ice_strans_create(name, &ice_st_cfg, comp_cnt, tp_ice, 
 				  &ice_st_cb, &tp_ice->ice_st);
     if (status != PJ_SUCCESS) {
 	pj_pool_release(pool);
@@ -269,6 +281,12 @@ PJ_DEF(pj_status_t) pjmedia_ice_create3(pjmedia_endpt *endpt,
 
     /* Done */
     return PJ_SUCCESS;
+}
+
+PJ_DEF(pj_grp_lock_t *) pjmedia_ice_get_grp_lock(pjmedia_transport *tp)
+{
+    PJ_ASSERT_RETURN(tp, NULL);
+    return pj_ice_strans_get_grp_lock(((struct transport_ice *)tp)->ice_st);
 }
 
 /* Disable ICE when SDP from remote doesn't contain a=candidate line */
@@ -331,7 +349,7 @@ static int print_sdp_cand_attr(char *buffer, int max_len,
 	len2 = -1;
 	break;
     }
-    if (len2 < 1 || len2 >= max_len)
+    if (len2 < 1 || len2 >= max_len-len)
 	return -1;
 
     return len+len2;
@@ -527,7 +545,7 @@ static pj_status_t encode_session_in_sdp(struct transport_ice *tp_ice,
 			   comp+1, rem_addr,
 			   pj_sockaddr_get_port(&check->rcand->addr)
 			   );
-		if (len < 1 || len >= RATTR_BUF_LEN) {
+		if (len < 1 || len >= RATTR_BUF_LEN - rem_cand.slen) {
 		    pj_assert(!"Not enough buffer to print "
 			       "remote-candidates");
 		    return PJ_EBUG;

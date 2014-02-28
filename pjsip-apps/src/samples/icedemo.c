@@ -1,4 +1,4 @@
-/* $Id: icedemo.c 4217 2012-07-27 17:24:12Z nanang $ */
+/* $Id: icedemo.c 4624 2013-10-21 06:37:30Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -514,10 +514,11 @@ static void icedemo_stop_session(void)
     reset_rem_info();
 }
 
-#define PRINT(fmt, arg0, arg1, arg2, arg3, arg4, arg5)	    \
+#define PRINT(...)	    \
 	printed = pj_ansi_snprintf(p, maxlen - (p-buffer),  \
-				   fmt, arg0, arg1, arg2, arg3, arg4, arg5); \
-	if (printed <= 0) return -PJ_ETOOSMALL; \
+				   __VA_ARGS__); \
+	if (printed <= 0 || printed >= (int)(maxlen - (p-buffer))) \
+	    return -PJ_ETOOSMALL; \
 	p += printed
 
 
@@ -539,15 +540,14 @@ static int print_cand(char buffer[], unsigned maxlen,
 	  (unsigned)pj_sockaddr_get_port(&cand->addr));
 
     PRINT("%s\n",
-	  pj_ice_get_cand_type_name(cand->type),
-	  0, 0, 0, 0, 0);
+	  pj_ice_get_cand_type_name(cand->type));
 
     if (p == buffer+maxlen)
 	return -PJ_ETOOSMALL;
 
     *p = '\0';
 
-    return p-buffer;
+    return (int)(p-buffer);
 }
 
 /* 
@@ -562,8 +562,7 @@ static int encode_session(char buffer[], unsigned maxlen)
     pj_status_t status;
 
     /* Write "dummy" SDP v=, o=, s=, and t= lines */
-    PRINT("v=0\no=- 3414953978 3414953978 IN IP4 localhost\ns=ice\nt=0 0\n", 
-	  0, 0, 0, 0, 0, 0);
+    PRINT("v=0\no=- 3414953978 3414953978 IN IP4 localhost\ns=ice\nt=0 0\n");
 
     /* Get ufrag and pwd from current session */
     pj_ice_strans_get_ufrag_pwd(icedemo.icest, &local_ufrag, &local_pwd,
@@ -574,8 +573,7 @@ static int encode_session(char buffer[], unsigned maxlen)
 	   (int)local_ufrag.slen,
 	   local_ufrag.ptr,
 	   (int)local_pwd.slen,
-	   local_pwd.ptr, 
-	   0, 0);
+	   local_pwd.ptr);
 
     /* Write each component */
     for (comp=0; comp<icedemo.opt.comp_cnt; ++comp) {
@@ -595,22 +593,19 @@ static int encode_session(char buffer[], unsigned maxlen)
 		  "c=IN IP4 %s\n",
 		  (int)pj_sockaddr_get_port(&cand[0].addr),
 		  pj_sockaddr_print(&cand[0].addr, ipaddr,
-				    sizeof(ipaddr), 0),
-		  0, 0, 0, 0);
+				    sizeof(ipaddr), 0));
 	} else if (comp==1) {
 	    /* For component 2, default address is in a=rtcp line */
 	    PRINT("a=rtcp:%d IN IP4 %s\n",
 		  (int)pj_sockaddr_get_port(&cand[0].addr),
 		  pj_sockaddr_print(&cand[0].addr, ipaddr,
-				    sizeof(ipaddr), 0),
-		  0, 0, 0, 0);
+				    sizeof(ipaddr), 0));
 	} else {
 	    /* For other components, we'll just invent this.. */
 	    PRINT("a=Xice-defcand:%d IN IP4 %s\n",
 		  (int)pj_sockaddr_get_port(&cand[0].addr),
 		  pj_sockaddr_print(&cand[0].addr, ipaddr,
-				    sizeof(ipaddr), 0),
-		  0, 0, 0, 0);
+				    sizeof(ipaddr), 0));
 	}
 
 	/* Enumerate all candidates for this component */
@@ -622,7 +617,7 @@ static int encode_session(char buffer[], unsigned maxlen)
 
 	/* And encode the candidates as SDP */
 	for (j=0; j<cand_cnt; ++j) {
-	    printed = print_cand(p, maxlen - (p-buffer), &cand[j]);
+	    printed = print_cand(p, maxlen - (unsigned)(p-buffer), &cand[j]);
 	    if (printed < 0)
 		return -PJ_ETOOSMALL;
 	    p += printed;
@@ -633,7 +628,7 @@ static int encode_session(char buffer[], unsigned maxlen)
 	return -PJ_ETOOSMALL;
 
     *p = '\0';
-    return p - buffer;
+    return (int)(p - buffer);
 }
 
 
@@ -727,7 +722,7 @@ static void icedemo_input_remote(void)
     comp0_addr[0] = '\0';
 
     while (!done) {
-	int len;
+	pj_size_t len;
 	char *line;
 
 	printf(">");
@@ -1077,7 +1072,7 @@ static void icedemo_console(void)
     while (!app_quit) {
 	char input[80], *cmd;
 	const char *SEP = " \t\r\n";
-	int len;
+	pj_size_t len;
 
 	icedemo_print_menu();
 

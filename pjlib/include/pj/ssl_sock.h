@@ -1,4 +1,4 @@
-/* $Id: ssl_sock.h 4146 2012-05-30 06:35:59Z nanang $ */
+/* $Id: ssl_sock.h 4506 2013-04-26 06:01:43Z bennylp $ */
 /* 
  * Copyright (C) 2009-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -709,6 +709,14 @@ typedef struct pj_ssl_sock_param
      * Default value is zero/not-set.
      */
     pj_str_t server_name;
+
+    /**
+     * Specify if SO_REUSEADDR should be used for listening socket. This
+     * option will only be used with accept() operation.
+     *
+     * Default is PJ_FALSE.
+     */
+    pj_bool_t reuse_addr;
 
     /**
      * QoS traffic type to be set on this transport. When application wants

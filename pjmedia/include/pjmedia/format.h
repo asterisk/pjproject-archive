@@ -1,4 +1,4 @@
-/* $Id: format.h 4158 2012-06-06 09:56:14Z nanang $ */
+/* $Id: format.h 4470 2013-04-15 10:40:26Z bennylp $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -521,11 +521,11 @@ PJ_INLINE(unsigned) PJMEDIA_PTIME(const pjmedia_ratio *frame_rate)
     return ((unsigned)((pj_uint64_t)1000000 * \
 		       frame_rate->denum / frame_rate->num));
 #elif PJ_HAS_FLOATING_POINT
-    return ((unsigned)(1000000.0 * frame_rate->denum / \
+    return ((unsigned)(1000000.0 * frame_rate->denum /
                        frame_rate->num));
 #else
-    return ((unsigned)((1000L * frame_rate->denum / \
-                       frame_rate->num) * 1000);
+    return ((unsigned)((1000L * frame_rate->denum /
+                       frame_rate->num) * 1000));
 #endif
 }
 

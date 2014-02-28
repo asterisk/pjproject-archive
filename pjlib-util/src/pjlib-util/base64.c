@@ -1,4 +1,4 @@
-/* $Id: base64.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: base64.c 4713 2014-01-23 08:13:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -24,7 +24,7 @@
 #define INV	    -1
 #define PADDING	    '='
 
-const char base64_char[] = {
+static const char base64_char[] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
     'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
     'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
@@ -116,7 +116,7 @@ PJ_DEF(pj_status_t) pj_base64_encode(const pj_uint8_t *input, int in_len,
 	po += 4;
     }
 
-    *out_len = po - output;
+    *out_len = (int)(po - output);
     return PJ_SUCCESS;
 }
 
@@ -125,7 +125,7 @@ PJ_DEF(pj_status_t) pj_base64_decode(const pj_str_t *input,
 				     pj_uint8_t *out, int *out_len)
 {
     const char *buf = input->ptr;
-    int len = input->slen;
+    int len = (int)input->slen;
     int i, j, k;
     int c[4];
 

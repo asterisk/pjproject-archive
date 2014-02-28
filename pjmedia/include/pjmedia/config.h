@@ -1,4 +1,4 @@
-/* $Id: config.h 4240 2012-08-31 09:03:36Z ming $ */
+/* $Id: config.h 4701 2014-01-03 03:44:05Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -59,6 +59,21 @@
 #ifndef PJMEDIA_CONF_USE_SWITCH_BOARD
 #   define PJMEDIA_CONF_USE_SWITCH_BOARD    0
 #endif
+
+/**
+ * Specify buffer size for audio switch board, in bytes. This buffer will
+ * be used for transmitting/receiving audio frame data (and some overheads,
+ * i.e: pjmedia_frame structure) among conference ports in the audio
+ * switch board. For example, if a port uses PCM format @44100Hz mono
+ * and frame time 20ms, the PCM audio data will require 1764 bytes,
+ * so with overhead, a safe buffer size will be ~1900 bytes.
+ *
+ * Default: PJMEDIA_MAX_MTU
+ */
+#ifndef PJMEDIA_CONF_SWITCH_BOARD_BUF_SIZE
+#   define PJMEDIA_CONF_SWITCH_BOARD_BUF_SIZE    PJMEDIA_MAX_MTU
+#endif
+
 
 /*
  * Types of sound stream backends.
@@ -653,6 +668,19 @@
 #   define PJMEDIA_SDP_NEG_PREFER_REMOTE_CODEC_ORDER	1
 #endif
 
+/**
+ * This specifies the behavior of the SDP negotiator when responding to an
+ * offer, whether it should answer with multiple formats or not.
+ *
+ * Note that this behavior can be changed during run-time by calling
+ * pjmedia_sdp_neg_set_allow_multiple_codecs().
+ *
+ * Default is 0 (to maintain backward compatibility)
+ */
+#ifndef PJMEDIA_SDP_NEG_ANSWER_MULTIPLE_CODECS
+#   define PJMEDIA_SDP_NEG_ANSWER_MULTIPLE_CODECS	0
+#endif
+
 
 /**
  * This specifies the maximum number of the customized SDP format
@@ -882,6 +910,19 @@
  */
 #ifndef PJMEDIA_HAS_SRTP
 #   define PJMEDIA_HAS_SRTP			    1
+#endif
+
+
+/**
+ * Let the library handle libsrtp initialization and deinitialization.
+ * Application may want to disable this and manually perform libsrtp
+ * initialization and deinitialization when it needs to use libsrtp
+ * before the library is initialized or after the library is shutdown.
+ *
+ * By default it is enabled.
+ */
+#ifndef PJMEDIA_LIBSRTP_AUTO_INIT_DEINIT
+#   define PJMEDIA_LIBSRTP_AUTO_INIT_DEINIT	    1
 #endif
 
 
@@ -1198,6 +1239,46 @@
  */
 #ifndef PJMEDIA_MAX_VID_PAYLOAD_SIZE			
 #  define PJMEDIA_MAX_VID_PAYLOAD_SIZE		(PJMEDIA_MAX_MTU - 100)
+#endif
+
+
+/**
+ * Specify target value for socket receive buffer size. It will be
+ * applied to RTP socket of media transport using setsockopt(). When
+ * transport failed to set the specified size, it will try with lower
+ * value until the highest possible is successfully set.
+ *
+ * Setting this to zero will leave the socket receive buffer size to
+ * OS default (e.g: usually 8 KB on desktop platforms).
+ *
+ * Default: 64 KB when video is enabled, otherwise zero (OS default)
+ */
+#ifndef PJMEDIA_TRANSPORT_SO_RCVBUF_SIZE
+#   if PJMEDIA_HAS_VIDEO
+#	define PJMEDIA_TRANSPORT_SO_RCVBUF_SIZE	(64*1024)
+#   else
+#	define PJMEDIA_TRANSPORT_SO_RCVBUF_SIZE	0
+#   endif
+#endif
+
+
+/**
+ * Specify target value for socket send buffer size. It will be
+ * applied to RTP socket of media transport using setsockopt(). When
+ * transport failed to set the specified size, it will try with lower
+ * value until the highest possible is successfully set.
+ *
+ * Setting this to zero will leave the socket send buffer size to
+ * OS default (e.g: usually 8 KB on desktop platforms).
+ *
+ * Default: 64 KB when video is enabled, otherwise zero (OS default)
+ */
+#ifndef PJMEDIA_TRANSPORT_SO_SNDBUF_SIZE
+#   if PJMEDIA_HAS_VIDEO
+#	define PJMEDIA_TRANSPORT_SO_SNDBUF_SIZE	(64*1024)
+#   else
+#	define PJMEDIA_TRANSPORT_SO_SNDBUF_SIZE	0
+#   endif
 #endif
 
 

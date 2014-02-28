@@ -1,4 +1,4 @@
-/* $Id: errno.c 4359 2013-02-21 11:18:36Z bennylp $ */
+/* $Id: errno.c 4761 2014-02-24 09:02:44Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -78,7 +78,8 @@ static const struct
     PJ_BUILD_ERR(PJ_EIGNORED,	   "Ignored"),
     PJ_BUILD_ERR(PJ_EIPV6NOTSUP,   "IPv6 is not supported"),
     PJ_BUILD_ERR(PJ_EAFNOTSUP,	   "Unsupported address family"),
-    PJ_BUILD_ERR(PJ_EGONE,	   "Object no longer exists")
+    PJ_BUILD_ERR(PJ_EGONE,	   "Object no longer exists"),
+    PJ_BUILD_ERR(PJ_ESOCKETSTOP,   "Socket is in bad state")
 };
 #endif	/* PJ_HAS_ERROR_STRING */
 
@@ -90,6 +91,8 @@ static const struct
  */
 static int pjlib_error(pj_status_t code, char *buf, pj_size_t size)
 {
+    int len;
+
 #if defined(PJ_HAS_ERROR_STRING) && PJ_HAS_ERROR_STRING!=0
     unsigned i;
 
@@ -99,12 +102,15 @@ static int pjlib_error(pj_status_t code, char *buf, pj_size_t size)
             if (len >= size) len = size-1;
             pj_memcpy(buf, err_str[i].msg, len);
             buf[len] = '\0';
-            return len;
+            return (int)len;
         }
     }
 #endif
 
-    return pj_ansi_snprintf( buf, size, "Unknown pjlib error %d", code);
+    len = pj_ansi_snprintf( buf, size, "Unknown pjlib error %d", code);
+    if (len < 1 || len >= (int)size)
+	len = (int)(size - 1);
+    return len;
 }
 
 #define IN_RANGE(val,start,end)	    ((val)>=(start) && (val)<(end))
@@ -198,9 +204,9 @@ PJ_DEF(pj_str_t) pj_strerror( pj_status_t statcode,
 	len = pj_ansi_snprintf( buf, bufsize, "Unknown error %d", statcode);
     }
 
-    if (len < 1) {
-        *buf = '\0';
-        len = 0;
+    if (len < 1 || len >= (int)bufsize) {
+	len = (int)(bufsize - 1);
+	buf[len] = '\0';
     }
 
     errstr.ptr = buf;

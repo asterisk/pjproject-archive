@@ -1,4 +1,4 @@
-/* $Id: http_client.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: http_client.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -76,7 +76,7 @@ static int server_thread(void *p)
 	while (!thread_quit) {
 	    PJ_FD_ZERO(&rset);
 	    PJ_FD_SET(srv->sock, &rset);
-	    rc = pj_sock_select(srv->sock+1, &rset, NULL, NULL, &timeout);
+	    rc = pj_sock_select((int)srv->sock+1, &rset, NULL, NULL, &timeout);
 	    if (rc != 1) {
 		continue;
 	    }
@@ -93,7 +93,7 @@ static int server_thread(void *p)
 	while (!thread_quit) {
             PJ_FD_ZERO(&rset);
             PJ_FD_SET(newsock, &rset);
-            rc = pj_sock_select(newsock+1, &rset, NULL, NULL, &timeout);
+            rc = pj_sock_select((int)newsock+1, &rset, NULL, NULL, &timeout);
             if (rc != 1) {
         	PJ_LOG(3,("http test", "client timeout"));
                 continue;
@@ -115,7 +115,8 @@ static int server_thread(void *p)
 	if (srv->action == ACTION_IGNORE) {
 	    continue;
 	} else if (srv->action == ACTION_REPLY) {
-            unsigned send_size = 0, ctr = 0;
+            pj_size_t send_size = 0;
+	    unsigned ctr = 0;
             pj_ansi_sprintf(pkt, "HTTP/1.0 200 OK\r\n");
             if (srv->send_content_length) {
                 pj_ansi_sprintf(pkt + pj_ansi_strlen(pkt), 

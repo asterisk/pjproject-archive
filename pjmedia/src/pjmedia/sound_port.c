@@ -1,4 +1,4 @@
-/* $Id: sound_port.c 4082 2012-04-24 13:09:14Z bennylp $ */
+/* $Id: sound_port.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -71,7 +71,7 @@ static pj_status_t play_cb(void *user_data, pjmedia_frame *frame)
 {
     pjmedia_snd_port *snd_port = (pjmedia_snd_port*) user_data;
     pjmedia_port *port;
-    const unsigned required_size = frame->size;
+    const unsigned required_size = (unsigned)frame->size;
     pj_status_t status;
 
     pjmedia_clock_src_update(&snd_port->play_clocksrc, &frame->timestamp);
@@ -234,7 +234,7 @@ static pj_status_t start_sound_device( pj_pool_t *pool,
     if (param_copy.flags & PJMEDIA_AUD_DEV_CAP_EC) {
 	/* EC is wanted */
 	if ((snd_port->prm_ec_options & PJMEDIA_ECHO_USE_SW_ECHO) == 0 &&
-            snd_port->aud_caps & PJMEDIA_AUD_DEV_CAP_EC)
+            (snd_port->aud_caps & PJMEDIA_AUD_DEV_CAP_EC))
         {
 	    /* Device supports EC */
 	    /* Nothing to do */
@@ -527,7 +527,7 @@ PJ_DEF(pj_status_t) pjmedia_snd_port_set_ec( pjmedia_snd_port *snd_port,
 
     /* Determine whether we use device or software EC */
     if ((snd_port->prm_ec_options & PJMEDIA_ECHO_USE_SW_ECHO) == 0 &&
-        snd_port->aud_caps & PJMEDIA_AUD_DEV_CAP_EC)
+        (snd_port->aud_caps & PJMEDIA_AUD_DEV_CAP_EC))
     {
 	/* We use device EC */
 	pj_bool_t ec_enabled;

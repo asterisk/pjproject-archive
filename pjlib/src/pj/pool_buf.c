@@ -1,4 +1,4 @@
-/* $Id: pool_buf.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: pool_buf.c 4713 2014-01-23 08:13:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -21,7 +21,7 @@
 #include <pj/assert.h>
 #include <pj/os.h>
 
-struct pj_pool_factory stack_based_factory;
+static struct pj_pool_factory stack_based_factory;
 
 struct creation_param
 {
@@ -43,7 +43,7 @@ static void pool_buf_cleanup(void)
 	is_initialized = 0;
 }
 
-static pj_status_t pool_buf_initialize()
+static pj_status_t pool_buf_initialize(void)
 {
     pj_atexit(&pool_buf_cleanup);
 
@@ -83,7 +83,7 @@ PJ_DEF(pj_pool_t*) pj_pool_create_on_buf(const char *name,
 {
 #if PJ_HAS_POOL_ALT_API == 0
     struct creation_param param;
-    long align_diff;
+    pj_size_t align_diff;
 
     PJ_ASSERT_RETURN(buf && size, NULL);
 
@@ -94,7 +94,7 @@ PJ_DEF(pj_pool_t*) pj_pool_create_on_buf(const char *name,
     }
 
     /* Check and align buffer */
-    align_diff = (long)buf;
+    align_diff = (pj_size_t)buf;
     if (align_diff & (PJ_POOL_ALIGNMENT-1)) {
 	align_diff &= (PJ_POOL_ALIGNMENT-1);
 	buf = (void*) (((char*)buf) + align_diff);

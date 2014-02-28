@@ -1,4 +1,4 @@
-/* $Id: stateful_proxy.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: stateful_proxy.c 4420 2013-03-05 11:59:54Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -273,17 +273,17 @@ static pj_bool_t proxy_on_rx_request( pjsip_rx_data *rdata )
 	if (uas_data->uac_tsx && uas_data->uac_tsx->status_code < 200) {
 	    pjsip_tx_data *cancel;
 
-	    pj_mutex_lock(uas_data->uac_tsx->mutex);
+	    pj_grp_lock_acquire(uas_data->uac_tsx->grp_lock);
 
 	    pjsip_endpt_create_cancel(global.endpt, uas_data->uac_tsx->last_tx,
 				      &cancel);
 	    pjsip_endpt_send_request(global.endpt, cancel, -1, NULL, NULL);
 
-	    pj_mutex_unlock(uas_data->uac_tsx->mutex);
+	    pj_grp_lock_release(uas_data->uac_tsx->grp_lock);
 	}
 
 	/* Unlock UAS tsx because it is locked in find_tsx() */
-	pj_mutex_unlock(invite_uas->mutex);
+	pj_grp_lock_release(invite_uas->grp_lock);
     }
 
     return PJ_TRUE;

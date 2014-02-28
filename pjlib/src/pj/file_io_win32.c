@@ -1,4 +1,4 @@
-/* $Id: file_io_win32.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: file_io_win32.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -124,7 +124,7 @@ PJ_DEF(pj_status_t) pj_file_write( pj_oshandle_t fd,
     BOOL rc;
     DWORD bytesWritten;
 
-    rc = WriteFile(fd, data, *size, &bytesWritten, NULL);
+    rc = WriteFile(fd, data, (DWORD)*size, &bytesWritten, NULL);
     if (!rc) {
         *size = -1;
         return PJ_RETURN_OS_ERROR(GetLastError());
@@ -141,7 +141,7 @@ PJ_DEF(pj_status_t) pj_file_read( pj_oshandle_t fd,
     BOOL rc;
     DWORD bytesRead;
 
-    rc = ReadFile(fd, data, *size, &bytesRead, NULL);
+    rc = ReadFile(fd, data, (DWORD)*size, &bytesRead, NULL);
     if (!rc) {
         *size = -1;
         return PJ_RETURN_OS_ERROR(GetLastError());

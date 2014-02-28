@@ -1,4 +1,4 @@
-/* $Id: ilbc.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: ilbc.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -668,7 +668,7 @@ static pj_status_t ilbc_codec_encode(pjmedia_codec *codec,
 {
     struct ilbc_codec *ilbc_codec = (struct ilbc_codec*)codec;
     pj_int16_t *pcm_in;
-    unsigned nsamples;
+    pj_size_t nsamples;
 #if defined(PJMEDIA_ILBC_CODEC_USE_COREAUDIO)&& PJMEDIA_ILBC_CODEC_USE_COREAUDIO
     UInt32 npackets;
     OSStatus err;

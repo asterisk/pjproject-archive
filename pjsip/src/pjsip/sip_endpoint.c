@@ -1,4 +1,4 @@
-/* $Id: sip_endpoint.c 4411 2013-03-04 04:34:38Z nanang $ */
+/* $Id: sip_endpoint.c 4704 2014-01-16 05:30:46Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -558,6 +558,7 @@ on_error:
 	pj_mutex_destroy(endpt->mutex);
 	endpt->mutex = NULL;
     }
+    deinit_sip_parser();
     if (endpt->mod_mutex) {
 	pj_rwmutex_destroy(endpt->mod_mutex);
 	endpt->mod_mutex = NULL;
@@ -915,11 +916,14 @@ on_return:
  * receives a message from the network.
  */
 static void endpt_on_rx_msg( pjsip_endpoint *endpt,
-				      pj_status_t status,
-				      pjsip_rx_data *rdata )
+			     pj_status_t status,
+			     pjsip_rx_data *rdata )
 {
+    pjsip_msg *msg = rdata->msg_info.msg;
     pjsip_process_rdata_param proc_prm;
     pj_bool_t handled = PJ_FALSE;
+
+    PJ_UNUSED_ARG(msg);
 
     if (status != PJ_SUCCESS) {
 	char info[30];
@@ -1202,7 +1206,7 @@ PJ_DEF(void) pjsip_endpt_log_error(  pjsip_endpoint *endpt,
 {
 #if PJ_LOG_MAX_LEVEL > 0
     char newformat[256];
-    int len;
+    pj_size_t len;
     va_list marker;
 
     va_start(marker, format);
