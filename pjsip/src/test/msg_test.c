@@ -1,4 +1,4 @@
-/* $Id: msg_test.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: msg_test.c 4587 2013-09-05 02:14:05Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -247,7 +247,7 @@ static pj_status_t test_entry( pj_pool_t *pool, struct test_msg *entry )
     pjsip_msg *parsed_msg, *ref_msg = NULL;
     static pjsip_msg *print_msg;
     pj_status_t status = PJ_SUCCESS;
-    int len;
+    pj_ssize_t len;
     pj_str_t str1, str2;
     pjsip_hdr *hdr1, *hdr2;
     pj_timestamp t1, t2;
@@ -447,7 +447,7 @@ parse_msg:
 print_msg:
     var.print_len = var.print_len + entry->len;
     pj_get_timestamp(&t1);
-    if (var.flag && FLAG_PRINT_ONLY)
+    if (var.flag & FLAG_PRINT_ONLY)
 	ref_msg = print_msg;
     len = pjsip_msg_print(ref_msg, msgbuf1, PJSIP_MAX_PKT_LEN);
     if (len < 1) {
@@ -809,7 +809,7 @@ static pjsip_msg *create_msg1(pj_pool_t *pool)
 	"c=IN IP4 pc33.atlanta.com\r\n"
 	"m=audio 3456 RTP/AVP 0 1 3 99\r\n"
 	"a=rtpmap:0 PCMU/8000\r\n";
-    body->len = pj_ansi_strlen((const char*) body->data);
+    body->len = (unsigned)pj_ansi_strlen((const char*) body->data);
     body->print_body = &pjsip_print_text_body;
 
     return msg;
@@ -1888,7 +1888,8 @@ static int hdr_test(void)
     for (i=0; i<PJ_ARRAY_SIZE(hdr_test_data); ++i) {
 	struct hdr_test_t  *test = &hdr_test_data[i];
 	pj_str_t hname;
-	int len, parsed_len;
+	pj_ssize_t len;
+	int parsed_len;
 	pj_pool_t *pool;
 	pjsip_hdr *parsed_hdr1=NULL, *parsed_hdr2=NULL;
 	char *input, *output;
@@ -2016,7 +2017,7 @@ int msg_test(void)
 
     /* Calculate average message length */
     for (i=0, avg_len=0; i<PJ_ARRAY_SIZE(test_array); ++i) {
-	avg_len += test_array[i].len;
+	avg_len += (unsigned)test_array[i].len;
     }
     avg_len /= PJ_ARRAY_SIZE(test_array);
 

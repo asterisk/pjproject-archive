@@ -1,4 +1,4 @@
-/* $Id: stun_auth.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: stun_auth.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -98,7 +98,7 @@ static void calc_md5_key(pj_uint8_t digest[16],
     /* Add username */
     s = *username;
     REMOVE_QUOTE(s);
-    pj_md5_update(&ctx, (pj_uint8_t*)s.ptr, s.slen);
+    pj_md5_update(&ctx, (pj_uint8_t*)s.ptr, (unsigned)s.slen);
 
     /* Add single colon */
     pj_md5_update(&ctx, (pj_uint8_t*)":", 1);
@@ -106,7 +106,7 @@ static void calc_md5_key(pj_uint8_t digest[16],
     /* Add realm */
     s = *realm;
     REMOVE_QUOTE(s);
-    pj_md5_update(&ctx, (pj_uint8_t*)s.ptr, s.slen);
+    pj_md5_update(&ctx, (pj_uint8_t*)s.ptr, (unsigned)s.slen);
 
 #undef REMOVE_QUOTE
 
@@ -114,7 +114,7 @@ static void calc_md5_key(pj_uint8_t digest[16],
     pj_md5_update(&ctx, (pj_uint8_t*)":", 1);
 
     /* Add password */
-    pj_md5_update(&ctx, (pj_uint8_t*)passwd->ptr, passwd->slen);
+    pj_md5_update(&ctx, (pj_uint8_t*)passwd->ptr, (unsigned)passwd->slen);
 
     /* Done */
     pj_md5_final(&ctx, digest);
@@ -443,7 +443,7 @@ PJ_DEF(pj_status_t) pj_stun_authenticate_request(const pj_uint8_t *pkt,
 
     /* Now calculate HMAC of the message. */
     pj_hmac_sha1_init(&ctx, (pj_uint8_t*)p_info->auth_key.ptr, 
-		      p_info->auth_key.slen);
+		      (unsigned)p_info->auth_key.slen);
 
 #if PJ_STUN_OLD_STYLE_MI_FINGERPRINT
     /* Pre rfc3489bis-06 style of calculation */
@@ -587,7 +587,7 @@ PJ_DEF(pj_status_t) pj_stun_authenticate_response(const pj_uint8_t *pkt,
     }
 
     /* Now calculate HMAC of the message. */
-    pj_hmac_sha1_init(&ctx, (pj_uint8_t*)key->ptr, key->slen);
+    pj_hmac_sha1_init(&ctx, (pj_uint8_t*)key->ptr, (unsigned)key->slen);
 
 #if PJ_STUN_OLD_STYLE_MI_FINGERPRINT
     /* Pre rfc3489bis-06 style of calculation */

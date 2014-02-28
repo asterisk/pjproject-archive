@@ -1,4 +1,4 @@
-/* $Id: timer.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: timer.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -59,7 +59,8 @@ static int test_timer_heap(void)
     pj_timer_heap_t *timer;
     pj_time_val delay;
     pj_status_t rc;    int err=0;
-    unsigned size, count;
+    pj_size_t size;
+    unsigned count;
 
     size = pj_timer_heap_mem_size(MAX_COUNT)+MAX_COUNT*sizeof(pj_timer_entry);
     pool = pj_pool_create( mem, NULL, size, 4000, NULL);

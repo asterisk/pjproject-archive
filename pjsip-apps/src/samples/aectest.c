@@ -1,4 +1,4 @@
-/* $Id: aectest.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: aectest.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
     }
     pj_get_timestamp(&t1);
 
-    i = pjmedia_wav_writer_port_get_pos(wav_out) / sizeof(pj_int16_t) * 1000 / 
+    i = (int)pjmedia_wav_writer_port_get_pos(wav_out) / sizeof(pj_int16_t) * 1000 / 
 	 (PJMEDIA_PIA_SRATE(&wav_out->info) * PJMEDIA_PIA_CCNT(&wav_out->info));
     PJ_LOG(3,(THIS_FILE, "Processed %3d.%03ds audio",
 	      i / 1000, i % 1000));

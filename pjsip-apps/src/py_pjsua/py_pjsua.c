@@ -1,4 +1,4 @@
-/* $Id: py_pjsua.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: py_pjsua.c 4724 2014-01-31 08:52:09Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -174,7 +174,7 @@ static void cb_on_dtmf_digit(pjsua_call_id call_id, int digit)
 
 
 /*
- * Notify application on call being transfered.
+ * Notify application on call being transferred.
  * !modified @061206
  */
 static void cb_on_call_transfer_request(pjsua_call_id call_id,

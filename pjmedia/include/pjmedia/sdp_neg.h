@@ -1,4 +1,4 @@
-/* $Id: sdp_neg.h 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: sdp_neg.h 4577 2013-08-01 04:18:15Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -52,15 +52,15 @@
  *     create_w_local_offer()  +-------------+  send_local_offer()
  *     ----------------------->| LOCAL_OFFER |<-----------------------
  *    |                        +-------------+______                  |
- *    |                               |             \______ cancel()  |
- *    |           set_remote_answer() |                    \______    |
- *    |                               V                            \  |
+ *    |                               |             \_____________    |
+ *    |           set_remote_answer() |           cancel_offer()  \   |
+ *    |                               V                            v  |
  * +--+---+                     +-----------+     negotiate()     +-~----+
  * | NULL |                     | WAIT_NEGO |-------------------->| DONE |
  * +------+                     +-----------+                     +------+
- *    |                               A                               |
- *    |            set_local_answer() |                               |
- *    |                               |                               |
+ *    |                               A      ______________________^  |
+ *    |            set_local_answer() |     /     cancel_offer()      |
+ *    |                               |    /                          |
  *    |                        +--------------+   set_remote_offer()  |
  *     ----------------------->| REMOTE_OFFER |<----------------------
  *     create_w_remote_offer() +--------------+
@@ -423,13 +423,15 @@ pjmedia_sdp_neg_set_prefer_remote_codec_order(pjmedia_sdp_neg *neg,
  * By default, the value in PJMEDIA_SDP_NEG_ANSWER_MULTIPLE_CODECS will
  * be used.
  *
- * @param neg       The SDP negotiator instance.
- * @param answer_multiple If non-zero, the negotiator will respond with
- *          multiple formats. If zero only a single format will be returned.
+ * @param neg           The SDP negotiator instance.
+ * @param answer_multiple
+ *                      If non-zero, the negotiator will respond with
+ *                      multiple formats. If zero only a single format
+ *                      will be returned.
  */
 PJ_DECL(pj_status_t)
 pjmedia_sdp_neg_set_answer_multiple_codecs(pjmedia_sdp_neg *neg,
-                          pj_bool_t answer_multiple);
+                                           pj_bool_t answer_multiple);
 
 
 /**

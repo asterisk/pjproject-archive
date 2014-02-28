@@ -78,6 +78,7 @@ export PJMEDIA_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			wsola.o
 
 export PJMEDIA_CFLAGS += $(_CFLAGS)
+export PJMEDIA_CXXFLAGS += $(_CXXFLAGS)
 export PJMEDIA_LDFLAGS += $(PJMEDIA_VIDEODEV_LDLIB) \
 			  $(PJMEDIA_AUDIODEV_LDLIB) \
 			  $(PJLIB_LDLIB) \
@@ -91,9 +92,11 @@ export PJMEDIA_LDFLAGS += $(PJMEDIA_VIDEODEV_LDLIB) \
 #
 export PJMEDIA_AUDIODEV_SRCDIR = ../src/pjmedia-audiodev
 export PJMEDIA_AUDIODEV_OBJS +=  audiodev.o audiotest.o errno.o \
-				 coreaudio_dev.o legacy_dev.o null_dev.o pa_dev.o wmme_dev.o \
-				 alsa_dev.o bb10_dev.o
+				 legacy_dev.o null_dev.o pa_dev.o wmme_dev.o \
+				 alsa_dev.o bb10_dev.o bdimad_dev.o \
+				 android_jni_dev.o opensl_dev.o
 export PJMEDIA_AUDIODEV_CFLAGS += $(_CFLAGS)
+export PJMEDIA_AUDIODEV_CXXFLAGS += $(_CXXFLAGS)
 export PJMEDIA_AUDIODEV_LDFLAGS += $(PJLIB_LDLIB) \
 				   $(_LDFLAGS)
 
@@ -105,6 +108,7 @@ export PJMEDIA_VIDEODEV_SRCDIR = ../src/pjmedia-videodev
 export PJMEDIA_VIDEODEV_OBJS +=  errno.o videodev.o avi_dev.o ffmpeg_dev.o \
 				colorbar_dev.o v4l2_dev.o
 export PJMEDIA_VIDEODEV_CFLAGS += $(_CFLAGS)
+export PJMEDIA_VIDEODEV_CXXFLAGS += $(_CXXFLAGS)
 export PJMEDIA_VIDEODEV_LDFLAGS += $(PJLIB_LDLIB) \
 				   $(_LDFLAGS)
 
@@ -119,6 +123,7 @@ export PJSDP_SRCDIR = ../src/pjmedia
 export PJSDP_OBJS += 	$(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			errno.o sdp.o sdp_cmp.o sdp_neg.o
 export PJSDP_CFLAGS += $(_CFLAGS)
+export PJSDP_CXXFLAGS += $(_CXXFLAGS)
 export PJSDP_LDFLAGS += $(PJMEDIA_LDLIB) \
 			$(PJLIB_LDLIB) \
 			$(PJLIB_UTIL_LDLIB) \
@@ -136,6 +141,8 @@ export PJMEDIA_CODEC_OBJS += audio_codecs.o ffmpeg_vid_codecs.o \
                         g7221_sdp_match.o amr_sdp_match.o
 export PJMEDIA_CODEC_CFLAGS += $(_CFLAGS) $(GSM_CFLAGS) $(SPEEX_CFLAGS) \
 			$(ILBC_CFLAGS) $(IPP_CFLAGS) $(G7221_CFLAGS)
+export PJMEDIA_CODEC_CXXFLAGS += $(_CXXFLAGS) $(GSM_CFLAGS) $(SPEEX_CFLAGS) \
+			$(ILBC_CFLAGS) $(IPP_CFLAGS) $(G7221_CFLAGS)
 export PJMEDIA_CODEC_LDFLAGS += $(PJMEDIA_LDLIB) \
 				$(PJLIB_LDLIB) \
 				$(_LDFLAGS)
@@ -149,6 +156,7 @@ export PJMEDIA_TEST_OBJS += codec_vectors.o jbuf_test.o main.o mips_test.o \
 			    rtp_test.o test.o
 export PJMEDIA_TEST_OBJS += sdp_neg_test.o 
 export PJMEDIA_TEST_CFLAGS += $(_CFLAGS)
+export PJMEDIA_TEST_CXXFLAGS += $(_CXXFLAGS)
 export PJMEDIA_TEST_LDFLAGS += $(PJMEDIA_CODEC_LDLIB) \
 			       $(PJMEDIA_VIDEODEV_LDLIB) \
 			       $(PJMEDIA_LDLIB) \
@@ -170,10 +178,12 @@ TARGETS := $(PJMEDIA_LIB) $(PJMEDIA_SONAME) \
 	   $(PJMEDIA_CODEC_LIB) $(PJMEDIA_CODEC_SONAME)\
 	   $(PJMEDIA_VIDEODEV_LIB) $(PJMEDIA_VIDEODEV_SONAME) \
 	   $(PJMEDIA_AUDIODEV_LIB) $(PJMEDIA_AUDIODEV_SONAME) \
-	   $(PJSDP_LIB) $(PJSDP_SONAME) \
-	   $(PJMEDIA_TEST_EXE)
+	   $(PJSDP_LIB) $(PJSDP_SONAME)
+TARGETS_EXE := $(PJMEDIA_TEST_EXE)
 
-all: $(TARGETS)
+all: $(TARGETS) $(TARGETS_EXE)
+
+lib: $(TARGETS)
 
 doc:
 	cd .. && rm -rf docs/$(PJ_VERSION) && doxygen docs/doxygen.cfg

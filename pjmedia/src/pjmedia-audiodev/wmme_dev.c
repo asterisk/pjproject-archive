@@ -1,4 +1,4 @@
-/* $Id: wmme_dev.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: wmme_dev.c 4760 2014-02-24 08:49:40Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -742,7 +742,7 @@ static pj_status_t init_player_stream(  struct wmme_factory *wf,
      */
     mr = waveOutOpen(&wmme_strm->hWave.Out, 
 		     wf->dev_info[prm->play_id].deviceId,
-		     &wfx, (DWORD)wmme_strm->hEvent, 0, flag);
+		     &wfx, (DWORD_PTR)wmme_strm->hEvent, 0, flag);
     if (mr != MMSYSERR_NOERROR) {
 	return PJMEDIA_AUDIODEV_ERRNO_FROM_WMME_OUT(mr);
     }
@@ -833,7 +833,7 @@ static pj_status_t init_capture_stream( struct wmme_factory *wf,
      */
     mr = waveInOpen(&wmme_strm->hWave.In, 
 		    wf->dev_info[prm->rec_id].deviceId, 
-		    &wfx, (DWORD)wmme_strm->hEvent, 0, flag);
+		    &wfx, (DWORD_PTR)wmme_strm->hEvent, 0, flag);
     if (mr != MMSYSERR_NOERROR) {
 	return PJMEDIA_AUDIODEV_ERRNO_FROM_WMME_IN(mr);
     }

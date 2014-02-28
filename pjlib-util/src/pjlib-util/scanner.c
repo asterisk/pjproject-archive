@@ -1,4 +1,4 @@
-/* $Id: scanner.c 4209 2012-07-18 10:21:00Z ming $ */
+/* $Id: scanner.c 4641 2013-11-04 09:05:43Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -111,8 +111,9 @@ PJ_DEF(void) pj_cis_invert( pj_cis_t *cis )
     }
 }
 
-PJ_DEF(void) pj_scan_init( pj_scanner *scanner, char *bufstart, int buflen, 
-			   unsigned options, pj_syn_err_func_ptr callback )
+PJ_DEF(void) pj_scan_init( pj_scanner *scanner, char *bufstart, 
+			   pj_size_t buflen, unsigned options, 
+			   pj_syn_err_func_ptr callback )
 {
     PJ_CHECK_STACK();
 
@@ -382,21 +383,17 @@ PJ_DEF(void) pj_scan_get_quotes(pj_scanner *scanner,
 	/* check that no backslash character precedes the end_quote. */
 	if (*s == end_quote[qpair]) {
 	    if (*(s-1) == '\\') {
-		if (s-2 == scanner->begin) {
-		    break;
-		} else {
-		    char *q = s-2;
-		    char *r = s-2;
+		char *q = s-2;
+		char *r = s-2;
 
-		    while (r != scanner->begin && *r == '\\') {
-			--r;
-		    }
-		    /* break from main loop if we have odd number of backslashes */
-		    if (((unsigned)(q-r) & 0x01) == 1) {
-			break;
-		    }
-		    ++s;
+		while (r != scanner->begin && *r == '\\') {
+		    --r;
 		}
+		/* break from main loop if we have odd number of backslashes */
+		if (((unsigned)(q-r) & 0x01) == 1) {
+		    break;
+		}
+		++s;
 	    } else {
 		/* end_quote is not preceeded by backslash. break now. */
 		break;
@@ -549,7 +546,7 @@ PJ_DEF(void) pj_scan_get_until_chr( pj_scanner *scanner,
 				     const char *until_spec, pj_str_t *out)
 {
     register char *s = scanner->curptr;
-    int speclen;
+    pj_size_t speclen;
 
     if (s >= scanner->end) {
 	pj_scan_syntax_err(scanner);

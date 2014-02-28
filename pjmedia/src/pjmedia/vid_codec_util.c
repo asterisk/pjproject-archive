@@ -1,4 +1,4 @@
-/* $Id: vid_codec_util.c 4362 2013-02-21 14:51:56Z nanang $ */
+/* $Id: vid_codec_util.c 4593 2013-09-09 05:22:47Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -446,7 +446,7 @@ PJ_DEF(pj_status_t) pjmedia_vid_codec_h264_parse_fmtp(
 		nal = &h264_fmtp->sprop_param_sets[
 					  h264_fmtp->sprop_param_sets_len];
 		tmp_len = PJ_ARRAY_SIZE(h264_fmtp->sprop_param_sets) -
-			  h264_fmtp->sprop_param_sets_len -
+			  (int)h264_fmtp->sprop_param_sets_len -
 			  PJ_ARRAY_SIZE(start_code);
 		status = pj_base64_decode(&tmp_st,
 					  nal + PJ_ARRAY_SIZE(start_code),
@@ -463,9 +463,11 @@ PJ_DEF(pj_status_t) pjmedia_vid_codec_h264_parse_fmtp(
 
     /* When profile-level-id is not specified, use default value "42000A" */
     if (h264_fmtp->profile_idc == 0) {
-	h264_fmtp->profile_idc = 0x42;
-	h264_fmtp->profile_iop = 0x00;
-	h264_fmtp->level = 0x0A;
+	const pj_str_t DEF_PROFILE = {"42000A", 6};
+
+	status = init_h264_profile(&DEF_PROFILE, h264_fmtp);
+	if (status != PJ_SUCCESS)
+	    return status;
     }
 
     return PJ_SUCCESS;

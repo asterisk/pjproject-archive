@@ -1,4 +1,4 @@
-/* $Id: endpoint.h 3999 2012-03-30 07:10:13Z bennylp $ */
+/* $Id: endpoint.h 4474 2013-04-16 09:12:59Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -149,6 +149,15 @@ PJ_DECL(unsigned) pjmedia_endpt_get_thread_count(pjmedia_endpt *endpt);
  */
 PJ_DECL(pj_thread_t*) pjmedia_endpt_get_thread(pjmedia_endpt *endpt, 
 					       unsigned index);
+
+/**
+ * Stop and destroy the worker threads of the media endpoint
+ *
+ * @param endpt		The media endpoint instance.
+ *
+ * @return		PJ_SUCCESS on success.
+ */
+PJ_DECL(pj_status_t) pjmedia_endpt_stop_threads(pjmedia_endpt *endpt);
 
 
 /**

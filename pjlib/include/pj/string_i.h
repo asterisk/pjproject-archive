@@ -1,4 +1,4 @@
-/* $Id: string_i.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: string_i.h 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -145,7 +145,7 @@ PJ_IDEF(int) pj_strcmp( const pj_str_t *str1, const pj_str_t *str2)
     } else if (str2->slen == 0) {
 	return 1;
     } else {
-	int min = (str1->slen < str2->slen)? str1->slen : str2->slen;
+	pj_size_t min = (str1->slen < str2->slen)? str1->slen : str2->slen;
 	int res = pj_memcmp(str1->ptr, str2->ptr, min);
 	if (res == 0) {
 	    return (str1->slen < str2->slen) ? -1 :
@@ -213,7 +213,7 @@ PJ_IDEF(int) pj_stricmp( const pj_str_t *str1, const pj_str_t *str2)
     } else if (str2->slen == 0) {
 	return 1;
     } else {
-	int min = (str1->slen < str2->slen)? str1->slen : str2->slen;
+	pj_size_t min = (str1->slen < str2->slen)? str1->slen : str2->slen;
 	int res = pj_ansi_strnicmp(str1->ptr, str2->ptr, min);
 	if (res == 0) {
 	    return (str1->slen < str2->slen) ? -1 :
@@ -355,7 +355,7 @@ PJ_IDEF(void) pj_strcat(pj_str_t *dst, const pj_str_t *src)
 
 PJ_IDEF(void) pj_strcat2(pj_str_t *dst, const char *str)
 {
-    unsigned len = str? pj_ansi_strlen(str) : 0;
+    pj_size_t len = str? pj_ansi_strlen(str) : 0;
     if (len) {
 	pj_memcpy(dst->ptr + dst->slen, str, len);
 	dst->slen += len;

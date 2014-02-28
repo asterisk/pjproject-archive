@@ -1,4 +1,4 @@
-/* $Id: pjsua_im.c 4173 2012-06-20 10:39:05Z ming $ */
+/* $Id: pjsua_im.c 4712 2014-01-23 08:09:29Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -274,7 +274,6 @@ static pj_bool_t im_on_rx_request(pjsip_rx_data *rdata)
     pj_str_t from, to;
     pjsip_accept_hdr *accept_hdr;
     pjsip_msg *msg;
-    pj_status_t status;
 
     msg = rdata->msg_info.msg;
 
@@ -306,8 +305,8 @@ static pj_bool_t im_on_rx_request(pjsip_rx_data *rdata)
     /* Respond with 200 first, so that remote doesn't retransmit in case
      * the UI takes too long to process the message. 
      */
-    status = pjsip_endpt_respond( pjsua_var.endpt, NULL, rdata, 200, NULL,
-				  NULL, NULL, NULL);
+    pjsip_endpt_respond( pjsua_var.endpt, NULL, rdata, 200, NULL,
+			 NULL, NULL, NULL);
 
     /* For the source URI, we use Contact header if present, since
      * Contact header contains the port number information. If this is
@@ -512,11 +511,9 @@ PJ_DEF(pj_status_t) pjsua_im_send( pjsua_acc_id acc_id,
 {
     pjsip_tx_data *tdata;
     const pj_str_t mime_text_plain = pj_str("text/plain");
-    const pj_str_t STR_CONTACT = { "Contact", 7 };
     pjsip_media_type media_type;
     pjsua_im_data *im_data;
     pjsua_acc *acc;
-    pj_str_t contact;
     pj_status_t status;
 
     /* To and message body must be specified. */
@@ -526,7 +523,9 @@ PJ_DEF(pj_status_t) pjsua_im_send( pjsua_acc_id acc_id,
 
     /* Create request. */
     status = pjsip_endpt_create_request(pjsua_var.endpt, 
-					&pjsip_message_method, to, 
+					&pjsip_message_method,
+                                        (msg_data && msg_data->target_uri.slen? 
+                                         &msg_data->target_uri: to),
 					&acc->cfg.id,
 					to, NULL, NULL, -1, NULL, &tdata);
     if (status != PJ_SUCCESS) {
@@ -551,6 +550,11 @@ PJ_DEF(pj_status_t) pjsua_im_send( pjsua_acc_id acc_id,
     /* Create suitable Contact header unless a Contact header has been
      * set in the account.
      */
+    /* Ticket #1632: According to RFC 3428:
+     * MESSAGE requests do not initiate dialogs.
+     * User Agents MUST NOT insert Contact header fields into MESSAGE requests
+     */
+    /*
     if (acc->contact.slen) {
 	contact = acc->contact;
     } else {
@@ -565,6 +569,7 @@ PJ_DEF(pj_status_t) pjsua_im_send( pjsua_acc_id acc_id,
     pjsip_msg_add_hdr( tdata->msg, (pjsip_hdr*)
 	pjsip_generic_string_hdr_create(tdata->pool, 
 					&STR_CONTACT, &contact));
+    */
 
     /* Create IM data to keep message details and give it back to
      * application on the callback
@@ -627,11 +632,9 @@ PJ_DEF(pj_status_t) pjsua_im_typing( pjsua_acc_id acc_id,
 				     pj_bool_t is_typing,
 				     const pjsua_msg_data *msg_data)
 {
-    const pj_str_t STR_CONTACT = { "Contact", 7 };
     pjsua_im_data *im_data;
     pjsip_tx_data *tdata;
     pjsua_acc *acc;
-    pj_str_t contact;
     pj_status_t status;
 
     acc = &pjsua_var.acc[acc_id];
@@ -664,6 +667,11 @@ PJ_DEF(pj_status_t) pjsua_im_typing( pjsua_acc_id acc_id,
     /* Create suitable Contact header unless a Contact header has been
      * set in the account.
      */
+    /* Ticket #1632: According to RFC 3428:
+     * MESSAGE requests do not initiate dialogs.
+     * User Agents MUST NOT insert Contact header fields into MESSAGE requests
+     */
+    /*
     if (acc->contact.slen) {
 	contact = acc->contact;
     } else {
@@ -678,7 +686,7 @@ PJ_DEF(pj_status_t) pjsua_im_typing( pjsua_acc_id acc_id,
     pjsip_msg_add_hdr( tdata->msg, (pjsip_hdr*)
 	pjsip_generic_string_hdr_create(tdata->pool, 
 					&STR_CONTACT, &contact));
-
+    */
 
     /* Create "application/im-iscomposing+xml" msg body. */
     tdata->msg->body = pjsip_iscomposing_create_body( tdata->pool, is_typing,

@@ -1,4 +1,4 @@
-/* $Id: confbench.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: confbench.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -144,7 +144,8 @@ static pj_status_t sine_get_frame( pjmedia_port *port,
 {
     port_data *sine = port->port_data.pdata;
     pj_int16_t *samples = frame->buf;
-    unsigned i, count, left, right;
+    unsigned i, left, right;
+    pj_size_t count;
 
     /* Get number of samples */
     count = frame->size / 2 / PJMEDIA_PIA_CCNT(&port->info);

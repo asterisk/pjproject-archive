@@ -1,8 +1,0 @@
-*-auto.mak
-*.depend
-*_auto.h
-build.mak
-config.log
-config.status
-pjlib/include/pj/config_site.h
-pjsip/include/pjsip/sip_autoconf.h

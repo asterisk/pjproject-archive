@@ -1,4 +1,4 @@
-/* $Id: latency.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: latency.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -51,7 +51,8 @@ static int calculate_latency(pj_pool_t *pool, pjmedia_port *wav)
 {
     pjmedia_frame frm;
     short *buf;
-    unsigned i, samples_per_frame, read, len;
+    unsigned i, samples_per_frame;
+    pj_size_t read, len;
     unsigned start_pos;
     pj_status_t status;
 

@@ -1,4 +1,4 @@
-/* $Id: colorbar_dev.c 4158 2012-06-06 09:56:14Z nanang $ */
+/* $Id: colorbar_dev.c 4722 2014-01-29 10:40:40Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -23,8 +23,10 @@
 #include <pj/rand.h>
 
 
-#if defined(PJMEDIA_VIDEO_DEV_HAS_CBAR_SRC) && \
+#if defined(PJMEDIA_HAS_VIDEO) && PJMEDIA_HAS_VIDEO != 0 && \
+    defined(PJMEDIA_VIDEO_DEV_HAS_CBAR_SRC) && \
     PJMEDIA_VIDEO_DEV_HAS_CBAR_SRC != 0
+    
 
 
 #define THIS_FILE		"colorbar_dev.c"

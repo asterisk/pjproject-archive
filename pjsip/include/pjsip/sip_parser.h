@@ -1,4 +1,4 @@
-/* $Id: sip_parser.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sip_parser.h 4445 2013-03-20 11:29:08Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -409,6 +409,11 @@ PJ_DECL(void) pjsip_concat_param_imp(pj_str_t *param, pj_pool_t *pool,
 				     const pj_str_t *pvalue, 
 			     	     int sepchar);
 PJ_DECL(void) pjsip_parse_end_hdr_imp ( pj_scanner *scanner );
+
+/* Parse generic array header */
+PJ_DECL(void) pjsip_parse_generic_array_hdr_imp(pjsip_generic_array_hdr *hdr,
+						pj_scanner *scanner);
+
 
 PJ_END_DECL
 

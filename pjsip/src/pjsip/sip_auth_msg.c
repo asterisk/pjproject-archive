@@ -1,4 +1,4 @@
-/* $Id: sip_auth_msg.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sip_auth_msg.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -65,7 +65,7 @@ PJ_DEF(pjsip_proxy_authorization_hdr*) pjsip_proxy_authorization_hdr_create(pj_p
 
 static int print_digest_credential(pjsip_digest_credential *cred, char *buf, pj_size_t size)
 {
-    int printed;
+    pj_ssize_t printed;
     char *startbuf = buf;
     char *endbuf = buf + size;
     const pjsip_parser_const_t *pc = pjsip_parser_const();
@@ -227,7 +227,7 @@ PJ_DEF(pjsip_proxy_authenticate_hdr*) pjsip_proxy_authenticate_hdr_create(pj_poo
 static int print_digest_challenge( pjsip_digest_challenge *chal,
 				   char *buf, pj_size_t size)
 {
-    int printed;
+    pj_ssize_t printed;
     char *startbuf = buf;
     char *endbuf = buf + size;
     const pjsip_parser_const_t *pc = pjsip_parser_const();

@@ -1,4 +1,4 @@
-/* $Id: ios_dev.m 3979 2012-03-20 08:55:33Z ming $ */
+/* $Id: ios_dev.m 4722 2014-01-29 10:40:40Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -21,7 +21,9 @@
 #include <pj/log.h>
 #include <pj/os.h>
 
-#if PJMEDIA_VIDEO_DEV_HAS_IOS
+#if defined(PJMEDIA_HAS_VIDEO) && PJMEDIA_HAS_VIDEO != 0 && \
+    defined(PJMEDIA_VIDEO_DEV_HAS_IOS) && PJMEDIA_VIDEO_DEV_HAS_IOS != 0
+
 #include "Availability.h"
 #ifdef __IPHONE_4_0
 

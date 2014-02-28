@@ -1,4 +1,4 @@
-/* $Id: ioq_tcp.c 4238 2012-08-31 06:17:56Z nanang $ */
+/* $Id: ioq_tcp.c 4550 2013-07-02 11:45:57Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -253,7 +253,7 @@ static int compliance_test_0(pj_bool_t allow_concur)
     pj_ioqueue_key_t *skey=NULL, *ckey0=NULL, *ckey1=NULL;
     pj_ioqueue_op_key_t accept_op;
     int bufsize = BUF_MIN_SIZE;
-    pj_ssize_t status = -1;
+    int status = -1;
     int pending_op = 0;
     pj_timestamp t_elapsed;
     pj_str_t s;
@@ -482,7 +482,7 @@ static int compliance_test_1(pj_bool_t allow_concur)
     pj_pool_t *pool = NULL;
     pj_ioqueue_t *ioque = NULL;
     pj_ioqueue_key_t *ckey1 = NULL;
-    pj_ssize_t status = -1;
+    int status = -1;
     int pending_op = 0;
     pj_str_t s;
     pj_status_t rc;
@@ -640,7 +640,7 @@ static int compliance_test_2(pj_bool_t allow_concur)
     char *send_buf, *recv_buf;
     pj_ioqueue_t *ioque = NULL;
     int i, bufsize = BUF_MIN_SIZE;
-    pj_ssize_t status;
+    int status;
     int test_loop, pending_op = 0;
     pj_timestamp t_elapsed;
     pj_str_t s;

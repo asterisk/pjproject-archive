@@ -1,4 +1,4 @@
-/* $Id: sock.h 4343 2013-02-07 09:35:34Z nanang $ */
+/* $Id: sock.h 4538 2013-06-19 09:06:55Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1304,6 +1304,27 @@ PJ_DECL(pj_status_t) pj_sock_setsockopt( pj_sock_t sockfd,
 					 pj_uint16_t optname,
 					 const void *optval,
 					 int optlen);
+
+
+/**
+ * Helper function to set socket buffer size using #pj_sock_setsockopt()
+ * with capability to auto retry with lower buffer setting value until
+ * the highest possible value is successfully set.
+ *
+ * @param sockfd	The socket descriptor.
+ * @param optname	The option name, valid values are pj_SO_RCVBUF()
+ *			and pj_SO_SNDBUF().
+ * @param auto_retry	Option whether auto retry with lower value is
+ *			enabled.
+ * @param buf_size	On input, specify the prefered buffer size setting,
+ *			on output, the buffer size setting applied.
+ *
+ * @return		PJ_SUCCESS or the status code.
+ */
+PJ_DECL(pj_status_t) pj_sock_setsockopt_sobuf( pj_sock_t sockfd,
+					       pj_uint16_t optname,
+					       pj_bool_t auto_retry,
+					       unsigned *buf_size);
 
 
 /**

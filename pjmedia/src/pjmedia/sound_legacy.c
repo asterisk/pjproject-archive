@@ -1,4 +1,4 @@
-/* $Id: sound_legacy.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sound_legacy.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -94,7 +94,7 @@ static pj_status_t snd_play_cb(void *user_data,
     return strm->user_play_cb(strm->user_user_data, 
 			      frame->timestamp.u32.lo,
 			      frame->buf,
-			      frame->size);
+			      (unsigned)frame->size);
 }
 
 static pj_status_t snd_rec_cb(void *user_data,
@@ -104,7 +104,7 @@ static pj_status_t snd_rec_cb(void *user_data,
     return strm->user_rec_cb(strm->user_user_data, 
 			     frame->timestamp.u32.lo,
 			     frame->buf,
-			     frame->size);
+			     (unsigned)frame->size);
 }
 
 static pj_status_t open_stream( pjmedia_dir dir,

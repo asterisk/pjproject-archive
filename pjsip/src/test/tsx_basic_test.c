@@ -1,4 +1,4 @@
-/* $Id: tsx_basic_test.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: tsx_basic_test.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -160,7 +160,7 @@ int tsx_basic_test(struct tsx_test_param *param)
 
 struct tsx_test_state
 {
-    int pool_cnt;
+    pj_size_t pool_cnt;
 };
 
 static void save_tsx_test_state(struct tsx_test_state *st)

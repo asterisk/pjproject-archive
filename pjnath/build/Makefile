@@ -42,6 +42,7 @@ export PJNATH_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 		stun_msg.o stun_msg_dump.o stun_session.o stun_sock.o \
 		stun_transaction.o turn_session.o turn_sock.o
 export PJNATH_CFLAGS += $(_CFLAGS)
+export PJNATH_CXXFLAGS += $(_CXXFLAGS)
 export PJNATH_LDFLAGS += $(PJLIB_UTIL_LDLIB) $(PJLIB_LDLIB) $(_LDFLAGS)
 
 ###############################################################################
@@ -51,6 +52,7 @@ export PJNATH_TEST_SRCDIR = ../src/pjnath-test
 export PJNATH_TEST_OBJS += ice_test.o stun.o sess_auth.o server.o concur_test.o \
 			    stun_sock_test.o turn_sock_test.o test.o
 export PJNATH_TEST_CFLAGS += $(_CFLAGS)
+export PJNATH_TEST_CXXFLAGS += $(_CXXFLAGS)
 export PJNATH_TEST_LDFLAGS += $(PJNATH_LDLIB) $(PJLIB_UTIL_LDLIB) $(PJLIB_LDLIB) $(_LDFLAGS)
 export PJNATH_TEST_EXE:=pjnath-test-$(TARGET_NAME)$(HOST_EXE)
 
@@ -61,6 +63,7 @@ export PJNATH_TEST_EXE:=pjnath-test-$(TARGET_NAME)$(HOST_EXE)
 export PJTURN_CLIENT_SRCDIR = ../src/pjturn-client
 export PJTURN_CLIENT_OBJS += client_main.o
 export PJTURN_CLIENT_CFLAGS += $(_CFLAGS)
+export PJTURN_CLIENT_CXXFLAGS += $(_CXXFLAGS)
 export PJTURN_CLIENT_LDFLAGS += $(PJNATH_LDLIB) $(PJLIB_UTIL_LDLIB) $(PJLIB_LDLIB) $(_LDFLAGS)
 export PJTURN_CLIENT_EXE:=pjturn-client-$(TARGET_NAME)$(HOST_EXE)
 
@@ -71,6 +74,7 @@ export PJTURN_SRV_SRCDIR = ../src/pjturn-srv
 export PJTURN_SRV_OBJS += allocation.o auth.o listener_udp.o \
 			  listener_tcp.o server.o main.o
 export PJTURN_SRV_CFLAGS += $(_CFLAGS)
+export PJTURN_SRV_CXXFLAGS += $(_CXXFLAGS)
 export PJTURN_SRV_LDFLAGS += $(PJNATH_LDLIB) $(PJLIB_UTIL_LDLIB) $(PJLIB_LDLIB) $(_LDFLAGS)
 export PJTURN_SRV_EXE:=pjturn-srv-$(TARGET_NAME)$(HOST_EXE)
 
@@ -79,12 +83,12 @@ export PJTURN_SRV_EXE:=pjturn-srv-$(TARGET_NAME)$(HOST_EXE)
 export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT 
 ###############################################################################
 # Main entry
-#
-# $(TARGET) is defined in os-$(OS_NAME).mak file in current directory.
-#
-TARGETS := $(PJNATH_LIB) $(PJNATH_SONAME) $(PJNATH_TEST_EXE) $(PJTURN_CLIENT_EXE) $(PJTURN_SRV_EXE)
+TARGETS := $(PJNATH_LIB) $(PJNATH_SONAME)
+TARGETS_EXE := $(PJNATH_TEST_EXE) $(PJTURN_CLIENT_EXE) $(PJTURN_SRV_EXE)
 
-all: $(TARGETS)
+all: $(TARGETS) $(TARGETS_EXE)
+
+lib: $(TARGETS)
 
 doc:
 	cd .. && rm -rf docs/$(PJ_VERSION) && doxygen docs/doxygen.cfg

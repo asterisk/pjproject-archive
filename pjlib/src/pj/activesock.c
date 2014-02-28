@@ -1,4 +1,4 @@
-/* $Id: activesock.c 4359 2013-02-21 11:18:36Z bennylp $ */
+/* $Id: activesock.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -370,7 +370,7 @@ PJ_DEF(pj_status_t) pj_activesock_start_read2( pj_activesock_t *asock,
 	pj_ssize_t size_to_read;
 
 	r->pkt = (pj_uint8_t*)readbuf[i];
-	r->max_size = size_to_read = buff_size;
+	size_to_read = r->max_size = buff_size;
 
 	status = pj_ioqueue_recv(asock->key, &r->op_key, r->pkt, &size_to_read,
 				 PJ_IOQUEUE_ALWAYS_ASYNC | flags);
@@ -429,7 +429,7 @@ PJ_DEF(pj_status_t) pj_activesock_start_recvfrom2( pj_activesock_t *asock,
 	pj_ssize_t size_to_read;
 
 	r->pkt = (pj_uint8_t*) readbuf[i];
-	r->max_size = size_to_read = buff_size;
+	size_to_read = r->max_size = buff_size;
 	r->src_addr_len = sizeof(r->src_addr);
 
 	status = pj_ioqueue_recvfrom(asock->key, &r->op_key, r->pkt,
@@ -532,7 +532,7 @@ static void ioqueue_on_read_complete(pj_ioqueue_key_t *key,
 		 * oriented, it means connection has been closed. For datagram
 		 * sockets, it means we've got some error (e.g. EWOULDBLOCK).
 		 */
-		status = -bytes_read;
+		status = (pj_status_t)-bytes_read;
 	    }
 
 	    /* Set default remainder to zero */
@@ -843,6 +843,16 @@ static void ioqueue_on_accept_complete(pj_ioqueue_key_t *key,
 		PJ_LOG(3, ("", "Received %d consecutive errors: %d for the accept()"
 			       " operation, stopping further ioqueue accepts.",
 			       asock->err_counter, asock->last_err));
+		
+		if ((status == PJ_STATUS_FROM_OS(OSERR_EWOULDBLOCK)) && 
+		    (asock->cb.on_accept_complete2)) 
+		{
+		    (*asock->cb.on_accept_complete2)(asock, 
+						     accept_op->new_sock,
+						     &accept_op->rem_addr,
+						     accept_op->rem_addr_len,
+						     PJ_ESOCKETSTOP);
+		}
 		return;
 	    }
 	} else {
@@ -850,13 +860,23 @@ static void ioqueue_on_accept_complete(pj_ioqueue_key_t *key,
 	    asock->last_err = status;
 	}
 
-	if (status==PJ_SUCCESS && asock->cb.on_accept_complete) {
+	if (status==PJ_SUCCESS && (asock->cb.on_accept_complete2 || 
+				   asock->cb.on_accept_complete)) {
 	    pj_bool_t ret;
 
 	    /* Notify callback */
-	    ret = (*asock->cb.on_accept_complete)(asock, accept_op->new_sock,
-						  &accept_op->rem_addr,
-						  accept_op->rem_addr_len);
+	    if (asock->cb.on_accept_complete2) {
+		ret = (*asock->cb.on_accept_complete2)(asock, 
+						       accept_op->new_sock,
+						       &accept_op->rem_addr,
+						       accept_op->rem_addr_len,
+						       status);
+	    } else {
+		ret = (*asock->cb.on_accept_complete)(asock, 
+						      accept_op->new_sock,
+						      &accept_op->rem_addr,
+						      accept_op->rem_addr_len);	    
+	    }
 
 	    /* If callback returns false, we have been destroyed! */
 	    if (!ret)

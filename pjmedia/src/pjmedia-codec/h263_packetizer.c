@@ -1,4 +1,4 @@
-/* $Id: h263_packetizer.c 4006 2012-04-02 08:40:54Z nanang $ */
+/* $Id: h263_packetizer.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -155,7 +155,7 @@ PJ_DEF(pj_status_t) pjmedia_h263_packetize(pjmedia_h263_packetizer *pktz,
 
     *payload = p;
     *payload_len = end-p;
-    *pos = end - bits;
+    *pos = (unsigned)(end - bits);
 
     return PJ_SUCCESS;
 }
@@ -273,7 +273,7 @@ PJ_DEF(pj_status_t) pjmedia_h263_unpacketize (pjmedia_h263_packetizer *pktz,
 
     /* Write two zero octets when payload flagged with sync point */
     if (P) {
-	pktz->unpack_last_sync_pos = q - bits;
+	pktz->unpack_last_sync_pos = (unsigned)(q - bits);
         *q++ = 0;
         *q++ = 0;
     }
@@ -283,7 +283,7 @@ PJ_DEF(pj_status_t) pjmedia_h263_unpacketize (pjmedia_h263_packetizer *pktz,
     q += payload_len;
 
     /* Update the bitstream writing offset */
-    *pos = q - bits;
+    *pos = (unsigned)(q - bits);
 
     pktz->unpack_prev_lost = PJ_FALSE;
 

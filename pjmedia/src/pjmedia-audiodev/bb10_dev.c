@@ -1,4 +1,4 @@
-/* $Id: bb10_dev.c 4340 2013-02-05 05:15:01Z bennylp $ */
+/* $Id: bb10_dev.c 4730 2014-02-04 13:24:28Z bennylp $ */
 /*
  * Copyright (C) 2008-2012 Teluu Inc. (http://www.teluu.com)
  *
@@ -52,9 +52,7 @@
 
 #define THIS_FILE 			"bb10_dev.c"
 #define BB10_DEVICE_NAME 		"plughw:%d,%d"
-/* Double these for 16khz sampling */
-#define PREFERRED_FRAME_SIZE 320
-#define VOIP_SAMPLE_RATE 8000
+
 
 /* Set to 1 to enable tracing */
 #if 1
@@ -330,7 +328,8 @@ static pj_status_t bb10_factory_get_dev_info(pjmedia_aud_dev_factory *f,
 
     pj_memcpy(info, &af->devs[index], sizeof(*info));
     info->caps = PJMEDIA_AUD_DEV_CAP_INPUT_LATENCY |
-                 PJMEDIA_AUD_DEV_CAP_OUTPUT_LATENCY;
+                 PJMEDIA_AUD_DEV_CAP_OUTPUT_LATENCY |
+                 PJMEDIA_AUD_DEV_CAP_EC;
 
     return PJ_SUCCESS;
 }
@@ -432,26 +431,29 @@ static void flush_capture(struct bb10_stream *stream)
 static int pb_thread_func (void *arg)
 {
     struct bb10_stream* stream = (struct bb10_stream *) arg;
-    /* Handle from bb10_open_playback */
-    /* Will be 640 */
     int size                   	= stream->pb_buf_size;
-    /* 160 frames for 20ms */
     unsigned long nframes	= stream->pb_frames;
     void *user_data            	= stream->user_data;
     char *buf 		       	= stream->pb_buf;
     pj_timestamp tstamp;
     int result = 0;
+    int policy;
+    struct sched_param param;
+
+    TRACE_((THIS_FILE, "pb_thread_func: size = %d ", size));
+
+    if (pthread_getschedparam(pthread_self(), &policy, &param) == 0) {
+	param.sched_priority = 18;
+	pthread_setschedparam (pthread_self(), policy, &param);
+    }
 
     pj_bzero (buf, size);
     tstamp.u64 = 0;
-
-    TRACE_((THIS_FILE, "pb_thread_func: size = %d ", size));
 
     /* Do the final initialization now the thread has started. */
     if ((result = snd_pcm_plugin_prepare(stream->pb_pcm,
                                          SND_PCM_CHANNEL_PLAYBACK)) < 0)
     {
-        close_play_pcm(stream);
         TRACE_((THIS_FILE, "pb_thread_func failed prepare = %d", result));
         return PJ_SUCCESS;
     }
@@ -497,7 +499,7 @@ static int pb_thread_func (void *arg)
             		  status.status));
 		if (status.status == SND_PCM_STATUS_READY ||
 		    status.status == SND_PCM_STATUS_UNDERRUN ||
-		    status.status == SND_PCM_STATUS_ERROR ) 
+		    status.status == SND_PCM_STATUS_ERROR )
 		{
 		    if (snd_pcm_plugin_prepare (stream->pb_pcm,
 						SND_PCM_CHANNEL_PLAYBACK) < 0)
@@ -512,7 +514,6 @@ static int pb_thread_func (void *arg)
     }
 
     flush_play(stream);
-    close_play_pcm(stream);
     TRACE_((THIS_FILE, "pb_thread_func: Stopped"));
 
     return PJ_SUCCESS;
@@ -530,23 +531,14 @@ static int ca_thread_func (void *arg)
     char *buf 		       = stream->ca_buf;
     pj_timestamp tstamp;
     int result;
+    int policy;
     struct sched_param param;
-    pthread_t *thid;
 
     TRACE_((THIS_FILE, "ca_thread_func: size = %d ", size));
 
-    thid = (pthread_t*) pj_thread_get_os_handle (pj_thread_this());
-    param.sched_priority = sched_get_priority_max (SCHED_RR);
-
-    result = pthread_setschedparam (*thid, SCHED_RR, &param);
-    if (result) {
-        if (result == EPERM) {
-            PJ_LOG (4,(THIS_FILE, "Unable to increase thread priority, "
-                                  "root access needed."));
-        } else {
-            PJ_LOG (4,(THIS_FILE, "Unable to increase thread priority, "
-                                  "error: %d", result));
-        }
+    if (pthread_getschedparam(pthread_self(), &policy, &param) == 0) {
+	param.sched_priority = 18;
+	pthread_setschedparam (pthread_self(), policy, &param);
     }
 
     pj_bzero (buf, size);
@@ -556,7 +548,6 @@ static int ca_thread_func (void *arg)
     if ((result = snd_pcm_plugin_prepare (stream->ca_pcm,
                                           SND_PCM_CHANNEL_CAPTURE)) < 0)
     {
-        close_capture_pcm(stream);
         TRACE_((THIS_FILE, "ca_thread_func failed prepare = %d", result));
         return PJ_SUCCESS;
     }
@@ -564,7 +555,7 @@ static int ca_thread_func (void *arg)
     while (!stream->quit) {
         pjmedia_frame frame;
 
-        pj_bzero (buf, size);
+        //pj_bzero (buf, size);
 
         /* read the input device */
         result = snd_pcm_plugin_read(stream->ca_pcm, buf,size);
@@ -622,7 +613,6 @@ static int ca_thread_func (void *arg)
     }
 
     flush_capture(stream);
-    close_capture_pcm(stream);
     TRACE_((THIS_FILE, "ca_thread_func: Stopped"));
 
     return PJ_SUCCESS;
@@ -639,7 +629,7 @@ static pj_status_t bb10_initialize_playback_ctrl(struct bb10_stream *stream,
 
     if (stream->pb_ctrl_audio_manager_handle == 0) {
 	/* lazy init an audio manager handle */
-	ret = audio_manager_get_handle(AUDIO_TYPE_VIDEO_CHAT, 0, false,
+	ret = audio_manager_get_handle(AUDIO_TYPE_VOICE, 0, false,
 	                               &stream->pb_ctrl_audio_manager_handle);
 	if (ret != 0) {
 	    TRACE_((THIS_FILE, "audio_manager_get_handle ret = %d",ret));
@@ -652,33 +642,38 @@ static pj_status_t bb10_initialize_playback_ctrl(struct bb10_stream *stream,
 	ret = audio_manager_set_handle_type(
 		stream->pb_ctrl_audio_manager_handle,
 		AUDIO_TYPE_VIDEO_CHAT,
-		AUDIO_DEVICE_SPEAKER,
+		AUDIO_DEVICE_DEFAULT,
 		AUDIO_DEVICE_DEFAULT);
     } else {
 	ret = audio_manager_set_handle_type(
 		stream->pb_ctrl_audio_manager_handle,
-		AUDIO_TYPE_VIDEO_CHAT,
-		AUDIO_DEVICE_HANDSET,
+		AUDIO_TYPE_VOICE,
+		AUDIO_DEVICE_DEFAULT,
 		AUDIO_DEVICE_DEFAULT);
     }
 
-    if (ret == 0) {
-	/* RIM recommend this call */
-	ret = audio_manager_set_handle_routing_conditions(
-		stream->pb_ctrl_audio_manager_handle,
-		SETTINGS_RESET_ON_DEVICE_CONNECTION);
-	if (ret != 0) {
-	    TRACE_((THIS_FILE,
-		    "audio_manager_set_handle_routing_conditions ret = %d",
-		    ret));
-	    return PJMEDIA_EAUD_SYSERR;
-	}
-    } else {
-	TRACE_((THIS_FILE, "audio_manager_set_handle_type ret = %d", ret));
-	return PJMEDIA_EAUD_SYSERR;
+    if (ret != 0) {
+        TRACE_((THIS_FILE, "audio_manager_set_handle_type error ret = %d",ret));
+        return PJMEDIA_EAUD_SYSERR;
+    }else{
+        return PJ_SUCCESS;
     }
+}
 
-    return PJ_SUCCESS;
+static int32_t get_alsa_pcm_fmt(const pjmedia_aud_param *param)
+{
+    switch (param->bits_per_sample) {
+    case 8:
+	return SND_PCM_SFMT_S8;
+    case 16:
+	return SND_PCM_SFMT_S16_LE;
+    case 24:
+	return SND_PCM_SFMT_S24_LE;
+    case 32:
+	return SND_PCM_SFMT_S32_LE;
+    default:
+	PJ_ASSERT_RETURN(!"Unsupported bits_per_frame", SND_PCM_SFMT_S16_LE);
+    }
 }
 
 static pj_status_t bb10_open_playback (struct bb10_stream *stream,
@@ -696,6 +691,8 @@ static pj_status_t bb10_open_playback (struct bb10_stream *stream,
         return PJMEDIA_EAUD_INVDEV;
     }
 
+    PJ_ASSERT_RETURN(param->bits_per_sample == 16, PJMEDIA_EAUD_SAMPFORMAT);
+
     /* Use the bb10 audio manager API to open as opposed to QNX core audio
      * Echo cancellation built in
      */
@@ -710,22 +707,11 @@ static pj_status_t bb10_open_playback (struct bb10_stream *stream,
     }
 
     /* Required call from January 2013 gold OS release */
-    if ((ret = snd_pcm_plugin_set_disable(stream->pb_pcm,
-                                          PLUGIN_DISABLE_MMAP)) < 0)
-    {
-	TRACE_((THIS_FILE, "snd_pcm_plugin_set_disable ret = %d", ret));
-	return PJMEDIA_EAUD_SYSERR;
-    }
+    snd_pcm_plugin_set_disable(stream->pb_pcm, PLUGIN_DISABLE_MMAP);
 
     /* Required call from January 2013 gold OS release */
-    if ((ret = snd_pcm_plugin_set_enable(stream->pb_pcm,
-                                         PLUGIN_ROUTING)) < 0)
-    {
-	TRACE_((THIS_FILE, "snd_pcm_plugin_set_enable ret = %d", ret));
-	return PJMEDIA_EAUD_SYSERR;
-    }
+    snd_pcm_plugin_set_enable(stream->pb_pcm, PLUGIN_ROUTING);
 
-    /* TODO PJ_ZERO */
     memset (&pi, 0, sizeof (pi));
     pi.channel = SND_PCM_CHANNEL_PLAYBACK;
     if ((ret = snd_pcm_plugin_info (stream->pb_pcm, &pi)) < 0) {
@@ -738,20 +724,16 @@ static pj_status_t bb10_open_playback (struct bb10_stream *stream,
     /* Request VoIP compatible capabilities */
     pp.mode = SND_PCM_MODE_BLOCK;
     pp.channel = SND_PCM_CHANNEL_PLAYBACK;
-    pp.start_mode = SND_PCM_START_DATA;
+    pp.start_mode = SND_PCM_START_FULL;
     pp.stop_mode = SND_PCM_STOP_ROLLOVER;
-    /* HARD CODE for the time being PJMEDIA expects 640 for 16khz */
-    pp.buf.block.frag_size = PREFERRED_FRAME_SIZE*2;
-    /* RIM recommends maximum of 3 */
-    pp.buf.block.frags_max = 3;
+    pp.buf.block.frag_size = param->samples_per_frame * param->bits_per_sample / 8;
+    /* RIM recommends maximum of 5 */
+    pp.buf.block.frags_max = 5;
     pp.buf.block.frags_min = 1;
     pp.format.interleave = 1;
-    /* HARD CODE for the time being PJMEDIA expects 16khz */
-    PJ_TODO(REMOVE_SAMPLE_RATE_HARD_CODE);
-    pj_assert(param->clock_rate == VOIP_SAMPLE_RATE * 2);
-    pp.format.rate = VOIP_SAMPLE_RATE*2;
-    pp.format.voices = 1;
-    pp.format.format = SND_PCM_SFMT_S16_LE;
+    pp.format.rate = param->clock_rate;
+    pp.format.voices = param->channel_count;
+    pp.format.format = get_alsa_pcm_fmt(param);
 
     /* Make the calls as per the wave sample */
     if ((ret = snd_pcm_plugin_params (stream->pb_pcm, &pp)) < 0) {
@@ -776,22 +758,22 @@ static pj_status_t bb10_open_playback (struct bb10_stream *stream,
     rate = param->clock_rate;
     /* Set the sound device buffer size and latency */
     if (param->flags & PJMEDIA_AUD_DEV_CAP_OUTPUT_LATENCY) {
-        tmp_buf_size = (rate / 1000) * param->output_latency_ms;
+        tmp_buf_size = rate * param->output_latency_ms / 1000;
     } else {
-	tmp_buf_size = (rate / 1000) * PJMEDIA_SND_DEFAULT_PLAY_LATENCY;
+	tmp_buf_size = rate * PJMEDIA_SND_DEFAULT_PLAY_LATENCY / 1000;
     }
     /* Set period size to samples_per_frame frames. */
-    stream->pb_frames = param->samples_per_frame;
-    stream->param.output_latency_ms = tmp_buf_size / (rate / 1000);
+    stream->pb_frames = param->samples_per_frame / param->channel_count;
+    stream->param.output_latency_ms = tmp_buf_size * 1000 / rate;
 
     /* Set our buffer */
     stream->pb_buf_size = stream->pb_frames * param->channel_count *
-                          (param->bits_per_sample/8);
+                          param->bits_per_sample / 8;
     stream->pb_buf = (char *) pj_pool_alloc(stream->pool, stream->pb_buf_size);
 
     TRACE_((THIS_FILE, "bb10_open_playback: pb_frames = %d clock = %d",
                        stream->pb_frames, param->clock_rate));
-    
+
     return PJ_SUCCESS;
 }
 
@@ -810,6 +792,8 @@ static pj_status_t bb10_open_capture (struct bb10_stream *stream,
     if (param->rec_id < 0 || param->rec_id >= stream->af->dev_cnt)
         return PJMEDIA_EAUD_INVDEV;
 
+    PJ_ASSERT_RETURN(param->bits_per_sample == 16, PJMEDIA_EAUD_SAMPFORMAT);
+
     if ((ret=audio_manager_snd_pcm_open_name(AUDIO_TYPE_VIDEO_CHAT,
                                              &stream->ca_pcm,
                                              &stream->ca_audio_manager_handle,
@@ -820,19 +804,10 @@ static pj_status_t bb10_open_capture (struct bb10_stream *stream,
 	return PJMEDIA_EAUD_SYSERR;
     }
     /* Required call from January 2013 gold OS release */
-    if ((ret = snd_pcm_plugin_set_disable (stream->ca_pcm,
-                                           PLUGIN_DISABLE_MMAP)) < 0)
-    {
-        TRACE_(("snd_pcm_plugin_set_disable failed: %d",ret));
-        return PJMEDIA_EAUD_SYSERR;
-    }
+    snd_pcm_plugin_set_disable (stream->ca_pcm, PLUGIN_DISABLE_MMAP);
+
     /* Required call from January 2013 gold OS release */
-    if ((ret = snd_pcm_plugin_set_enable(stream->ca_pcm,
-                                         PLUGIN_ROUTING)) < 0)
-    {
-        TRACE_(("snd_pcm_plugin_set_enable failed: %d",ret));
-        return PJMEDIA_EAUD_SYSERR;
-    }
+    snd_pcm_plugin_set_enable(stream->ca_pcm, PLUGIN_ROUTING);
 
     /* sample reads the capabilities of the capture */
     memset (&pi, 0, sizeof (pi));
@@ -849,21 +824,17 @@ static pj_status_t bb10_open_capture (struct bb10_stream *stream,
     /* Blocking read */
     pp.mode = SND_PCM_MODE_BLOCK;
     pp.channel = SND_PCM_CHANNEL_CAPTURE;
-    pp.start_mode = SND_PCM_START_DATA;
+    pp.start_mode = SND_PCM_START_FULL;
     /* Auto-recover from errors */
     pp.stop_mode = SND_PCM_STOP_ROLLOVER;
-    /* HARD CODE for the time being PJMEDIA expects 640 for 16khz */
-    pp.buf.block.frag_size = PREFERRED_FRAME_SIZE*2;
+    pp.buf.block.frag_size = param->samples_per_frame * param->bits_per_sample / 8;
     /* From January 2013 gold OS release. RIM recommend these for capture */
-    pp.buf.block.frags_max = 1;
+    pp.buf.block.frags_max = 3;
     pp.buf.block.frags_min = 1;
     pp.format.interleave = 1;
-    /* HARD CODE for the time being PJMEDIA expects 16khz */
-    PJ_TODO(REMOVE_SAMPLE_RATE_HARD_CODE);
-    pj_assert(param->clock_rate == VOIP_SAMPLE_RATE * 2);
-    pp.format.rate = VOIP_SAMPLE_RATE*2;
-    pp.format.voices = 1;
-    pp.format.format = SND_PCM_SFMT_S16_LE;
+    pp.format.rate = param->clock_rate;
+    pp.format.voices = param->channel_count;
+    pp.format.format = get_alsa_pcm_fmt(param);
 
     /* make the request */
     if ((ret = snd_pcm_plugin_params (stream->ca_pcm, &pp)) < 0) {
@@ -888,6 +859,7 @@ static pj_status_t bb10_open_capture (struct bb10_stream *stream,
     }
 
     frame_size = setup.buf.block.frag_size;
+    PJ_UNUSED_ARG(frame_size); /* Warning about unused var */
 
     /* Set clock rate */
     rate = param->clock_rate;
@@ -896,16 +868,16 @@ static pj_status_t bb10_open_capture (struct bb10_stream *stream,
 
     /* Set the sound device buffer size and latency */
     if (param->flags & PJMEDIA_AUD_DEV_CAP_INPUT_LATENCY) {
-        tmp_buf_size = (rate / 1000) * param->input_latency_ms;
+        tmp_buf_size = rate * param->input_latency_ms / 1000;
     } else {
-        tmp_buf_size = (rate / 1000) * PJMEDIA_SND_DEFAULT_REC_LATENCY;
+        tmp_buf_size = rate * PJMEDIA_SND_DEFAULT_REC_LATENCY / 1000;
     }
 
-    stream->param.input_latency_ms = tmp_buf_size / (rate / 1000);
+    stream->param.input_latency_ms = tmp_buf_size * 1000 / rate;
 
     /* Set our buffer */
     stream->ca_buf_size = stream->ca_frames * param->channel_count *
-			  (param->bits_per_sample/8);
+			  param->bits_per_sample / 8;
     stream->ca_buf = (char *)pj_pool_alloc (stream->pool, stream->ca_buf_size);
 
     TRACE_((THIS_FILE, "bb10_open_capture: ca_frames = %d clock = %d",
@@ -964,13 +936,21 @@ static pj_status_t bb10_factory_create_stream(pjmedia_aud_dev_factory *f,
         }
     }
 
-    /* Part of the play functionality but the RIM/Truphone loopback sample
-     * initialializes after the play and capture
-     * "false" is default/earpiece for output
-     */
-    status = bb10_initialize_playback_ctrl(stream,false);
-    if (status != PJ_SUCCESS) {
-    	return PJMEDIA_EAUD_SYSERR;
+    /* Set the audio routing ONLY if app explicitly asks one */
+    if ((param->dir & PJMEDIA_DIR_PLAYBACK) &&
+	(param->flags & PJMEDIA_AUD_DEV_CAP_OUTPUT_ROUTE))
+    {
+	status = bb10_stream_set_cap(&stream->base,
+				     PJMEDIA_AUD_DEV_CAP_OUTPUT_ROUTE,
+                                     &param->output_route);
+	if (status != PJ_SUCCESS) {
+	    TRACE_((THIS_FILE, "Error setting output route"));
+	    bb10_stream_destroy(&stream->base);
+	    return status;
+	}
+    } else {
+	/* Legacy behavior: if none specified, set to speaker */
+	status = bb10_initialize_playback_ctrl(stream, false);
     }
 
     *p_strm = &stream->base;
@@ -978,7 +958,7 @@ static pj_status_t bb10_factory_create_stream(pjmedia_aud_dev_factory *f,
 }
 
 
-/* 
+/*
  * API: get running parameter
  * based on ALSA template
  */
@@ -997,7 +977,7 @@ static pj_status_t bb10_stream_get_param(pjmedia_aud_stream *s,
 
 /*
  * API: get capability
- * based on ALSA template 
+ * based on ALSA template
 */
 static pj_status_t bb10_stream_get_cap(pjmedia_aud_stream *s,
                                        pjmedia_aud_dev_cap cap,
@@ -1021,6 +1001,12 @@ static pj_status_t bb10_stream_get_cap(pjmedia_aud_stream *s,
         *(unsigned*)pval = stream->param.output_latency_ms;
         return PJ_SUCCESS;
 
+    } else if (cap==PJMEDIA_AUD_DEV_CAP_EC &&
+	       (stream->param.dir & PJMEDIA_DIR_CAPTURE))
+    {
+	/* EC is enablied implicitly by opening "voice" device */
+	*(pj_bool_t*)pval = PJ_TRUE;
+	return PJ_SUCCESS;
     } else {
         return PJMEDIA_EAUD_INVCAP;
     }
@@ -1035,29 +1021,60 @@ static pj_status_t bb10_stream_set_cap(pjmedia_aud_stream *strm,
                                        pjmedia_aud_dev_cap cap,
                                        const void *value)
 {
-    pj_status_t ret = PJ_SUCCESS;
+
     struct bb10_stream *stream = (struct bb10_stream*)strm;
 
-    if (cap != PJMEDIA_AUD_DEV_CAP_OUTPUT_ROUTE || value == NULL) {
-        TRACE_((THIS_FILE,"bb10_stream_set_cap() = PJMEDIA_EAUD_INVCAP"));
-        return PJMEDIA_EAUD_INVCAP; 
+    if (cap==PJMEDIA_AUD_DEV_CAP_OUTPUT_ROUTE &&
+        (stream->param.dir & PJMEDIA_DIR_PLAYBACK))
+    {
+	pjmedia_aud_dev_route route;
+	pj_bool_t need_restart;
+	pj_status_t ret;
 
-    } else {
-    	pjmedia_aud_dev_route route = *((pjmedia_aud_dev_route*)value);
+	PJ_ASSERT_RETURN(value, PJ_EINVAL);
+
+	/* OS 10.2.1 requires pausing audio stream */
+	need_restart = (stream->pb_thread != NULL);
+	if (need_restart) {
+	    PJ_LOG(4,(THIS_FILE, "pausing audio stream.."));
+	    ret = bb10_stream_stop(strm);
+	    if (ret != PJ_SUCCESS) {
+		PJ_PERROR(1,(THIS_FILE, ret, "Error pausing stream"));
+		return ret;
+	    }
+	}
+
+    	route = *((pjmedia_aud_dev_route*)value);
+    	PJ_LOG(4,(THIS_FILE, "setting audio route to %d..", route));
+
         /* Use the initialization function which lazy-inits the
          * handle for routing
          */
     	if (route == PJMEDIA_AUD_DEV_ROUTE_LOUDSPEAKER) {
             ret = bb10_initialize_playback_ctrl(stream,true);
         } else {
-            ret = bb10_initialize_playback_ctrl(stream,false);        	
+            ret = bb10_initialize_playback_ctrl(stream,false);
         }
+
+    	if (need_restart) {
+	    PJ_LOG(4,(THIS_FILE, "resuming audio stream.."));
+	    ret = bb10_stream_start(strm);
+	    if (ret != PJ_SUCCESS) {
+		PJ_PERROR(1,(THIS_FILE, ret, "Error resuming stream"));
+	    }
+    	}
+
+    	return ret;
+
+    } else if (cap==PJMEDIA_AUD_DEV_CAP_EC &&
+	       (stream->param.dir & PJMEDIA_DIR_CAPTURE))
+    {
+	/* EC is always enabled. Silently ignore the request */
+	return PJ_SUCCESS;
     }
 
-    if (ret != PJ_SUCCESS) {
-        TRACE_((THIS_FILE,"bb10_stream_set_cap() = %d",ret));
-    }
-    return ret;
+    TRACE_((THIS_FILE,"bb10_stream_set_cap() = PJMEDIA_EAUD_INVCAP"));
+    return PJMEDIA_EAUD_INVCAP;
 }
 
 
@@ -1130,6 +1147,9 @@ static pj_status_t bb10_stream_destroy (pjmedia_aud_stream *s)
     TRACE_((THIS_FILE,"bb10_stream_destroy()"));
 
     bb10_stream_stop (s);
+
+    close_play_pcm(stream);
+    close_capture_pcm(stream);
 
     pj_pool_release (stream->pool);
 

@@ -1,4 +1,4 @@
-/* $Id: g711.c 4266 2012-09-26 05:55:18Z nanang $ */
+/* $Id: g711.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -523,7 +523,7 @@ static pj_status_t  g711_encode(pjmedia_codec *codec,
 	unsigned i, n;
 	pj_uint8_t *dst = (pj_uint8_t*) output->buf;
 
-	n = (input->size >> 1);
+	n = ((unsigned)input->size >> 1);
 	for (i=0; i!=n; ++i, ++dst) {
 	    *dst = pjmedia_linear2alaw(samples[i]);
 	}
@@ -531,7 +531,7 @@ static pj_status_t  g711_encode(pjmedia_codec *codec,
 	unsigned i, n;
 	pj_uint8_t *dst = (pj_uint8_t*) output->buf;
 
-	n = (input->size >> 1);
+	n = ((unsigned)input->size >> 1);
 	for (i=0; i!=n; ++i, ++dst) {
 	    *dst = pjmedia_linear2ulaw(samples[i]);
 	}

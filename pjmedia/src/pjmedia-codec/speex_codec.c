@@ -1,4 +1,4 @@
-/* $Id: speex_codec.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: speex_codec.c 4713 2014-01-23 08:13:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -725,7 +725,7 @@ static pj_status_t  spx_codec_modify(pjmedia_codec *codec,
 /* This function will iterate frames & submodes in the Speex bits.
  * Returns 0 if a frame found, otherwise returns -1.
  */
-int speex_get_next_frame(SpeexBits *bits)
+static int speex_get_next_frame(SpeexBits *bits)
 {
     static const int inband_skip_table[NB_SUBMODES] =
        {1, 1, 4, 4, 4, 4, 4, 4, 8, 8, 16, 16, 32, 32, 64, 64 };
@@ -840,7 +840,7 @@ static pj_status_t  spx_codec_parse( pjmedia_codec *codec,
     samples_per_frame=spx_factory.speex_param[spx->param_id].samples_per_frame;
 
     /* Copy the data into the speex bit-stream */
-    speex_bits_read_from(&spx->dec_bits, (char*)pkt, pkt_size);
+    speex_bits_read_from(&spx->dec_bits, (char*)pkt, (int)pkt_size);
 
     while (speex_get_next_frame(&spx->dec_bits) == 0 && 
 	   spx->dec_bits.charPtr != char_ptr)
@@ -877,7 +877,7 @@ static pj_status_t spx_codec_encode( pjmedia_codec *codec,
     unsigned samples_per_frame;
     int tx = 0;
     spx_int16_t *pcm_in = (spx_int16_t*)input->buf;
-    unsigned nsamples;
+    pj_size_t nsamples;
 
     spx = (struct spx_private*) codec->codec_data;
 
@@ -952,7 +952,7 @@ static pj_status_t spx_codec_decode( pjmedia_codec *codec,
     }
 
     /* Copy the data into the bit-stream struct */
-    speex_bits_read_from(&spx->dec_bits, (char*)input->buf, input->size);
+    speex_bits_read_from(&spx->dec_bits, (char*)input->buf, (int)input->size);
     
     /* Set Speex dec_bits pointer to the start bit of the frame */
     speex_bits_advance(&spx->dec_bits, input->bit_info);

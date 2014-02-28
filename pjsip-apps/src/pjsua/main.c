@@ -1,4 +1,4 @@
-/* $Id: main.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: main.c 4752 2014-02-19 08:57:22Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -17,20 +17,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  */
-#include <pjsua-lib/pjsua.h>
-
+#include "pjsua_app.h"
 
 #define THIS_FILE	"main.c"
 
+static pj_bool_t	    running = PJ_TRUE;
+static pj_status_t	    receive_end_sig;
+static pj_thread_t	    *sig_thread;
+static pjsua_app_cfg_t	    cfg;
 
-/*
- * These are defined in pjsua_app.c.
- */
-extern pj_bool_t app_restart;
-pj_status_t app_init(int argc, char *argv[]);
-pj_status_t app_main(void);
-pj_status_t app_destroy(void);
+/* Called when CLI (re)started */
+void on_app_started(pj_status_t status, const char *msg)
+{
+    pj_perror(3, THIS_FILE, status, (msg)?msg:"");
+}
 
+void on_app_stopped(pj_bool_t restart, int argc, char** argv)
+{
+    if (argv) {
+	cfg.argc = argc;
+	cfg.argv = argv;
+    }
+
+    running = restart;
+}
 
 #if defined(PJ_WIN32) && PJ_WIN32!=0
 #include <windows.h>
@@ -38,9 +48,7 @@ pj_status_t app_destroy(void);
 static pj_thread_desc handler_desc;
 
 static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
-{
-    pj_thread_t *thread;
-
+{   
     switch (fdwCtrlType) 
     { 
         // Handle the CTRL+C signal. 
@@ -50,9 +58,10 @@ static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
         case CTRL_BREAK_EVENT: 
         case CTRL_LOGOFF_EVENT: 
         case CTRL_SHUTDOWN_EVENT: 
-	    pj_thread_register("ctrlhandler", handler_desc, &thread);
+	    pj_thread_register("ctrlhandler", handler_desc, &sig_thread);
 	    PJ_LOG(3,(THIS_FILE, "Ctrl-C detected, quitting.."));
-            app_destroy();
+	    receive_end_sig = PJ_TRUE;
+            pjsua_app_destroy();	    
 	    ExitProcess(1);
             PJ_UNREACHED(return TRUE;)
  
@@ -62,48 +71,56 @@ static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
     } 
 }
 
+static void setup_socket_signal()
+{
+}
+
 static void setup_signal_handler(void)
 {
     SetConsoleCtrlHandler(&CtrlHandler, TRUE);
 }
 
-static void setup_socket_signal()
-{
-}
-
 #else
 #include <signal.h>
-
-static void setup_signal_handler(void)
-{
-}
 
 static void setup_socket_signal()
 {
     signal(SIGPIPE, SIG_IGN);
 }
 
+static void setup_signal_handler(void) {}
 #endif
 
-static int main_func(int argc, char *argv[])
+int main_func(int argc, char *argv[])
 {
+    pj_status_t status = PJ_TRUE;
+
+    pj_bzero(&cfg, sizeof(cfg));
+    cfg.on_started = &on_app_started;
+    cfg.on_stopped = &on_app_stopped;
+    cfg.argc = argc;
+    cfg.argv = argv;
+
+    setup_signal_handler();
     setup_socket_signal();
 
-    do {
-	app_restart = PJ_FALSE;
+    while (running) {        
+	status = pjsua_app_init(&cfg);
+	if (status == PJ_SUCCESS) {
+	    status = pjsua_app_run(PJ_TRUE);
+	} else {
+	    running = PJ_FALSE;
+	}
 
-	if (app_init(argc, argv) != PJ_SUCCESS)
-	    return 1;
+	if (!receive_end_sig) {
+	    pjsua_app_destroy();
 
-	setup_signal_handler();
-
-	app_main();
-	app_destroy();
-
-	/* This is on purpose */
-	app_destroy();
-    } while (app_restart);
-
+	    /* This is on purpose */
+	    pjsua_app_destroy();
+	} else {
+	    pj_thread_join(sig_thread);
+	}
+    }
     return 0;
 }
 

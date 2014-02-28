@@ -1,4 +1,4 @@
-/* $Id: ioq_udp.c 4238 2012-08-31 06:17:56Z nanang $ */
+/* $Id: ioq_udp.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -115,7 +115,7 @@ static pj_ioqueue_callback test_cb =
     &on_ioqueue_connect,
 };
 
-#ifdef PJ_WIN32
+#if defined(PJ_WIN32) || defined(PJ_WIN64)
 #  define S_ADDR S_un.S_addr
 #else
 #  define S_ADDR s_addr
@@ -137,7 +137,8 @@ static int compliance_test(pj_bool_t allow_concur)
     pj_ioqueue_key_t *skey = NULL, *ckey = NULL;
     pj_ioqueue_op_key_t read_op, write_op;
     int bufsize = BUF_MIN_SIZE;
-    pj_ssize_t bytes, status = -1;
+    pj_ssize_t bytes;
+    int status = -1;
     pj_str_t temp;
     pj_bool_t send_pending, recv_pending;
     pj_status_t rc;
@@ -768,7 +769,7 @@ static int bench_test(pj_bool_t allow_concur, int bufsize,
 	}
 	if (rc == PJ_SUCCESS) {
 	    if (bytes < 0) {
-		app_perror("...error: pj_ioqueue_sendto()", -bytes);
+		app_perror("...error: pj_ioqueue_sendto()",(pj_status_t)-bytes);
 		break;
 	    }
 	}

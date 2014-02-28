@@ -1,4 +1,4 @@
-/* $Id: audiodev.c 4150 2012-06-01 04:29:56Z ming $ */
+/* $Id: audiodev.c 4435 2013-03-11 06:32:58Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -78,12 +78,24 @@ pjmedia_aud_dev_factory* pjmedia_coreaudio_factory(pj_pool_factory *pf);
 pjmedia_aud_dev_factory* pjmedia_alsa_factory(pj_pool_factory *pf);
 #endif
 
+#if PJMEDIA_AUDIO_DEV_HAS_OPENSL
+pjmedia_aud_dev_factory* pjmedia_opensl_factory(pj_pool_factory *pf);
+#endif
+
+#if PJMEDIA_AUDIO_DEV_HAS_ANDROID_JNI
+pjmedia_aud_dev_factory* pjmedia_android_factory(pj_pool_factory *pf);
+#endif
+
 #if PJMEDIA_AUDIO_DEV_HAS_BB10
 pjmedia_aud_dev_factory* pjmedia_bb10_factory(pj_pool_factory *pf);
 #endif
 
 #if PJMEDIA_AUDIO_DEV_HAS_WMME
 pjmedia_aud_dev_factory* pjmedia_wmme_factory(pj_pool_factory *pf);
+#endif
+
+#if PJMEDIA_AUDIO_DEV_HAS_BDIMAD
+pjmedia_aud_dev_factory* pjmedia_bdimad_factory(pj_pool_factory *pf);
 #endif
 
 #if PJMEDIA_AUDIO_DEV_HAS_SYMB_VAS
@@ -391,6 +403,12 @@ PJ_DEF(pj_status_t) pjmedia_aud_subsys_init(pj_pool_factory *pf)
     aud_subsys.dev_cnt = 0;
 
     /* Register creation functions */
+#if PJMEDIA_AUDIO_DEV_HAS_OPENSL
+    aud_subsys.drv[aud_subsys.drv_cnt++].create = &pjmedia_opensl_factory;
+#endif
+#if PJMEDIA_AUDIO_DEV_HAS_ANDROID_JNI
+    aud_subsys.drv[aud_subsys.drv_cnt++].create = &pjmedia_android_factory;
+#endif
 #if PJMEDIA_AUDIO_DEV_HAS_BB10
     aud_subsys.drv[aud_subsys.drv_cnt++].create = &pjmedia_bb10_factory;
 #endif
@@ -405,6 +423,9 @@ PJ_DEF(pj_status_t) pjmedia_aud_subsys_init(pj_pool_factory *pf)
 #endif
 #if PJMEDIA_AUDIO_DEV_HAS_WMME
     aud_subsys.drv[aud_subsys.drv_cnt++].create = &pjmedia_wmme_factory;
+#endif
+#if PJMEDIA_AUDIO_DEV_HAS_BDIMAD
+    aud_subsys.drv[aud_subsys.drv_cnt++].create = &pjmedia_bdimad_factory;
 #endif
 #if PJMEDIA_AUDIO_DEV_HAS_SYMB_VAS
     aud_subsys.drv[aud_subsys.drv_cnt++].create = &pjmedia_symb_vas_factory;

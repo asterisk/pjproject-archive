@@ -1,4 +1,4 @@
-/* $Id: sdp_neg.c 4367 2013-02-21 20:49:19Z nanang $ */
+/* $Id: sdp_neg.c 4712 2014-01-23 08:09:29Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -33,7 +33,7 @@ struct pjmedia_sdp_neg
 {
     pjmedia_sdp_neg_state state;	    /**< Negotiator state.	     */
     pj_bool_t		  prefer_remote_codec_order;
-    pj_bool_t         answer_with_multiple_codecs;
+    pj_bool_t             answer_with_multiple_codecs;
     pj_bool_t		  has_remote_answer;
     pj_bool_t		  answer_was_remote;
 
@@ -952,7 +952,7 @@ static pj_status_t process_answer(pj_pool_t *pool,
 PJ_INLINE(void) rewrite_pt(pj_pool_t *pool, pj_str_t *attr_val,
 			   const pj_str_t *old_pt, const pj_str_t *new_pt)
 {
-    int len_diff = new_pt->slen - old_pt->slen;
+    int len_diff = (int)(new_pt->slen - old_pt->slen);
 
     /* Note that attribute value should be null-terminated. */
     if (len_diff > 0) {
@@ -1025,7 +1025,7 @@ static void apply_answer_symmetric_pt(pj_pool_t *pool,
 /* Try to match offer with answer. */
 static pj_status_t match_offer(pj_pool_t *pool,
 			       pj_bool_t prefer_remote_codec_order,
-                   pj_bool_t answer_with_multiple_codecs,
+                               pj_bool_t answer_with_multiple_codecs,
 			       const pjmedia_sdp_media *offer,
 			       const pjmedia_sdp_media *preanswer,
 			       const pjmedia_sdp_session *preanswer_sdp,
@@ -1033,7 +1033,6 @@ static pj_status_t match_offer(pj_pool_t *pool,
 {
     unsigned i;
     pj_bool_t master_has_codec = 0,
-	      master_has_telephone_event = 0,
 	      master_has_other = 0,
 	      found_matching_codec = 0,
 	      found_matching_telephone_event = 0,
@@ -1129,7 +1128,6 @@ static pj_status_t match_offer(pj_pool_t *pool,
 		pjmedia_sdp_attr_get_rtpmap(a, &or_);
 
 		if (!pj_stricmp2(&or_.enc_name, "telephone-event")) {
-		    master_has_telephone_event = 1;
 		    if (found_matching_telephone_event)
 			continue;
 		    is_codec = 0;
@@ -1293,7 +1291,7 @@ static pj_status_t match_offer(pj_pool_t *pool,
 /* Create complete answer for remote's offer. */
 static pj_status_t create_answer( pj_pool_t *pool,
 				  pj_bool_t prefer_remote_codec_order,
-                  pj_bool_t answer_with_multiple_codecs,
+                                  pj_bool_t answer_with_multiple_codecs,
 				  const pjmedia_sdp_session *initial,
 				  const pjmedia_sdp_session *offer,
 				  pjmedia_sdp_session **p_answer)
@@ -1343,7 +1341,8 @@ static pj_status_t create_answer( pj_pool_t *pool,
                 pj_status_t status2;
 
 		/* See if it has matching codec. */
-		status2 = match_offer(pool, prefer_remote_codec_order, answer_with_multiple_codecs,
+		status2 = match_offer(pool, prefer_remote_codec_order,
+                                      answer_with_multiple_codecs,
 				      om, im, initial, &am);
 		if (status2 == PJ_SUCCESS) {
 		    /* Mark media as used. */
@@ -1393,12 +1392,20 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_cancel_offer(pjmedia_sdp_neg *neg)
 		     neg->state == PJMEDIA_SDP_NEG_STATE_REMOTE_OFFER,
 		     PJMEDIA_SDPNEG_EINSTATE);
 
-    /* Reset state to done */
-    neg->state = PJMEDIA_SDP_NEG_STATE_DONE;
-
     /* Clear temporary SDP */
     neg->neg_local_sdp = neg->neg_remote_sdp = NULL;
     neg->has_remote_answer = PJ_FALSE;
+
+    if (neg->state == PJMEDIA_SDP_NEG_STATE_LOCAL_OFFER) {
+	/* Increment next version number. This happens if for example
+	 * the reinvite offer is rejected by 488. If we don't increment
+	 * the version here, the next offer will have the same version.
+	 */
+	neg->active_local_sdp->origin.version++;
+    }
+
+    /* Reset state to done */
+    neg->state = PJMEDIA_SDP_NEG_STATE_DONE;
 
     return PJ_SUCCESS;
 }
@@ -1434,7 +1441,7 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_negotiate( pj_pool_t *pool,
 	pjmedia_sdp_session *answer = NULL;
 
 	status = create_answer(pool, neg->prefer_remote_codec_order,
-                   neg->answer_with_multiple_codecs,
+                               neg->answer_with_multiple_codecs,
 			       neg->neg_local_sdp, neg->neg_remote_sdp,
 			       &answer);
 	if (status == PJ_SUCCESS) {

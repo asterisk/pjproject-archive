@@ -1,4 +1,4 @@
-/* $Id: pjlib-util.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: pjlib-util.h 4704 2014-01-16 05:30:46Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -48,11 +48,15 @@
 /* Simple DNS server */
 #include <pjlib-util/dns_server.h>
 
-/* Text scanner */
+/* Text scanner and utilities */
 #include <pjlib-util/scanner.h>
+#include <pjlib-util/string.h>
 
 /* XML */
 #include <pjlib-util/xml.h>
+
+/* JSON */
+#include <pjlib-util/json.h>
 
 /* Old STUN */
 #include <pjlib-util/stun_simple.h>
@@ -63,4 +67,10 @@
 /* HTTP */
 #include <pjlib-util/http_client.h>
 
+/** CLI **/
+#include <pjlib-util/cli.h>
+#include <pjlib-util/cli_console.h>
+#include <pjlib-util/cli_telnet.h>
+
 #endif	/* __PJLIB_UTIL_H__ */
+

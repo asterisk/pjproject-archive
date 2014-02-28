@@ -1,4 +1,4 @@
-/* $Id: txdata_test.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: txdata_test.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -431,7 +431,7 @@ static int txdata_test_uri_params(void)
     pjsip_via_hdr *via;
     pjsip_parser_err_report err_list;
     pjsip_msg *msg;
-    int len;
+    pj_ssize_t len;
     pj_status_t status;
 
     PJ_LOG(3,(THIS_FILE, "   header param in URI to create request"));

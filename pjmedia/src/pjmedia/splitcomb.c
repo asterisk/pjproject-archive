@@ -1,4 +1,4 @@
-/* $Id: splitcomb.c 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: splitcomb.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -565,7 +565,7 @@ static pj_status_t put_frame(pjmedia_port *this_port,
 	/* Extract the mono frame to temporary buffer */
 	extract_mono_frame((const pj_int16_t*)frame->buf, sc->put_buf, ch, 
 			   PJMEDIA_PIA_CCNT(&this_port->info),
-			   frame->size * 8 / 
+			   (unsigned)frame->size * 8 / 
 			     PJMEDIA_PIA_BITS(&this_port->info) /
 			     PJMEDIA_PIA_CCNT(&this_port->info));
 

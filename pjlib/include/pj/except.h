@@ -1,4 +1,4 @@
-/* $Id: except.h 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: except.h 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -339,9 +339,9 @@ public:
  * stack.
  */
 struct pj_exception_state_t
-{
-    struct pj_exception_state_t *prev;  /**< Previous state in the list. */
+{    
     pj_jmp_buf state;                   /**< jmp_buf.                    */
+    struct pj_exception_state_t *prev;  /**< Previous state in the list. */
 };
 
 /**

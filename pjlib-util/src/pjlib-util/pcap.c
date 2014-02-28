@@ -1,4 +1,4 @@
-/* $Id: pcap.c 3841 2011-10-24 09:28:13Z ming $ */
+/* $Id: pcap.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -228,14 +228,14 @@ PJ_DEF(pj_status_t) pj_pcap_read_udp(pj_pcap_file *file,
 	} tmp;
 	unsigned rec_incl;
 	pj_ssize_t sz;
-	unsigned sz_read = 0;
+	pj_size_t sz_read = 0;
 	pj_status_t status;
 
 	TRACE_((file->obj_name, "Reading packet.."));
 
 	/* Read PCAP packet header */
 	sz = sizeof(tmp.rec);
-	status = read_file(file, &tmp.rec, &sz);
+	status = read_file(file, &tmp.rec, &sz); 
 	if (status != PJ_SUCCESS) {
 	    TRACE_((file->obj_name, "read_file() error: %d", status));
 	    return status;

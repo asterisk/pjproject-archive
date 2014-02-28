@@ -1,4 +1,4 @@
-/* $Id: sip_transport_tcp.c 4294 2012-11-06 05:02:10Z nanang $ */
+/* $Id: sip_transport_tcp.c 4725 2014-02-04 04:45:37Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -176,7 +176,7 @@ static void tcp_init_shutdown(struct tcp_transport *tcp, pj_status_t status)
     if (tcp->close_reason == PJ_SUCCESS)
 	tcp->close_reason = status;
 
-    if (tcp->base.is_shutdown)
+    if (tcp->base.is_shutdown || tcp->base.is_destroying)
 	return;
 
     /* Prevent immediate transport destroy by application, as transport
@@ -193,6 +193,12 @@ static void tcp_init_shutdown(struct tcp_transport *tcp, pj_status_t status)
 	pj_bzero(&state_info, sizeof(state_info));
 	state_info.status = tcp->close_reason;
 	(*state_cb)(&tcp->base, PJSIP_TP_STATE_DISCONNECTED, &state_info);
+    }
+
+    /* check again */
+    if (tcp->base.is_shutdown || tcp->base.is_destroying) {
+        pjsip_transport_dec_ref(&tcp->base);
+	return;
     }
 
     /* We can not destroy the transport since high level objects may
@@ -826,7 +832,7 @@ static pj_status_t tcp_destroy(pjsip_transport *transport,
 static pj_status_t tcp_start_read(struct tcp_transport *tcp)
 {
     pj_pool_t *pool;
-    pj_ssize_t size;
+    pj_uint32_t size;
     pj_sockaddr *rem_addr;
     void *readbuf[1];
     pj_status_t status;
@@ -967,6 +973,7 @@ static pj_status_t lis_create_transport(pjsip_tpfactory *factory,
 	     * properly before socket is fully connected.
 	     */
 	    if (pj_sockaddr_cmp(tp_addr, &local_addr) &&
+                pj_sockaddr_has_addr(&local_addr) &&
 		pj_sockaddr_get_port(&local_addr) != 0)
 	    {
 		pj_sockaddr_cp(tp_addr, &local_addr);
@@ -1112,7 +1119,7 @@ static pj_bool_t on_data_sent(pj_activesock_t *asock,
 		  bytes_sent));
 
 	status = (bytes_sent == 0) ? PJ_RETURN_OS_ERROR(OSERR_ENOTCONN) :
-				     -bytes_sent;
+				     (pj_status_t)-bytes_sent;
 
 	tcp_init_shutdown(tcp, status);
 

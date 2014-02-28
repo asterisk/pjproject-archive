@@ -1,4 +1,4 @@
-/* $Id: sip_util_proxy.c 4208 2012-07-18 07:52:33Z ming $ */
+/* $Id: sip_util_proxy.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -370,7 +370,7 @@ PJ_DEF(pj_str_t) pjsip_calculate_branch_id( pjsip_rx_data *rdata )
      */
     pj_md5_init(&ctx);
     pj_md5_update(&ctx, (pj_uint8_t*)rdata->msg_info.via->branch_param.ptr,
-		  rdata->msg_info.via->branch_param.slen);
+		  (unsigned)rdata->msg_info.via->branch_param.slen);
     pj_md5_final(&ctx, digest);
 
     branch.ptr = (char*)

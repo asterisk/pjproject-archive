@@ -1,4 +1,4 @@
-/* $Id: os.h 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: os.h 4760 2014-02-24 08:49:40Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1439,7 +1439,9 @@ PJ_DECL(pj_uint32_t) pj_elapsed_cycle( const pj_timestamp *start,
  * @{
  */
 
-/* Type for main function. */
+/**
+ * Type for application main function.
+ */
 typedef int (*pj_main_func_ptr)(int argc, char *argv[]);
 
 /**
@@ -1456,8 +1458,8 @@ typedef int (*pj_main_func_ptr)(int argc, char *argv[]);
  *
  * @return          main_func()'s return value.
  */
-int pj_run_app(pj_main_func_ptr main_func, int argc, char *argv[],
-	       unsigned flags);
+PJ_DECL(int) pj_run_app(pj_main_func_ptr main_func, int argc, char *argv[],
+			unsigned flags);
 
 /** @} */
 

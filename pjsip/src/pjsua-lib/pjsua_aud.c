@@ -1,4 +1,4 @@
-/* $Id: pjsua_aud.c 4336 2013-01-29 08:15:02Z ming $ */
+/* $Id: pjsua_aud.c 4704 2014-01-16 05:30:46Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -457,6 +457,7 @@ pj_status_t pjsua_aud_subsys_start(void)
     pj_timer_entry_init(&pjsua_var.snd_idle_timer, PJ_FALSE, NULL,
 			&close_snd_timer_cb);
 
+    pjsua_check_snd_dev_idle();
     return status;
 }
 
@@ -553,7 +554,7 @@ static void dtmf_callback(pjmedia_stream *strm, void *user_data,
     if (pjsua_var.ua_cfg.cb.on_dtmf_digit) {
 	pjsua_call_id call_id;
 
-	call_id = (pjsua_call_id)(long)user_data;
+	call_id = (pjsua_call_id)(pj_ssize_t)user_data;
 	pjsua_var.ua_cfg.cb.on_dtmf_digit(call_id, digit);
     }
 
@@ -584,7 +585,7 @@ pj_status_t pjsua_aud_channel_update(pjsua_call_media *call_med,
     PJ_LOG(4,(THIS_FILE,"Audio channel update.."));
     pj_log_push_indent();
 
-    si->rtcp_sdes_bye_disabled = PJ_TRUE;
+    si->rtcp_sdes_bye_disabled = pjsua_var.media_cfg.no_rtcp_sdes_bye;
 
     /* Check if no media is active */
     if (si->dir != PJMEDIA_DIR_NONE) {
@@ -637,7 +638,7 @@ pj_status_t pjsua_aud_channel_update(pjsua_call_media *call_med,
 	if (pjsua_var.ua_cfg.cb.on_dtmf_digit) {
 	    pjmedia_stream_set_dtmf_callback(call_med->strm.a.stream,
 					     &dtmf_callback,
-					     (void*)(long)(call->index));
+					     (void*)(pj_ssize_t)(call->index));
 	}
 
 	/* Get the port interface of the first stream in the session.
@@ -740,10 +741,13 @@ PJ_DEF(pj_status_t) pjsua_conf_get_port_info( pjsua_conf_port_id id,
     pj_bzero(info, sizeof(*info));
     info->slot_id = id;
     info->name = cinfo.name;
+    pjmedia_format_copy(&info->format, &cinfo.format);
     info->clock_rate = cinfo.clock_rate;
     info->channel_count = cinfo.channel_count;
     info->samples_per_frame = cinfo.samples_per_frame;
     info->bits_per_sample = cinfo.bits_per_sample;
+    info->tx_level_adj = ((float)cinfo.tx_adj_level) / 128 + 1;
+    info->rx_level_adj = ((float)cinfo.rx_adj_level) / 128 + 1;
 
     /* Build array of listeners */
     info->listener_cnt = cinfo.listener_cnt;
@@ -1045,7 +1049,8 @@ PJ_DEF(pj_status_t) pjsua_player_create( const pj_str_t *filename,
     pj_memcpy(path, filename->ptr, filename->slen);
     path[filename->slen] = '\0';
 
-    pool = pjsua_pool_create(get_basename(path, filename->slen), 1000, 1000);
+    pool = pjsua_pool_create(get_basename(path, (unsigned)filename->slen), 1000, 
+			     1000);
     if (!pool) {
 	status = PJ_ENOMEM;
 	goto on_error;
@@ -1333,7 +1338,8 @@ PJ_DEF(pj_status_t) pjsua_recorder_create( const pj_str_t *filename,
     pj_memcpy(path, filename->ptr, filename->slen);
     path[filename->slen] = '\0';
 
-    pool = pjsua_pool_create(get_basename(path, filename->slen), 1000, 1000);
+    pool = pjsua_pool_create(get_basename(path, (unsigned)filename->slen), 1000, 
+			     1000);
     if (!pool) {
 	status = PJ_ENOMEM;
 	goto on_return;
@@ -1756,12 +1762,14 @@ static pj_status_t open_snd_dev(pjmedia_snd_port_param *param)
 	if (status==PJ_SUCCESS) {
 	    if (param->base.clock_rate != pjsua_var.media_cfg.clock_rate) {
 		char tmp_buf[128];
-		int tmp_buf_len = sizeof(tmp_buf);
+		int tmp_buf_len;
 
-		tmp_buf_len = pj_ansi_snprintf(tmp_buf, sizeof(tmp_buf)-1,
+		tmp_buf_len = pj_ansi_snprintf(tmp_buf, sizeof(tmp_buf),
 					       "%s (%dKHz)",
 					       rec_info.name,
 					       param->base.clock_rate/1000);
+		if (tmp_buf_len < 1 || tmp_buf_len >= (int)sizeof(tmp_buf))
+		    tmp_buf_len = sizeof(tmp_buf) - 1;
 		pj_strset(&tmp, tmp_buf, tmp_buf_len);
 		pjmedia_conf_set_port0_name(pjsua_var.mconf, &tmp);
 	    } else {

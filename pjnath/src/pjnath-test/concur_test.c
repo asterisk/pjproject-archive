@@ -1,4 +1,4 @@
-/* $Id: concur_test.c 4412 2013-03-05 03:12:32Z riza $ */
+/* $Id: concur_test.c 4537 2013-06-19 06:47:43Z riza $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -72,7 +72,7 @@ static int server_thread_proc(void *p)
 	/* Serve client */
 	PJ_FD_ZERO(&rdset);
 	PJ_FD_SET(test_sess->server_sock, &rdset);
-	n = pj_sock_select(test_sess->server_sock+1, &rdset,
+	n = pj_sock_select((int)test_sess->server_sock+1, &rdset,
 	                   NULL, NULL, &timeout);
 	if (n==1 && PJ_FD_ISSET(test_sess->server_sock, &rdset)) {
 	    pj_uint8_t pkt[512];

@@ -1,4 +1,4 @@
-/* $Id: udp_echo_srv_sync.c 4108 2012-04-27 01:32:12Z bennylp $ */
+/* $Id: udp_echo_srv_sync.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -46,7 +46,7 @@ static int worker_thread(void *arg)
             continue;
         }
 
-        pj_atomic_add(total_bytes, len);
+	pj_atomic_add(total_bytes, (pj_atomic_value_t)len);
 
         rc = pj_sock_sendto(sock, buf, &len, 0, &addr, addrlen);
         if (rc != PJ_SUCCESS) {

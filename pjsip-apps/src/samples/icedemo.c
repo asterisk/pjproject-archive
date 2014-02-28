@@ -1,4 +1,4 @@
-/* $Id: icedemo.c 4217 2012-07-27 17:24:12Z nanang $ */
+/* $Id: icedemo.c 4624 2013-10-21 06:37:30Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -514,10 +514,11 @@ static void icedemo_stop_session(void)
     reset_rem_info();
 }
 
-#define PRINT(...) \
+#define PRINT(...)	    \
 	printed = pj_ansi_snprintf(p, maxlen - (p-buffer),  \
 				   __VA_ARGS__); \
-	if (printed <= 0) return -PJ_ETOOSMALL; \
+	if (printed <= 0 || printed >= (int)(maxlen - (p-buffer))) \
+	    return -PJ_ETOOSMALL; \
 	p += printed
 
 
@@ -546,7 +547,7 @@ static int print_cand(char buffer[], unsigned maxlen,
 
     *p = '\0';
 
-    return p-buffer;
+    return (int)(p-buffer);
 }
 
 /* 
@@ -616,7 +617,7 @@ static int encode_session(char buffer[], unsigned maxlen)
 
 	/* And encode the candidates as SDP */
 	for (j=0; j<cand_cnt; ++j) {
-	    printed = print_cand(p, maxlen - (p-buffer), &cand[j]);
+	    printed = print_cand(p, maxlen - (unsigned)(p-buffer), &cand[j]);
 	    if (printed < 0)
 		return -PJ_ETOOSMALL;
 	    p += printed;
@@ -627,7 +628,7 @@ static int encode_session(char buffer[], unsigned maxlen)
 	return -PJ_ETOOSMALL;
 
     *p = '\0';
-    return p - buffer;
+    return (int)(p - buffer);
 }
 
 
@@ -721,7 +722,7 @@ static void icedemo_input_remote(void)
     comp0_addr[0] = '\0';
 
     while (!done) {
-	int len;
+	pj_size_t len;
 	char *line;
 
 	printf(">");
@@ -1071,7 +1072,7 @@ static void icedemo_console(void)
     while (!app_quit) {
 	char input[80], *cmd;
 	const char *SEP = " \t\r\n";
-	int len;
+	pj_size_t len;
 
 	icedemo_print_menu();
 

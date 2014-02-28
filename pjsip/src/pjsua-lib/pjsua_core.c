@@ -1,4 +1,4 @@
-/* $Id: pjsua_core.c 4370 2013-02-26 05:30:00Z nanang $ */
+/* $Id: pjsua_core.c 4735 2014-02-06 05:09:52Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -85,7 +85,7 @@ PJ_DEF(void) pjsua_logging_config_default(pjsua_logging_config *cfg)
 		 PJ_LOG_HAS_MICRO_SEC | PJ_LOG_HAS_NEWLINE |
 		 PJ_LOG_HAS_SPACE | PJ_LOG_HAS_THREAD_SWC |
 		 PJ_LOG_HAS_INDENT;
-#if defined(PJ_WIN32) && PJ_WIN32 != 0
+#if (defined(PJ_WIN32) && PJ_WIN32 != 0) || (defined(PJ_WIN64) && PJ_WIN64 != 0)
     cfg->decor |= PJ_LOG_HAS_COLOR;
 #endif
 }
@@ -161,6 +161,8 @@ PJ_DEF(pjsua_msg_data*) pjsua_msg_data_clone(pj_pool_t *pool,
 
     msg_data = PJ_POOL_ZALLOC_T(pool, pjsua_msg_data);
     PJ_ASSERT_RETURN(msg_data != NULL, NULL);
+
+    pj_strdup(pool, &msg_data->target_uri, &rhs->target_uri);
 
     pj_list_init(&msg_data->hdr_list);
     hdr = rhs->hdr_list.next;
@@ -307,10 +309,23 @@ PJ_DEF(void) pjsua_buddy_config_default(pjsua_buddy_config *cfg)
 
 PJ_DEF(void) pjsua_media_config_default(pjsua_media_config *cfg)
 {
+    const pj_sys_info *si = pj_get_sys_info();
+    pj_str_t dev_model = {"iPhone5", 7};
+    
     pj_bzero(cfg, sizeof(*cfg));
 
     cfg->clock_rate = PJSUA_DEFAULT_CLOCK_RATE;
-    cfg->snd_clock_rate = 0;
+    /* It is reported that there may be some media server resampling problem
+     * with iPhone 5 devices running iOS 7, so we set the sound device's
+     * clock rate to 44100 to avoid resampling.
+     */
+    if (pj_stristr(&si->machine, &dev_model) &&
+        ((si->os_ver & 0xFF000000) >> 24) >= 7)
+    {
+        cfg->snd_clock_rate = 44100;
+    } else {
+        cfg->snd_clock_rate = 0;
+    }
     cfg->channel_count = 1;
     cfg->audio_frame_ptime = PJSUA_DEFAULT_AUDIO_FRAME_PTIME;
     cfg->max_media_ports = PJSUA_MAX_CONF_PORTS;
@@ -684,6 +699,50 @@ static int worker_thread(void *arg)
     return 0;
 }
 
+PJ_DEF(pj_status_t) pjsua_register_worker_thread(const char *name)
+{
+    pj_thread_desc desc;
+    pj_thread_t *thread;
+    pj_status_t status;
+
+    if (pjsua_var.thread_quit_flag)
+	return PJ_EGONE;
+
+    status = pj_thread_register(NULL, desc, &thread);
+    if (status != PJ_SUCCESS)
+	return status;
+
+    if (name)
+	PJ_LOG(4,(THIS_FILE, "Worker thread %s started", name));
+
+    worker_thread(NULL);
+
+    if (name)
+	PJ_LOG(4,(THIS_FILE, "Worker thread %s stopped", name));
+
+    return PJ_SUCCESS;
+}
+
+PJ_DEF(void) pjsua_stop_worker_threads(void)
+{
+    unsigned i;
+
+    pjsua_var.thread_quit_flag = 1;
+
+    /* Wait worker threads to quit: */
+    for (i=0; i<(int)pjsua_var.ua_cfg.thread_cnt; ++i) {
+    	if (pjsua_var.thread[i]) {
+    	    pj_status_t status;
+    	    status = pj_thread_join(pjsua_var.thread[i]);
+    	    if (status != PJ_SUCCESS) {
+    		PJ_PERROR(4,(THIS_FILE, status, "Error joining worker thread"));
+    		pj_thread_sleep(1000);
+    	    }
+    	    pj_thread_destroy(pjsua_var.thread[i]);
+    	    pjsua_var.thread[i] = NULL;
+    	}
+    }
+}
 
 /* Init random seed */
 static void init_random_seed(void)
@@ -1179,12 +1238,13 @@ static pj_bool_t test_stun_on_status(pj_stun_sock *stun_sock,
 		  (int)sess->srv[sess->idx].slen,
 		  sess->srv[sess->idx].ptr, errmsg));
 
-	sess->status = status;
-
 	pj_stun_sock_destroy(stun_sock);
 	sess->stun_sock = NULL;
 
 	++sess->idx;
+	if (sess->idx >= sess->count)
+            sess->status = status;
+
 	resolve_stun_entry(sess);
 
 	return PJ_FALSE;
@@ -1214,6 +1274,8 @@ static pj_bool_t test_stun_on_status(pj_stun_sock *stun_sock,
  */
 static void resolve_stun_entry(pjsua_stun_resolve *sess)
 {
+    pj_status_t status = PJ_EUNKNOWN;
+
     stun_resolve_add_ref(sess);
 
     /* Loop while we have entry to try */
@@ -1231,10 +1293,10 @@ static void resolve_stun_entry(pjsua_stun_resolve *sess)
 			 sess->srv[sess->idx].ptr);
 
 	/* Parse the server entry into host:port */
-	sess->status = pj_sockaddr_parse2(af, 0, &sess->srv[sess->idx],
+	status = pj_sockaddr_parse2(af, 0, &sess->srv[sess->idx],
 					  &hostpart, &port, NULL);
-	if (sess->status != PJ_SUCCESS) {
-	    PJ_LOG(2,(THIS_FILE, "Invalid STUN server entry %s", target));
+	if (status != PJ_SUCCESS) {
+    	    PJ_LOG(2,(THIS_FILE, "Invalid STUN server entry %s", target));
 	    continue;
 	}
 	
@@ -1250,12 +1312,12 @@ static void resolve_stun_entry(pjsua_stun_resolve *sess)
 	/* Use STUN_sock to test this entry */
 	pj_bzero(&stun_sock_cb, sizeof(stun_sock_cb));
 	stun_sock_cb.on_status = &test_stun_on_status;
-	sess->status = pj_stun_sock_create(&pjsua_var.stun_cfg, "stunresolve",
+	status = pj_stun_sock_create(&pjsua_var.stun_cfg, "stunresolve",
 					   pj_AF_INET(), &stun_sock_cb,
 					   NULL, sess, &sess->stun_sock);
-	if (sess->status != PJ_SUCCESS) {
+	if (status != PJ_SUCCESS) {
 	    char errmsg[PJ_ERR_MSG_SIZE];
-	    pj_strerror(sess->status, errmsg, sizeof(errmsg));
+	    pj_strerror(status, errmsg, sizeof(errmsg));
 	    PJ_LOG(4,(THIS_FILE, 
 		     "Error creating STUN socket for %s: %s",
 		     target, errmsg));
@@ -1263,11 +1325,11 @@ static void resolve_stun_entry(pjsua_stun_resolve *sess)
 	    continue;
 	}
 
-	sess->status = pj_stun_sock_start(sess->stun_sock, &hostpart,
+	status = pj_stun_sock_start(sess->stun_sock, &hostpart,
 					  port, pjsua_var.resolver);
-	if (sess->status != PJ_SUCCESS) {
+	if (status != PJ_SUCCESS) {
 	    char errmsg[PJ_ERR_MSG_SIZE];
-	    pj_strerror(sess->status, errmsg, sizeof(errmsg));
+	    pj_strerror(status, errmsg, sizeof(errmsg));
 	    PJ_LOG(4,(THIS_FILE, 
 		     "Error starting STUN socket for %s: %s",
 		     target, errmsg));
@@ -1287,8 +1349,9 @@ static void resolve_stun_entry(pjsua_stun_resolve *sess)
 
     if (sess->idx >= sess->count) {
 	/* No more entries to try */
-	PJ_ASSERT_ON_FAIL(sess->status != PJ_SUCCESS, 
-			  sess->status = PJ_EUNKNOWN);
+	pj_assert(status != PJ_SUCCESS || sess->status != PJ_EPENDING);
+        if (sess->status == PJ_EPENDING)
+            sess->status = status;
 	stun_resolve_complete(sess);
     }
 
@@ -1339,7 +1402,18 @@ PJ_DEF(pj_status_t) pjsua_resolve_stun_servers( unsigned count,
 	return PJ_SUCCESS;
 
     while (sess->status == PJ_EPENDING) {
-	pjsua_handle_events(50);
+        /* If there is no worker thread or
+         * the function is called from the only worker thread,
+         * we have to handle the events here.
+         */
+        if (pjsua_var.thread[0] == NULL ||
+            (pj_thread_this() == pjsua_var.thread[0] &&
+             pjsua_var.ua_cfg.thread_cnt == 1))
+            {
+            pjsua_handle_events(50);
+        } else {
+            pj_thread_sleep(20);
+        }
     }
 
     status = sess->status;
@@ -1425,10 +1499,18 @@ pj_status_t resolve_stun_server(pj_bool_t wait)
 	 */
 	if (wait) {
 	    while (pjsua_var.stun_status == PJ_EPENDING) {
-		if (pjsua_var.thread[0] == NULL)
+                /* If there is no worker thread or
+                 * the function is called from the only worker thread,
+                 * we have to handle the events here.
+                 */
+		if (pjsua_var.thread[0] == NULL ||
+                    (pj_thread_this() == pjsua_var.thread[0] &&
+                     pjsua_var.ua_cfg.thread_cnt == 1))
+                {
 		    pjsua_handle_events(10);
-		else
+                } else {
 		    pj_thread_sleep(10);
+                }
 	    }
 	}
     }
@@ -1463,21 +1545,7 @@ PJ_DEF(pj_status_t) pjsua_destroy2(unsigned flags)
     }
 
     /* Signal threads to quit: */
-    pjsua_var.thread_quit_flag = 1;
-
-    /* Wait worker threads to quit: */
-    for (i=0; i<(int)pjsua_var.ua_cfg.thread_cnt; ++i) {
-	if (pjsua_var.thread[i]) {
-	    pj_status_t status;
-	    status = pj_thread_join(pjsua_var.thread[i]);
-	    if (status != PJ_SUCCESS) {
-		PJ_PERROR(4,(THIS_FILE, status, "Error joining worker thread"));
-		pj_thread_sleep(1000);
-	    }
-	    pj_thread_destroy(pjsua_var.thread[i]);
-	    pjsua_var.thread[i] = NULL;
-	}
-    }
+    pjsua_stop_worker_threads();
     
     if (pjsua_var.endpt) {
 	unsigned max_wait;
@@ -1487,6 +1555,14 @@ PJ_DEF(pj_status_t) pjsua_destroy2(unsigned flags)
 	/* Terminate all calls. */
 	if ((flags & PJSUA_DESTROY_NO_TX_MSG) == 0) {
 	    pjsua_call_hangup_all();
+	}
+
+	/* Deinit media channel of all calls (see #1717) */
+	for (i=0; i<(int)pjsua_var.ua_cfg.max_calls; ++i) {
+	    /* TODO: check if we're not allowed to send to network in the
+	     *       "flags", and if so do not do TURN allocation...
+	     */
+	    pjsua_media_channel_deinit(i);
 	}
 
 	/* Set all accounts to offline */
@@ -1499,9 +1575,6 @@ PJ_DEF(pj_status_t) pjsua_destroy2(unsigned flags)
 
 	/* Terminate all presence subscriptions. */
 	pjsua_pres_shutdown(flags);
-
-	/* Destroy media (to shutdown media transports etc) */
-	pjsua_media_subsys_destroy(flags);
 
 	/* Wait for sometime until all publish client sessions are done
 	 * (ticket #364)
@@ -1606,6 +1679,9 @@ PJ_DEF(pj_status_t) pjsua_destroy2(unsigned flags)
 
 	PJ_LOG(4,(THIS_FILE, "Destroying..."));
 
+	/* Destroy media (to shutdown media endpoint, etc) */
+	pjsua_media_subsys_destroy(flags);
+
 	/* Must destroy endpoint first before destroying pools in
 	 * buddies or accounts, since shutting down transaction layer
 	 * may emit events which trigger some buddy or account callbacks
@@ -1635,6 +1711,11 @@ PJ_DEF(pj_status_t) pjsua_destroy2(unsigned flags)
     if (pjsua_var.mutex) {
 	pj_mutex_destroy(pjsua_var.mutex);
 	pjsua_var.mutex = NULL;
+    }
+    
+    if (pjsua_var.timer_mutex) {
+        pj_mutex_destroy(pjsua_var.timer_mutex);
+        pjsua_var.timer_mutex = NULL;
     }
 
     /* Destroy pool and pool factory. */
@@ -2674,7 +2755,7 @@ PJ_DEF(pj_status_t) pjsua_verify_url(const char *c_url)
     pjsip_uri *p;
     pj_pool_t *pool;
     char *url;
-    int len = (c_url ? pj_ansi_strlen(c_url) : 0);
+    pj_size_t len = (c_url ? pj_ansi_strlen(c_url) : 0);
 
     if (!len) return PJSIP_EINVALIDURI;
 
@@ -2698,7 +2779,7 @@ PJ_DEF(pj_status_t) pjsua_verify_sip_url(const char *c_url)
     pjsip_uri *p;
     pj_pool_t *pool;
     char *url;
-    int len = (c_url ? pj_ansi_strlen(c_url) : 0);
+    pj_size_t len = (c_url ? pj_ansi_strlen(c_url) : 0);
 
     if (!len) return PJSIP_EINVALIDURI;
 

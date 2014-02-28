@@ -1,4 +1,4 @@
-/* $Id: sha1.c 3549 2011-05-05 05:10:06Z nanang $ */
+/* $Id: sha1.c 4537 2013-06-19 06:47:43Z riza $ */
 /*
  * Modified 2/07
  * By Benny Prijono <benny@prijono.org>
@@ -209,8 +209,9 @@ PJ_DEF(void) pj_sha1_update(pj_sha1_context* context,
     pj_size_t i, j;
 
     j = (context->count[0] >> 3) & 63;
-    if ((context->count[0] += len << 3) < (len << 3)) context->count[1]++;
-    context->count[1] += (len >> 29);
+    if ((context->count[0] += (pj_uint32_t)len << 3) < (len << 3)) 
+	context->count[1]++;
+    context->count[1] += ((pj_uint32_t)len >> 29);
     if ((j + len) > 63) {
         pj_memcpy(&context->buffer[j], data, (i = 64-j));
         SHA1_Transform(context->state, context->buffer);

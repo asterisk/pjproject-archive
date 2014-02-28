@@ -1,4 +1,4 @@
-/* $Id: avi_dev.c 4086 2012-04-26 02:44:41Z ming $ */
+/* $Id: avi_dev.c 4537 2013-06-19 06:47:43Z riza $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -628,7 +628,7 @@ static pj_status_t avi_dev_strm_get_frame(pjmedia_vid_dev_stream *strm,
             return status;
 
         return pjmedia_vid_codec_decode(stream->adi->codec, 1, &enc_frame,
-                                        frame->size, frame);
+                                        (unsigned)frame->size, frame);
     } else {
         return pjmedia_port_get_frame(stream->adi->vid, frame);
     }

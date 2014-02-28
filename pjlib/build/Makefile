@@ -38,6 +38,7 @@ export PJLIB_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 	ssl_sock_common.o ssl_sock_ossl.o ssl_sock_dump.o \
 	string.o timer.o types.o
 export PJLIB_CFLAGS += $(_CFLAGS)
+export PJLIB_CXXFLAGS += $(_CXXFLAGS)
 export PJLIB_LDFLAGS += $(_LDFLAGS)
 
 ###############################################################################
@@ -53,6 +54,7 @@ export TEST_OBJS += activesock.o atomic.o echo_clt.o errno.o exception.o \
 		    udp_echo_srv_sync.o udp_echo_srv_ioqueue.o \
 		    util.o
 export TEST_CFLAGS += $(_CFLAGS)
+export TEST_CXXFLAGS += $(_CXXFLAGS)
 export TEST_LDFLAGS += $(PJLIB_LDLIB) $(_LDFLAGS)
 export TEST_EXE := pjlib-test-$(TARGET_NAME)$(HOST_EXE)
 
@@ -64,7 +66,9 @@ export CC_OUT CC AR RANLIB HOST_MV HOST_RM HOST_RMDIR HOST_MKDIR OBJEXT LD LDOUT
 # $(TARGET) is defined in os-$(OS_NAME).mak file in current directory.
 #
 
-all: $(TARGETS)
+all: $(TARGETS) $(TARGETS_EXE)
+
+lib: $(TARGETS)
 
 doc:
 	cd .. && rm -rf docs/$(PJ_VERSION) && doxygen docs/doxygen.cfg

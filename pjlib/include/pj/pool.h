@@ -1,4 +1,4 @@
-/* $Id: pool.h 4298 2012-11-22 05:00:01Z nanang $ */
+/* $Id: pool.h 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -856,7 +856,7 @@ struct pj_caching_pool
     /**
      * Internal pool.
      */
-    char	    pool_buf[256 * (sizeof(long) / 4)];
+    char	    pool_buf[256 * (sizeof(size_t) / 4)];
 
     /**
      * Mutex.

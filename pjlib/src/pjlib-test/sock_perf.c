@@ -1,4 +1,4 @@
-/* $Id: sock_perf.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sock_perf.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -44,7 +44,7 @@
  * buf_size size packets as fast as possible.
  */
 static int sock_producer_consumer(int sock_type,
-                                  unsigned buf_size,
+                                  pj_size_t buf_size,
                                   unsigned loop, 
                                   unsigned *p_bandwidth)
 {
@@ -54,7 +54,7 @@ static int sock_producer_consumer(int sock_type,
     pj_timestamp start, stop;
     unsigned i;
     pj_highprec_t elapsed, bandwidth;
-    pj_size_t total_received;
+    pj_highprec_t total_received;
     pj_status_t rc;
 
     /* Create pool. */

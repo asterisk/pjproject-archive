@@ -1,4 +1,4 @@
-/* $Id: sip_util.c 4173 2012-06-20 10:39:05Z ming $ */
+/* $Id: sip_util.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -274,7 +274,7 @@ static void init_request_throw( pjsip_endpoint *endpt,
 	body->content_type.subtype = str_PLAIN;
 	body->data = pj_pool_alloc(tdata->pool, param_text->slen );
 	pj_memcpy(body->data, param_text->ptr, param_text->slen);
-	body->len = param_text->slen;
+	body->len = (unsigned)param_text->slen;
 	body->print_body = &pjsip_print_text_body;
 	msg->body = body;
     }
@@ -1201,6 +1201,28 @@ static void stateless_send_transport_cb( void *token,
         }
 	via->rport_param = pjsip_cfg()->endpt.disable_rport ? -1 : 0;
 
+	/* Add/remove "alias" param to/from Via header on connection 
+	 * oriented/less transport, if configured.
+	 */
+	if (pjsip_cfg()->endpt.req_has_via_alias &&
+	    tdata->msg->type == PJSIP_REQUEST_MSG)
+	{
+	    const pj_str_t ALIAS_STR = {"alias", 5};
+	    pjsip_param *alias_param;
+	    pj_bool_t is_datagram;
+
+	    alias_param = pjsip_param_find(&via->other_param, &ALIAS_STR);
+	    is_datagram = (stateless_data->cur_transport->flag & 
+			   PJSIP_TRANSPORT_DATAGRAM);
+	    if (!is_datagram && !alias_param) {
+		alias_param = PJ_POOL_ZALLOC_T(tdata->pool, pjsip_param);
+		alias_param->name = ALIAS_STR;
+		pj_list_push_back(&via->other_param, alias_param);
+	    } else if (is_datagram && alias_param) {
+		pj_list_erase(alias_param);
+	    }
+	}
+
 	pjsip_tx_data_invalidate_msg(tdata);
 
 	/* Send message using this transport. */
@@ -1279,7 +1301,7 @@ stateless_send_resolver_callback( pj_status_t status,
 	}
 
 	/* Check if request message is larger than 1300 bytes. */
-	len = tdata->buf.cur - tdata->buf.start;
+	len = (int)(tdata->buf.cur - tdata->buf.start);
 	if (len >= PJSIP_UDP_SIZE_THRESHOLD) {
 	    int i;
 	    int count = tdata->dest_info.addr.count;

@@ -1,4 +1,4 @@
-# $Id: transfer-unattended.py 4188 2012-06-29 09:01:17Z nanang $
+# $Id: transfer-unattended.py 4724 2014-01-31 08:52:09Z nanang $
 #
 import inc_const as const
 
@@ -25,6 +25,6 @@ PJSUA_EXPECTS = [
 		 [2, "", "200"],
 		 [0, const.MEDIA_ACTIVE, ""],
 		 [2, const.MEDIA_ACTIVE, ""],
-		 [1, "call transfered successfully", ""],
+		 [1, "call transferred successfully", ""],
 		 [1, const.STATE_DISCONNECTED, ""]
 		]

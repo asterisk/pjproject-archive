@@ -1,4 +1,4 @@
-/* $Id: sip_multipart.c 3841 2011-10-24 09:28:13Z ming $ */
+/* $Id: sip_multipart.c 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -109,7 +109,7 @@ static int multipart_print_body(struct pjsip_msg_body *msg_body,
 	    }
 	    pj_memcpy(p, ctype_hdr.ptr, ctype_hdr.slen);
 	    p += ctype_hdr.slen;
-	    p += pjsip_media_type_print(p, end-p, media);
+	    p += pjsip_media_type_print(p, (unsigned)(end-p), media);
 	    *p++ = '\r';
 	    *p++ = '\n';
 
@@ -168,7 +168,7 @@ static int multipart_print_body(struct pjsip_msg_body *msg_body,
 
 #undef SIZE_LEFT
 
-    return p - buf;
+    return (int)(p - buf);
 }
 
 static void* multipart_clone_data(pj_pool_t *pool, const void *data,
@@ -489,7 +489,7 @@ static pjsip_multipart_part *parse_multipart_part(pj_pool_t *pool,
 
     if (start_body < end) {
 	part->body->data = start_body;
-	part->body->len = end - start_body;
+	part->body->len = (unsigned)(end - start_body);
     } else {
 	part->body->data = (void*)"";
 	part->body->len = 0;

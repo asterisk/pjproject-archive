@@ -1,4 +1,4 @@
-/* $Id: rtcp.c 4283 2012-10-12 06:19:32Z ming $ */
+/* $Id: rtcp.c 4712 2014-01-23 08:09:29Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -84,6 +84,7 @@ PJ_DEF(pj_status_t) pjmedia_rtcp_get_ntp_time(const pjmedia_rtcp_session *sess,
 
 
 #if (defined(PJ_WIN32) && PJ_WIN32!=0) || \
+    (defined(PJ_WIN64) && PJ_WIN64!=0) || \
     (defined(PJ_WIN32_WINCE) && PJ_WIN32_WINCE!=0)
 
     /* On Win32, since we use QueryPerformanceCounter() as the backend
@@ -286,7 +287,6 @@ PJ_DEF(void) pjmedia_rtcp_rx_rtp2(pjmedia_rtcp_session *sess,
     pj_uint32_t arrival;
     pj_int32_t transit;
     pjmedia_rtp_status seq_st;
-    unsigned last_seq;
 
 #if !defined(PJMEDIA_HAS_RTCP_XR) || (PJMEDIA_HAS_RTCP_XR == 0)
     PJ_UNUSED_ARG(discarded);
@@ -301,7 +301,6 @@ PJ_DEF(void) pjmedia_rtcp_rx_rtp2(pjmedia_rtcp_session *sess,
     sess->stat.rx.bytes += payload;
 
     /* Process the RTP packet. */
-    last_seq = sess->seq_ctrl.max_seq;
     pjmedia_rtp_seq_update(&sess->seq_ctrl, (pj_uint16_t)seq, &seq_st);
 
     if (seq_st.status.flag.restart) {
@@ -806,7 +805,6 @@ PJ_DEF(void) pjmedia_rtcp_build_rtcp(pjmedia_rtcp_session *sess,
 				     void **ret_p_pkt, int *len)
 {
     pj_uint32_t expected, expected_interval, received_interval, lost_interval;
-    pjmedia_rtcp_common *common;
     pjmedia_rtcp_sr *sr;
     pjmedia_rtcp_rr *rr;
     pj_timestamp ts_now;
@@ -827,7 +825,6 @@ PJ_DEF(void) pjmedia_rtcp_build_rtcp(pjmedia_rtcp_session *sess,
 	/* So we should send RTCP SR */
 	*ret_p_pkt = (void*) &sess->rtcp_sr_pkt;
 	*len = sizeof(pjmedia_rtcp_sr_pkt);
-	common = &sess->rtcp_sr_pkt.common;
 	rr = &sess->rtcp_sr_pkt.rr;
 	sr = &sess->rtcp_sr_pkt.sr;
 
@@ -858,7 +855,6 @@ PJ_DEF(void) pjmedia_rtcp_build_rtcp(pjmedia_rtcp_session *sess,
 	/* We should send RTCP RR then */
 	*ret_p_pkt = (void*) &sess->rtcp_rr_pkt;
 	*len = sizeof(pjmedia_rtcp_rr_pkt);
-	common = &sess->rtcp_rr_pkt.common;
 	rr = &sess->rtcp_rr_pkt.rr;
 	sr = NULL;
     }
@@ -963,7 +959,7 @@ PJ_DEF(pj_status_t) pjmedia_rtcp_build_rtcp_sdes(
 {
     pjmedia_rtcp_common *hdr;
     pj_uint8_t *p;
-    unsigned len;
+    pj_size_t len;
 
     PJ_ASSERT_RETURN(session && buf && length && sdes, PJ_EINVAL);
 
@@ -1036,7 +1032,7 @@ PJ_DEF(pj_status_t) pjmedia_rtcp_build_rtcp_bye(pjmedia_rtcp_session *session,
 {
     pjmedia_rtcp_common *hdr;
     pj_uint8_t *p;
-    unsigned len;
+    pj_size_t len;
 
     PJ_ASSERT_RETURN(session && buf && length, PJ_EINVAL);
 

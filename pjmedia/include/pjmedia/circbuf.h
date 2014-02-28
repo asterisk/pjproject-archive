@@ -1,4 +1,4 @@
-/* $Id: circbuf.h 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: circbuf.h 4537 2013-06-19 06:47:43Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -216,7 +216,8 @@ PJ_INLINE(void) pjmedia_circ_buf_get_read_regions(pjmedia_circ_buf *circbuf,
     *reg1 = circbuf->start;
     *reg1_len = circbuf->len;
     if (*reg1 + *reg1_len > circbuf->buf + circbuf->capacity) {
-	*reg1_len = circbuf->buf + circbuf->capacity - circbuf->start;
+	*reg1_len = (unsigned)(circbuf->buf + circbuf->capacity - 
+			       circbuf->start);
 	*reg2 = circbuf->buf;
 	*reg2_len = circbuf->len - *reg1_len;
     } else {
@@ -252,9 +253,9 @@ PJ_INLINE(void) pjmedia_circ_buf_get_write_regions(pjmedia_circ_buf *circbuf,
 	*reg1 -= circbuf->capacity;
     *reg1_len = circbuf->capacity - circbuf->len;
     if (*reg1 + *reg1_len > circbuf->buf + circbuf->capacity) {
-	*reg1_len = circbuf->buf + circbuf->capacity - *reg1;
+	*reg1_len = (unsigned)(circbuf->buf + circbuf->capacity - *reg1);
 	*reg2 = circbuf->buf;
-	*reg2_len = circbuf->start - circbuf->buf;
+	*reg2_len = (unsigned)(circbuf->start - circbuf->buf);
     } else {
 	*reg2 = NULL;
 	*reg2_len = 0;

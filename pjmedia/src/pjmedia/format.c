@@ -1,4 +1,4 @@
-/* $Id: format.c 4158 2012-06-06 09:56:14Z nanang $ */
+/* $Id: format.c 4736 2014-02-06 11:06:42Z bennylp $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -140,7 +140,7 @@ PJ_DEF(void) pjmedia_format_init_video( pjmedia_format *fmt,
 	    vafp.size = fmt->det.vid.size;
 	    vfi->apply_fmt(vfi, &vafp);
 
-	    bps = vafp.framebytes * fps_num * (pj_size_t)8 / fps_denum;
+	    bps = (pj_uint32_t)vafp.framebytes * fps_num * (pj_size_t)8 / fps_denum;
 	    fmt->det.vid.avg_bps = fmt->det.vid.max_bps = bps;
         }
     }
@@ -172,7 +172,7 @@ static pj_status_t apply_packed_fmt(const pjmedia_video_format_info *fi,
 
     /* Packed formats only use 1 plane */
     aparam->planes[0] = aparam->buffer;
-    aparam->strides[0] = stride;
+    aparam->strides[0] = (int)stride;
     aparam->plane_bytes[0] = aparam->framebytes;
 
     /* Zero unused planes */
@@ -321,7 +321,6 @@ pjmedia_get_video_format_info(pjmedia_video_format_mgr *mgr,
 			      pj_uint32_t id)
 {
     pjmedia_video_format_info **first;
-    int		 comp;
     unsigned	 n;
 
     if (!mgr)
@@ -330,7 +329,6 @@ pjmedia_get_video_format_info(pjmedia_video_format_mgr *mgr,
     PJ_ASSERT_RETURN(mgr != NULL, NULL);
 
     /* Binary search for the appropriate format id */
-    comp = -1;
     first = &mgr->infos[0];
     n = mgr->info_cnt;
     for (; n > 0; ) {
