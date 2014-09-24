@@ -1,4 +1,4 @@
-/* $Id: alsa_dev.c 4613 2013-10-08 09:08:13Z bennylp $ */
+/* $Id: alsa_dev.c 4818 2014-04-16 07:15:50Z bennylp $ */
 /*
  * Copyright (C) 2009-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2007-2009 Keystream AB and Konftel AB, All rights reserved.
@@ -43,7 +43,7 @@
 #define ALSASOUND_CAPTURE  		2
 #define MAX_SOUND_CARDS 		5
 #define MAX_SOUND_DEVICES_PER_CARD 	5
-#define MAX_DEVICES			16
+#define MAX_DEVICES			32
 
 /* Set to 1 to enable tracing */
 #if 0

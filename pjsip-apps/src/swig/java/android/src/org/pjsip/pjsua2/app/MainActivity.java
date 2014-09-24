@@ -1,4 +1,4 @@
-/* $Id: MainActivity.java 4734 2014-02-05 09:32:57Z nanang $ */
+/* $Id: MainActivity.java 4870 2014-07-03 09:43:19Z bennylp $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -173,9 +173,6 @@ public class MainActivity extends Activity implements Handler.Callback, MyAppObs
 				m2.sendToTarget();
 			}
 			
-			if (ci.getState() == pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED)
-				currentCall = null;
-			
 		} else if (m.what == MSG_TYPE.BUDDY_STATE) {
 			
 			MyBuddy buddy = (MyBuddy) m.obj;
@@ -210,10 +207,14 @@ public class MainActivity extends Activity implements Handler.Callback, MyAppObs
 			
 			/* Only one call at anytime */
 			if (currentCall != null) {
+				/*
 				prm.setStatusCode(pjsip_status_code.PJSIP_SC_BUSY_HERE);
 				try {
 					call.hangup(prm);
 				} catch (Exception e) {}
+				*/
+				// TODO: set status code
+				call.delete();
 				return true;
 			}
 
@@ -242,7 +243,7 @@ public class MainActivity extends Activity implements Handler.Callback, MyAppObs
 		LayoutInflater li = LayoutInflater.from(this);
 		View view = li.inflate(R.layout.dlg_account_config, null);
 		
-		if (!lastRegStatus.isEmpty()) {
+		if (lastRegStatus.length()!=0) {
 			TextView tvInfo = (TextView)view.findViewById(R.id.textViewInfo);
 			tvInfo.setText("Last status: " + lastRegStatus);
 		}
@@ -287,12 +288,12 @@ public class MainActivity extends Activity implements Handler.Callback, MyAppObs
 			    	accCfg.getRegConfig().setRegistrarUri(registrar);
 					AuthCredInfoVector creds = accCfg.getSipConfig().getAuthCreds();
 					creds.clear();
-					if (!username.isEmpty()) {
+					if (username.length() != 0) {
 						creds.add(new AuthCredInfo("Digest", "*", username, 0, password));
 					}
 					StringVector proxies = accCfg.getSipConfig().getProxies();
 					proxies.clear();
-					if (!proxy.isEmpty()) {
+					if (proxy.length() != 0) {
 						proxies.add(proxy);
 					}
 					
@@ -339,7 +340,7 @@ public class MainActivity extends Activity implements Handler.Callback, MyAppObs
 		try {
 			call.makeCall(buddy_uri, prm);
 		} catch (Exception e) {
-			currentCall = null;
+			call.delete();
 			return;
 		}
 		
@@ -493,6 +494,12 @@ public class MainActivity extends Activity implements Handler.Callback, MyAppObs
 		}
 		Message m = Message.obtain(handler, MSG_TYPE.CALL_STATE, ci);
 		m.sendToTarget();
+		
+		if (ci != null &&
+			ci.getState() == pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED)
+		{
+			currentCall = null;
+		}
 	}
 	
 	public void notifyBuddyState(MyBuddy buddy) {

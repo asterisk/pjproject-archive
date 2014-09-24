@@ -1,4 +1,4 @@
-/* $Id: exception.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: exception.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -120,7 +120,7 @@ static int test(void)
      * No exception situation.
      */
     PJ_TRY {
-        rc = rc;
+        PJ_UNUSED_ARG(rc);
     }
     PJ_CATCH_ANY {
         rc = -3;

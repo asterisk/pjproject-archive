@@ -1,4 +1,4 @@
-/* $Id: pjsua_call.c 4750 2014-02-19 04:11:43Z bennylp $ */
+/* $Id: pjsua_call.c 4856 2014-06-05 05:04:42Z bennylp $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -420,7 +420,7 @@ on_make_call_med_tp_complete(pjsua_call_id call_id,
 
     /* Create the INVITE session: */
     options |= PJSIP_INV_SUPPORT_100REL;
-    if (acc->cfg.require_100rel)
+    if (acc->cfg.require_100rel == PJSUA_100REL_MANDATORY)
 	options |= PJSIP_INV_REQUIRE_100REL;
     if (acc->cfg.use_timer != PJSUA_SIP_TIMER_INACTIVE) {
 	options |= PJSIP_INV_SUPPORT_TIMER;
@@ -516,7 +516,13 @@ on_error:
     if (inv == NULL && call_id != -1 && !cb_called &&
 	pjsua_var.ua_cfg.cb.on_call_state)
     {
-        (*pjsua_var.ua_cfg.cb.on_call_state)(call_id, NULL);
+	/* Use user event rather than NULL to avoid crash in
+	 * unsuspecting app.
+	 */
+	pjsip_event user_event;
+	PJSIP_EVENT_INIT_USER(user_event, 0, 0, 0, 0);
+
+        (*pjsua_var.ua_cfg.cb.on_call_state)(call_id, &user_event);
     }
 
     if (dlg) {
@@ -1375,7 +1381,9 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
 		 * a response message and terminate the invite here.
 		 */
 		pjsip_dlg_respond(dlg, rdata, sip_err_code, NULL, NULL, NULL);
-		pjsip_inv_terminate(call->inv, sip_err_code, PJ_FALSE);
+		if (call->inv && call->inv->dlg) {
+		    pjsip_inv_terminate(call->inv, sip_err_code, PJ_FALSE);
+		}
 		call->inv = NULL;
 		call->async_call.dlg = NULL;
 		goto on_return;
@@ -1383,7 +1391,9 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
 	} else if (status != PJ_EPENDING) {
 	    pjsua_perror(THIS_FILE, "Error initializing media channel", status);
 	    pjsip_dlg_respond(dlg, rdata, sip_err_code, NULL, NULL, NULL);
-	    pjsip_inv_terminate(call->inv, sip_err_code, PJ_FALSE);
+	    if (call->inv && call->inv->dlg) {
+		pjsip_inv_terminate(call->inv, sip_err_code, PJ_FALSE);
+	    }
 	    call->inv = NULL;
 	    call->async_call.dlg = NULL;
 	    goto on_return;

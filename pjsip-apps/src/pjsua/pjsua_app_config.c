@@ -1,4 +1,4 @@
-/* $Id: pjsua_app_config.c 4729 2014-02-04 13:13:02Z bennylp $ */
+/* $Id: pjsua_app_config.c 4868 2014-07-02 18:07:12Z bennylp $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -118,7 +118,6 @@ static void usage(void)
     puts  ("  --tls-verify-server Verify server's certificate (default=no)");
     puts  ("  --tls-verify-client Verify client's certificate (default=no)");
     puts  ("  --tls-neg-timeout   Specify TLS negotiation timeout (default=no)");
-    puts  ("  --tls-srv-name      Specify TLS server name for multihosting server");
     puts  ("  --tls-cipher        Specify prefered TLS cipher (optional).");
     puts  ("                      May be specified multiple times");
 #endif
@@ -1645,7 +1644,7 @@ static void write_account_settings(int acc_index, pj_str_t *result)
     }
 
     /* 100rel extension */
-    if (acc_cfg->require_100rel) {
+    if (acc_cfg->require_100rel == PJSUA_100REL_MANDATORY) {
 	pj_strcat2(result, "--use-100rel\n");
     }
 
@@ -2155,7 +2154,7 @@ int write_settings(pjsua_app_config *config, char *buf, pj_size_t max)
     /* SIP extensions. */
     pj_strcat2(&cfg, "\n#\n# SIP extensions:\n#\n");
     /* 100rel extension */
-    if (config->cfg.require_100rel) {
+    if (config->cfg.require_100rel == PJSUA_100REL_MANDATORY) {
 	pj_strcat2(&cfg, "--use-100rel\n");
     }
     /* Session Timer extension */

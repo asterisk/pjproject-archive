@@ -1,4 +1,4 @@
-/* $Id: sip_transport.c 4713 2014-01-23 08:13:11Z nanang $ */
+/* $Id: sip_transport.c 4865 2014-06-26 10:39:35Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -77,6 +77,13 @@ static pjsip_module mod_msg_print =
     NULL,				/* on_tsx_state()		    */
 };
 
+/* Transport list item */
+typedef struct transport
+{
+    PJ_DECL_LIST_MEMBER(struct transport);
+    pjsip_transport *tp;
+} transport;
+
 /*
  * Transport manager.
  */
@@ -97,6 +104,12 @@ struct pjsip_tpmgr
      * is destroyed.
      */
     pjsip_tx_data    tdata_list;
+    
+    /* List of transports which are NOT stored in the hash table, so
+     * that it can be properly cleaned up when transport manager
+     * is destroyed.
+     */
+    transport        tp_list;
 };
 
 
@@ -1027,8 +1040,19 @@ PJ_DEF(pj_status_t) pjsip_transport_register( pjsip_tpmgr *mgr,
     /* If entry already occupied, unregister previous entry */
     hval = 0;
     entry = pj_hash_get(mgr->table, &tp->key, key_len, &hval);
-    if (entry != NULL)
+    if (entry != NULL) {
+        transport *tp_ref;
+        
+        tp_ref = PJ_POOL_ZALLOC_T(((pjsip_transport *)entry)->pool, transport);
+        
+        /*
+         * Add transport to the list before removing it from the hash table.
+         * See ticket #1774 for more details.
+         */
+        tp_ref->tp = (pjsip_transport *)entry;
+        pj_list_push_back(&mgr->tp_list, tp_ref);
 	pj_hash_set(NULL, mgr->table, &tp->key, key_len, hval, NULL);
+    }
 
     /* Register new entry */
     pj_hash_set(tp->pool, mgr->table, &tp->key, key_len, hval, tp);
@@ -1074,8 +1098,19 @@ static pj_status_t destroy_transport( pjsip_tpmgr *mgr,
     key_len = sizeof(tp->key.type) + tp->addr_len;
     hval = 0;
     entry = pj_hash_get(mgr->table, &tp->key, key_len, &hval);
-    if (entry == (void*)tp)
+    if (entry == (void*)tp) {
 	pj_hash_set(NULL, mgr->table, &tp->key, key_len, hval, NULL);
+    } else {
+        /* If not found in hash table, remove from the tranport list. */
+        transport *tp_iter = mgr->tp_list.next;
+        while (tp_iter != &mgr->tp_list) {
+            if (tp_iter->tp == tp) {
+                pj_list_erase(tp_iter);
+                break;
+            }
+            tp_iter = tp_iter->next;
+        }
+    }
 
     pj_lock_release(mgr->lock);
 
@@ -1091,6 +1126,7 @@ PJ_DEF(pj_status_t) pjsip_transport_shutdown(pjsip_transport *tp)
 {
     pjsip_tpmgr *mgr;
     pj_status_t status;
+    pjsip_tp_state_callback state_cb;
 
     TRACE_((THIS_FILE, "Transport %s shutting down", tp->obj_name));
 
@@ -1111,7 +1147,17 @@ PJ_DEF(pj_status_t) pjsip_transport_shutdown(pjsip_transport *tp)
     /* Instruct transport to shutdown itself */
     if (tp->do_shutdown)
 	status = tp->do_shutdown(tp);
-    
+
+    /* Notify application of transport shutdown */
+    state_cb = pjsip_tpmgr_get_state_cb(tp->tpmgr);
+    if (state_cb) {
+	pjsip_transport_state_info state_info;
+
+	pj_bzero(&state_info, sizeof(state_info));
+	state_info.status = status;
+        (*state_cb)(tp, PJSIP_TP_STATE_SHUTDOWN, &state_info);
+    }
+
     if (status == PJ_SUCCESS)
 	tp->is_shutdown = PJ_TRUE;
 
@@ -1133,8 +1179,19 @@ PJ_DEF(pj_status_t) pjsip_transport_shutdown(pjsip_transport *tp)
  */
 PJ_DEF(pj_status_t) pjsip_transport_destroy( pjsip_transport *tp)
 {
+    pjsip_tp_state_callback state_cb;
+
     /* Must have no user. */
     PJ_ASSERT_RETURN(pj_atomic_get(tp->ref_cnt) == 0, PJSIP_EBUSY);
+
+    /* Notify application of transport destroy */
+    state_cb = pjsip_tpmgr_get_state_cb(tp->tpmgr);
+    if (state_cb) {
+	pjsip_transport_state_info state_info;
+
+	pj_bzero(&state_info, sizeof(state_info));
+        (*state_cb)(tp, PJSIP_TP_STATE_DESTROY, &state_info);
+    }
 
     /* Destroy. */
     return destroy_transport(tp->tpmgr, tp);
@@ -1236,6 +1293,7 @@ PJ_DEF(pj_status_t) pjsip_tpmgr_create( pj_pool_t *pool,
     mgr->on_tx_msg = tx_cb;
     pj_list_init(&mgr->factory_list);
     pj_list_init(&mgr->tdata_list);
+    pj_list_init(&mgr->tp_list);
 
     mgr->table = pj_hash_create(pool, PJSIP_TPMGR_HTABLE_SIZE);
     if (!mgr->table)
@@ -1269,19 +1327,26 @@ static pj_status_t get_net_interface(pjsip_transport_type_e tp_type,
 {
     int af;
     pj_sockaddr itf_addr;
-    pj_status_t status;
+    pj_status_t status = -1;
 
     af = (tp_type & PJSIP_TRANSPORT_IPV6)? PJ_AF_INET6 : PJ_AF_INET;
-    status = pj_getipinterface(af, dst, &itf_addr, PJ_FALSE, NULL);
-    if (status != PJ_SUCCESS) {
-	/* If it fails, e.g: on WM6 (http://support.microsoft.com/kb/129065),
-	 * just fallback using pj_gethostip(), see ticket #1660.
-	 */
-	PJ_LOG(5,(THIS_FILE,"Warning: unable to determine local "
-			    "interface, fallback to default interface!"));
-	status = pj_gethostip(af, &itf_addr);
-	if (status != PJ_SUCCESS)
-	    return status;
+
+    if (pjsip_cfg()->endpt.resolve_hostname_to_get_interface) {
+	status = pj_getipinterface(af, dst, &itf_addr, PJ_TRUE, NULL);
+    }
+
+    if (status != PJ_SUCCESS) { 
+	status = pj_getipinterface(af, dst, &itf_addr, PJ_FALSE, NULL);
+	if (status != PJ_SUCCESS) {
+	    /* If it fails, e.g: on WM6(http://support.microsoft.com/kb/129065),
+	     * just fallback using pj_gethostip(), see ticket #1660.
+	     */
+	    PJ_LOG(5,(THIS_FILE,"Warning: unable to determine local "
+				"interface, fallback to default interface!"));
+	    status = pj_gethostip(af, &itf_addr);
+	    if (status != PJ_SUCCESS)
+		return status;
+	}
     }
 
     /* Print address */
@@ -1497,7 +1562,7 @@ PJ_DEF(pj_status_t) pjsip_tpmgr_destroy( pjsip_tpmgr *mgr )
     pj_lock_acquire(mgr->lock);
 
     /*
-     * Destroy all transports.
+     * Destroy all transports in the hash table.
      */
     itr = pj_hash_first(mgr->table, &itr_val);
     while (itr != NULL) {
@@ -1513,6 +1578,18 @@ PJ_DEF(pj_status_t) pjsip_tpmgr_destroy( pjsip_tpmgr *mgr )
 	itr = next;
     }
 
+    /*
+     * Destroy transports in the list.
+     */
+    if (!pj_list_empty(&mgr->tp_list)) {
+        transport *tp_iter = mgr->tp_list.next;
+        while (tp_iter != &mgr->tp_list) {
+	    transport *next = tp_iter->next;
+	    destroy_transport(mgr, tp_iter->tp);
+	    tp_iter = next;
+        }
+    }
+    
     /*
      * Destroy all factories/listeners.
      */
@@ -1588,6 +1665,9 @@ PJ_DEF(pj_ssize_t) pjsip_tpmgr_receive_packet( pjsip_tpmgr *mgr,
 
     current_pkt = rdata->pkt_info.packet;
     remaining_len = rdata->pkt_info.len;
+
+    tr->last_recv_len = rdata->pkt_info.len;
+    pj_get_timestamp(&tr->last_recv_ts);
     
     /* Must NULL terminate buffer. This is the requirement of the 
      * parser etc. 

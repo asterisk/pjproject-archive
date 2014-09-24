@@ -1,4 +1,4 @@
-/* $Id: sip_reg.c 4586 2013-09-04 10:07:45Z ming $ */
+/* $Id: sip_reg.c 4876 2014-07-14 04:49:25Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1362,7 +1362,12 @@ PJ_DEF(pj_status_t) pjsip_regc_send(pjsip_regc *regc, pjsip_tx_data *tdata)
 	return PJSIP_EBUSY;
     }
 
-    pj_assert(regc->current_op == REGC_IDLE);
+    /* Just regc->has_tsx check above should be enough. This assertion check
+     * may cause problem, e.g: when regc_tsx_callback() invokes callback,
+     * lock is released and 'has_tsx' is set to FALSE and 'current_op' has
+     * not been updated to REGC_IDLE yet.
+     */
+    //pj_assert(regc->current_op == REGC_IDLE);
 
     /* Invalidate message buffer. */
     pjsip_tx_data_invalidate_msg(tdata);

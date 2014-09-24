@@ -1,4 +1,4 @@
-/* $Id: ssl_sock_dump.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: ssl_sock_dump.c 4910 2014-09-01 06:32:50Z riza $ */
 /* 
  * Copyright (C) 2009-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -63,7 +63,7 @@ PJ_DEF(pj_ssize_t) pj_ssl_cert_info_dump(const pj_ssl_cert_info *ci,
 
     for (i = 0; i < sizeof(ci->serial_no) && !ci->serial_no[i]; ++i);
     for (; i < sizeof(ci->serial_no); ++i) {
-	len = pj_ansi_snprintf(p, end-p, "%02X ", ci->serial_no[i]);
+	len = pj_ansi_snprintf(p, end-p, "%02X ", ci->serial_no[i] & 0xFF);
 	CHECK_BUF_LEN();
     }
     *(p-1) = '\n';

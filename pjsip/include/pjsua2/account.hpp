@@ -1,4 +1,4 @@
-/* $Id: account.hpp 4704 2014-01-16 05:30:46Z ming $ */
+/* $Id: account.hpp 4889 2014-08-18 09:09:18Z bennylp $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -559,6 +559,19 @@ struct AccountNatConfig : public PersistentObject
      *   (PJSUA_CONTACT_REWRITE_NO_UNREG | PJSUA_CONTACT_REWRITE_ALWAYS_UPDATE)
      */
     int			contactRewriteMethod;
+
+    /**
+     * Specify if source TCP port should be used as the initial Contact
+     * address if TCP/TLS transport is used. Note that this feature will
+     * be automatically turned off when nameserver is configured because
+     * it may yield different destination address due to DNS SRV resolution.
+     * Also some platforms are unable to report the local address of the
+     * TCP socket when it is still connecting. In these cases, this
+     * feature will also be turned off.
+     *
+     * Default: 1 (yes).
+     */
+    int			contactUseSrcPort;
 
     /**
      * This option is used to overwrite the "sent-by" field of the Via header

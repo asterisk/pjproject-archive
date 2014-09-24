@@ -1,11 +1,23 @@
 //
 //  ipjsuaAppDelegate.m
 //  ipjsua
-//
-//  Created by Liong Sauw Ming on 13/3/13.
-//  Copyright (c) 2013 Teluu. All rights reserved.
-//
-
+/*
+ * Copyright (C) 2013-2014 Teluu Inc. (http://www.teluu.com)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 #import "ipjsuaAppDelegate.h"
 #import <pjlib.h>
 #import <pjsua.h>
@@ -33,8 +45,8 @@ static pj_thread_t     *a_thread;
 static void displayMsg(const char *msg)
 {
     NSString *str = [NSString stringWithFormat:@"%s", msg];
-    [app performSelectorOnMainThread:@selector(displayMsg:) withObject:str
-                       waitUntilDone:NO];
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{app.viewController.textLabel.text = str;});
 }
 
 static void pjsuaOnStartedCb(pj_status_t status, const char* msg)
@@ -71,11 +83,6 @@ static void pjsuaOnStoppedCb(pj_bool_t restart,
 static void pjsuaOnAppConfigCb(pjsua_app_config *cfg)
 {
     PJ_UNUSED_ARG(cfg);
-}
-
-- (void)displayMsg:(NSString *)str
-{
-    app.viewController.textLabel.text = str;
 }
 
 - (void)pjsuaStart
@@ -213,6 +220,45 @@ pj_bool_t showNotification(pjsua_call_id call_id)
     }
     
     return PJ_FALSE;
+}
+
+void displayWindow(pjsua_vid_win_id wid)
+{
+#if PJSUA_HAS_VIDEO
+    int i, last;
+    
+    i = (wid == PJSUA_INVALID_ID) ? 0 : wid;
+    last = (wid == PJSUA_INVALID_ID) ? PJSUA_MAX_VID_WINS : wid+1;
+    
+    for (;i < last; ++i) {
+	pjsua_vid_win_info wi;
+        
+        if (pjsua_vid_win_get_info(i, &wi) == PJ_SUCCESS) {
+            UIView *parent = app.viewController.view;
+            UIView *view = (__bridge UIView *)wi.hwnd.info.ios.window;
+            
+            if (view && ![view isDescendantOfView:parent]) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    /* Add the video window as subview */
+                    [parent addSubview:view];
+                    
+                    if (!wi.is_native) {
+                        /* Center it horizontally */
+                        view.center = CGPointMake(parent.bounds.size.width/2.0,
+                                              view.bounds.size.height/2.0);
+                    } else {
+                        /* Preview window, move it to the bottom */
+                        view.center = CGPointMake(parent.bounds.size.width/2.0,
+                                                  parent.bounds.size.height-
+                                                  view.bounds.size.height/2.0);
+                    }
+                });
+            }
+        }
+    }
+
+    
+#endif
 }
 
 @end

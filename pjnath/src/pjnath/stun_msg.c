@@ -1,4 +1,4 @@
-/* $Id: stun_msg.c 4712 2014-01-23 08:09:29Z nanang $ */
+/* $Id: stun_msg.c 4895 2014-08-20 10:35:29Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -752,10 +752,10 @@ static pj_uint16_t GETVAL16H(const pj_uint8_t *buf, unsigned pos)
 			  (buf[pos + 1] << 0));
 }
 
-PJ_INLINE(pj_uint16_t) GETVAL16N(const pj_uint8_t *buf, unsigned pos)
+/*unused PJ_INLINE(pj_uint16_t) GETVAL16N(const pj_uint8_t *buf, unsigned pos)
 {
     return pj_htons(GETVAL16H(buf,pos));
-}
+}*/
 
 static void PUTVAL16H(pj_uint8_t *buf, unsigned pos, pj_uint16_t hval)
 {
@@ -771,10 +771,10 @@ PJ_INLINE(pj_uint32_t) GETVAL32H(const pj_uint8_t *buf, unsigned pos)
 			  (buf[pos + 3] <<  0UL));
 }
 
-PJ_INLINE(pj_uint32_t) GETVAL32N(const pj_uint8_t *buf, unsigned pos)
+/*unused PJ_INLINE(pj_uint32_t) GETVAL32N(const pj_uint8_t *buf, unsigned pos)
 {
     return pj_htonl(GETVAL32H(buf,pos));
-}
+}*/
 
 static void PUTVAL32H(pj_uint8_t *buf, unsigned pos, pj_uint32_t hval)
 {
@@ -1137,10 +1137,12 @@ PJ_DEF(pj_status_t) pj_stun_string_attr_init( pj_stun_string_attr *attr,
 					      int attr_type,
 					      const pj_str_t *value)
 {
-    INIT_ATTR(attr, attr_type, 0);
     if (value && value->slen) {
+	INIT_ATTR(attr, attr_type, value->slen);
 	attr->value.slen = value->slen;
 	pj_strdup(pool, &attr->value, value);
+    } else {
+	INIT_ATTR(attr, attr_type, 0);
     }
     return PJ_SUCCESS;
 }

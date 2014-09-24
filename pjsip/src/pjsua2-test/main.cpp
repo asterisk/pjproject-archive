@@ -1,4 +1,4 @@
-/* $Id: main.cpp 4704 2014-01-16 05:30:46Z ming $ */
+/* $Id: main.cpp 4789 2014-03-11 07:00:39Z riza $ */
 /*
  * Copyright (C) 2012 Teluu Inc. (http://www.teluu.com)
  *
@@ -22,7 +22,7 @@ using namespace pj;
 
 int main(int argc, char *argv[])
 {
-    Endpoint &ep = Endpoint::instance();
+    Endpoint ep;
 
     EpConfig epCfg;
 

@@ -1,4 +1,4 @@
-/* $Id: sip_msg.c 4550 2013-07-02 11:45:57Z riza $ */
+/* $Id: sip_msg.c 4849 2014-05-23 03:24:55Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -195,7 +195,7 @@ static int init_status_phrase()
     pj_strset2( &status_phrase[481], "Call/Transaction Does Not Exist");
     pj_strset2( &status_phrase[482], "Loop Detected");
     pj_strset2( &status_phrase[483], "Too Many Hops");
-    pj_strset2( &status_phrase[484], "Address Incompleted");
+    pj_strset2( &status_phrase[484], "Address Incomplete");
     pj_strset2( &status_phrase[485], "Ambiguous");
     pj_strset2( &status_phrase[486], "Busy Here");
     pj_strset2( &status_phrase[487], "Request Terminated");

@@ -1,4 +1,4 @@
-/* $Id: ioqueue_common_abs.c 4601 2013-09-25 04:20:01Z nanang $ */
+/* $Id: ioqueue_common_abs.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -497,13 +497,13 @@ void ioqueue_dispatch_read_event( pj_ioqueue_t *ioqueue, pj_ioqueue_key_t *h )
 
         bytes_read = read_op->size;
 
-	if ((read_op->op == PJ_IOQUEUE_OP_RECV_FROM)) {
+	if (read_op->op == PJ_IOQUEUE_OP_RECV_FROM) {
 	    read_op->op = PJ_IOQUEUE_OP_NONE;
 	    rc = pj_sock_recvfrom(h->fd, read_op->buf, &bytes_read, 
 				  read_op->flags,
 				  read_op->rmt_addr, 
                                   read_op->rmt_addrlen);
-	} else if ((read_op->op == PJ_IOQUEUE_OP_RECV)) {
+	} else if (read_op->op == PJ_IOQUEUE_OP_RECV) {
 	    read_op->op = PJ_IOQUEUE_OP_NONE;
 	    rc = pj_sock_recv(h->fd, read_op->buf, &bytes_read, 
 			      read_op->flags);

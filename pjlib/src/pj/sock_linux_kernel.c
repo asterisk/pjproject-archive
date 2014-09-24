@@ -1,4 +1,4 @@
-/* $Id: sock_linux_kernel.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: sock_linux_kernel.c 4860 2014-06-19 05:07:12Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -35,6 +35,8 @@
 #include <linux/syscalls.h>	/* sys_xxx()	*/
 #include <asm/ioctls.h>		/* FIONBIO	*/
 #include <linux/utsname.h>	/* for pj_gethostname() */
+
+#define THIS_FILE   "sock_linux_kernel.c"
 
 /*
  * Address families conversion.
@@ -623,6 +625,34 @@ PJ_DEF(pj_status_t) pj_sock_setsockopt( pj_sock_t sockfd,
 	return PJ_RETURN_OS_ERROR(-err);
     else
 	return PJ_SUCCESS;
+}
+
+/*
+ * Set socket option.
+ */
+PJ_DEF(pj_status_t) pj_sock_setsockopt_params( pj_sock_t sockfd,
+					       const pj_sockopt_params *params)
+{
+    unsigned int i = 0;
+    pj_status_t retval = PJ_SUCCESS;
+    PJ_CHECK_STACK();
+    PJ_ASSERT_RETURN(params, PJ_EINVAL);
+    
+    for (;i<params->cnt && i<PJ_MAX_SOCKOPT_PARAMS;++i) {
+	pj_status_t status = pj_sock_setsockopt(sockfd, 
+						params->options[i].level,
+						params->options[i].optname,
+						params->options[i].optval, 
+						params->options[i].optlen);
+	if (status != PJ_SUCCESS) {
+	    retval = status;
+	    PJ_PERROR(4,(THIS_FILE, status,
+			 "Warning: error applying sock opt %d",
+			 params->options[i].optname));
+	}
+    }
+
+    return retval;
 }
 
 /*

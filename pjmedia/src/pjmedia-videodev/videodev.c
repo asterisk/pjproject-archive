@@ -1,4 +1,4 @@
-/* $Id: videodev.c 4016 2012-04-04 05:05:50Z bennylp $ */
+/* $Id: videodev.c 4908 2014-08-26 11:01:57Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -95,6 +95,10 @@ pjmedia_vid_dev_factory* pjmedia_qt_factory(pj_pool_factory *pf);
 
 #if PJMEDIA_VIDEO_DEV_HAS_IOS
 pjmedia_vid_dev_factory* pjmedia_ios_factory(pj_pool_factory *pf);
+#endif
+
+#if PJMEDIA_VIDEO_DEV_HAS_OPENGL
+pjmedia_vid_dev_factory* pjmedia_opengl_factory(pj_pool_factory *pf);
 #endif
 
 #define MAX_DRIVERS	16
@@ -376,6 +380,9 @@ PJ_DEF(pj_status_t) pjmedia_vid_dev_subsys_init(pj_pool_factory *pf)
 #endif
 #if PJMEDIA_VIDEO_DEV_HAS_QT
     vid_subsys.drv[vid_subsys.drv_cnt++].create = &pjmedia_qt_factory;
+#endif
+#if PJMEDIA_VIDEO_DEV_HAS_OPENGL
+    vid_subsys.drv[vid_subsys.drv_cnt++].create = &pjmedia_opengl_factory;
 #endif
 #if PJMEDIA_VIDEO_DEV_HAS_IOS
     vid_subsys.drv[vid_subsys.drv_cnt++].create = &pjmedia_ios_factory;

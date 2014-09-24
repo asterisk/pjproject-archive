@@ -10,7 +10,7 @@ ifdef MINSIZE
 MAKE_FLAGS := MINSIZE=1
 endif
 
-all clean dep depend distclean print realclean:
+all clean dep depend print:
 	for dir in $(DIRS); do \
 		if $(MAKE) $(MAKE_FLAGS) -C $$dir $@; then \
 		    true; \
@@ -18,6 +18,17 @@ all clean dep depend distclean print realclean:
 		    exit 1; \
 		fi; \
 	done
+
+distclean realclean:
+	for dir in $(DIRS); do \
+		if $(MAKE) $(MAKE_FLAGS) -C $$dir $@; then \
+		    true; \
+		else \
+		    exit 1; \
+		fi; \
+	done
+	$(HOST_RM) config.log
+	$(HOST_RM) config.status
 
 lib:
 	for dir in $(LIB_DIRS); do \
@@ -29,7 +40,7 @@ lib:
 	done; \
 
 
-.PHONY: lib 
+.PHONY: lib doc
 
 doc:
 	@if test \( ! "$(WWWDIR)" == "" \) -a \( ! -d $(WWWDIR)/pjlib/docs/html \) ; then \
@@ -107,7 +118,8 @@ pjsua-test:
 
 install:
 	mkdir -p $(DESTDIR)$(libdir)/
-	cp -af $(APP_LIB_FILES) $(DESTDIR)$(libdir)/
+#	cp -af $(APP_LIB_FILES) $(DESTDIR)$(libdir)/
+	cp -af $(APP_LIBXX_FILES) $(DESTDIR)$(libdir)/
 	mkdir -p $(DESTDIR)$(includedir)/
 	for d in pjlib pjlib-util pjnath pjmedia pjsip; do \
 		cp -RLf $$d/include/* $(DESTDIR)$(includedir)/; \
@@ -117,8 +129,10 @@ install:
 		sed -e "s!@INCLUDEDIR@!$(includedir)!" | \
 		sed -e "s!@LIBDIR@!$(libdir)!" | \
 		sed -e "s/@PJ_VERSION@/$(PJ_VERSION)/" | \
-		sed -e "s!@PJ_LDLIBS@!$(PJ_LDLIBS)!" | \
-		sed -e "s!@PJ_INSTALL_CFLAGS@!$(PJ_INSTALL_CFLAGS)!" > $(DESTDIR)/$(libdir)/pkgconfig/libpjproject.pc
+		sed -e "s!@PJ_LDLIBS@!!" | \
+		sed -e "s!@PJ_LDXXLIBS@!$(PJ_LDXXLIBS)!" | \
+		sed -e "s!@PJ_INSTALL_CFLAGS@!!" | \
+		sed -e "s!@PJ_INSTALL_CXXFLAGS@!$(PJ_INSTALL_CXXFLAGS)!" > $(DESTDIR)/$(libdir)/pkgconfig/libpjproject.pc
 
 uninstall:
 	$(RM) $(DESTDIR)$(libdir)/pkgconfig/libpjproject.pc

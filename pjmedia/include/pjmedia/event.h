@@ -1,4 +1,4 @@
-/* $Id: event.h 3905 2011-12-09 05:15:39Z ming $ */
+/* $Id: event.h 4815 2014-04-10 10:01:07Z bennylp $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -239,6 +239,11 @@ typedef pj_status_t pjmedia_event_cb(pjmedia_event *event,
  */
 typedef enum pjmedia_event_publish_flag
 {
+    /**
+     * Default flag.
+     */
+    PJMEDIA_EVENT_PUBLISH_DEFAULT,
+
     /**
      * Publisher will only post the event to the event manager. It is the
      * event manager that will later notify all the publisher's subscribers.

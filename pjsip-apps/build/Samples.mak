@@ -45,6 +45,7 @@ SAMPLES := auddemo \
 	   streamutil \
 	   strerror \
 	   tonegen \
+	   vid_codec_test \
 	   vid_streamutil
 
 PJSUA2_SAMPLES := pjsua2_demo
@@ -67,6 +68,7 @@ depend:
 
 clean:
 	$(MAKE) -f $(RULES_MAK) APP=SAMPLE app=sample $@
+	$(MAKE) -f $(RULES_MAK) APP=PJSUA2_SAMPLE app=pjsua2_sample $@
 	$(subst @@,$(EXES),$(HOST_RM))
 	$(subst @@,$(BINDIR),$(HOST_RMDIR))
 

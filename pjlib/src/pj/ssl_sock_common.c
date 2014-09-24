@@ -1,4 +1,4 @@
-/* $Id: ssl_sock_common.c 3999 2012-03-30 07:10:13Z bennylp $ */
+/* $Id: ssl_sock_common.c 4860 2014-06-19 05:07:12Z riza $ */
 /* 
  * Copyright (C) 2009-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -40,6 +40,8 @@ PJ_DEF(void) pj_ssl_sock_param_default(pj_ssl_sock_param *param)
 #endif
     param->qos_type = PJ_QOS_TYPE_BEST_EFFORT;
     param->qos_ignore_error = PJ_TRUE;
+
+    param->sockopt_ignore_error = PJ_TRUE;
 
     /* Security config */
     param->proto = PJ_SSL_SOCK_PROTO_DEFAULT;

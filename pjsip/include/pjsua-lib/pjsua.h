@@ -1,4 +1,4 @@
-/* $Id: pjsua.h 4739 2014-02-11 04:46:49Z riza $ */
+/* $Id: pjsua.h 4889 2014-08-18 09:09:18Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1883,24 +1883,11 @@ PJ_DECL(int) pjsua_handle_events(unsigned msec_timeout);
 
 
 /**
- * Register a thread to poll for events. This function should be
- * called by an external worker thread, and it will block polling
- * for events until the library is destroyed.
- *
- * @return 		PJ_SUCCESS if things are working correctly
- * 			or an error polling cannot be done for some
- * 			reason.
- */
-PJ_DECL(pj_status_t) pjsua_register_worker_thread(const char *name);
-
-
-/**
  * Signal all worker threads to quit. This will only wait until internal
- * threads are done. For external threads, application must perform
- * its own waiting for the external threads to quit from
- * pjsua_register_worker_thread() function.
+ * threads are done.
  */
 PJ_DECL(void) pjsua_stop_worker_threads(void);
+
 
 /**
  * Create memory pool to be used by the application. Once application
@@ -2295,6 +2282,14 @@ typedef struct pjsua_transport_config
      * Default is QoS not set.
      */
     pj_qos_params	qos_params;
+
+    /**
+     * Specify options to be set on the transport. 
+     *
+     * By default there is no options.
+     * 
+     */
+    pj_sockopt_params	sockopt_params;
 
 } pjsua_transport_config;
 
@@ -3058,6 +3053,19 @@ typedef struct pjsua_acc_config
      * (PJSUA_CONTACT_REWRITE_NO_UNREG | PJSUA_CONTACT_REWRITE_ALWAYS_UPDATE)
      */
     int		     contact_rewrite_method;
+
+    /**
+     * Specify if source TCP port should be used as the initial Contact
+     * address if TCP/TLS transport is used. Note that this feature will
+     * be automatically turned off when nameserver is configured because
+     * it may yield different destination address due to DNS SRV resolution.
+     * Also some platforms are unable to report the local address of the
+     * TCP socket when it is still connecting. In these cases, this
+     * feature will also be turned off.
+     *
+     * Default: PJ_TRUE (yes).
+     */
+    pj_bool_t	     contact_use_src_port;
 
     /**
      * This option is used to overwrite the "sent-by" field of the Via header
@@ -6071,6 +6079,29 @@ PJ_DECL(pj_status_t) pjsua_player_get_port(pjsua_player_id id,
 					   pjmedia_port **p_port);
 
 /**
+ * Get additional info about the file player. This operation is not valid
+ * for playlist.
+ *
+ * @param port		The file player ID.
+ * @param info		The info.
+ *
+ * @return		PJ_SUCCESS on success or the appropriate error code.
+ */
+PJ_DECL(pj_status_t) pjsua_player_get_info(pjsua_player_id id,
+                                           pjmedia_wav_player_info *info);
+
+
+/**
+ * Get playback position. This operation is not valid for playlist.
+ *
+ * @param id		The file player ID.
+ *
+ * @return		The current playback position, in samples. On error,
+ * 			return the error code as negative value.
+ */
+PJ_DECL(pj_ssize_t) pjsua_player_get_pos(pjsua_player_id id);
+
+/**
  * Set playback position. This operation is not valid for playlist.
  *
  * @param id		The file player ID.
@@ -6081,7 +6112,6 @@ PJ_DECL(pj_status_t) pjsua_player_get_port(pjsua_player_id id,
  */
 PJ_DECL(pj_status_t) pjsua_player_set_pos(pjsua_player_id id,
 					  pj_uint32_t samples);
-
 
 /**
  * Close the file of playlist, remove the player from the bridge, and free

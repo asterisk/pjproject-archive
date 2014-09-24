@@ -1,4 +1,4 @@
-/* $Id: sip_transaction.c 4630 2013-10-22 10:16:28Z ming $ */
+/* $Id: sip_transaction.c 4839 2014-05-08 09:21:04Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1610,14 +1610,14 @@ PJ_DEF(pj_status_t) pjsip_tsx_terminate( pjsip_transaction *tsx, int code )
 
     PJ_ASSERT_RETURN(code >= 200, PJ_EINVAL);
 
-    if (tsx->state >= PJSIP_TSX_STATE_TERMINATED)
-	return PJ_SUCCESS;
-
     pj_log_push_indent();
 
     pj_grp_lock_acquire(tsx->grp_lock);
-    tsx_set_status_code(tsx, code, NULL);
-    tsx_set_state( tsx, PJSIP_TSX_STATE_TERMINATED, PJSIP_EVENT_USER, NULL);
+
+    if (tsx->state < PJSIP_TSX_STATE_TERMINATED) {
+        tsx_set_status_code(tsx, code, NULL);
+        tsx_set_state( tsx, PJSIP_TSX_STATE_TERMINATED, PJSIP_EVENT_USER, NULL);
+    }
     pj_grp_lock_release(tsx->grp_lock);
 
     pj_log_pop_indent();
@@ -3173,8 +3173,11 @@ static pj_status_t tsx_on_state_completed_uac( pjsip_transaction *tsx,
     pj_assert(tsx->state == PJSIP_TSX_STATE_COMPLETED);
 
     if (event->type == PJSIP_EVENT_TIMER) {
-	/* Must be the timeout timer. */
-	pj_assert(event->body.timer.entry == &tsx->timeout_timer);
+	/* Ignore stray retransmit event
+	 *  https://trac.pjsip.org/repos/ticket/1766
+	 */
+	if (event->body.timer.entry != &tsx->timeout_timer)
+	    return PJ_SUCCESS;
 
 	/* Move to Terminated state. */
 	tsx_set_state( tsx, PJSIP_TSX_STATE_TERMINATED,
@@ -3242,16 +3245,22 @@ static pj_status_t tsx_on_state_confirmed( pjsip_transaction *tsx,
 		  msg->line.req.method.id == PJSIP_INVITE_METHOD);
 
     } else if (event->type == PJSIP_EVENT_TIMER) {
-	/* Must be from timeout_timer_. */
-	pj_assert(event->body.timer.entry == &tsx->timeout_timer);
+	/* Ignore overlapped retransmit timer.
+	 * https://trac.pjsip.org/repos/ticket/1746
+	 */
+	if (event->body.timer.entry == &tsx->retransmit_timer) {
+	    /* Ignore */
+	} else {
+	    /* Must be from timeout_timer_. */
+	    pj_assert(event->body.timer.entry == &tsx->timeout_timer);
 
-	/* Move to Terminated state. */
-	tsx_set_state( tsx, PJSIP_TSX_STATE_TERMINATED,
-                       PJSIP_EVENT_TIMER, &tsx->timeout_timer );
+	    /* Move to Terminated state. */
+	    tsx_set_state( tsx, PJSIP_TSX_STATE_TERMINATED,
+			   PJSIP_EVENT_TIMER, &tsx->timeout_timer );
 
-	/* Transaction has been destroyed. */
-	//return PJSIP_ETSXDESTROYED;
-
+	    /* Transaction has been destroyed. */
+	    //return PJSIP_ETSXDESTROYED;
+	}
     } else {
 	pj_assert(!"Unexpected event");
         return PJ_EBUG;

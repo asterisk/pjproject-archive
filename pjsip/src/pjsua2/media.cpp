@@ -1,4 +1,4 @@
-/* $Id: media.cpp 4708 2014-01-21 10:59:25Z nanang $ */
+/* $Id: media.cpp 4897 2014-08-21 03:33:36Z nanang $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -205,31 +205,26 @@ void AudioMedia::stopTransmit(const AudioMedia &sink) const throw(Error)
 
 void AudioMedia::adjustRxLevel(float level) throw(Error)
 {
-    PJSUA2_CHECK_EXPR( pjsua_conf_adjust_rx_level(id, level) );
+    PJSUA2_CHECK_EXPR( pjsua_conf_adjust_tx_level(id, level) );
 }
 
 void AudioMedia::adjustTxLevel(float level) throw(Error)
 {
-    PJSUA2_CHECK_EXPR( pjsua_conf_adjust_tx_level(id, level) );
+    PJSUA2_CHECK_EXPR( pjsua_conf_adjust_rx_level(id, level) );
 }
 
 unsigned AudioMedia::getRxLevel() const throw(Error)
 {
-    return getSignalLevel(true);
+    unsigned level;
+    PJSUA2_CHECK_EXPR( pjsua_conf_get_signal_level(id, &level, NULL) );
+    return level;
 }
 
 unsigned AudioMedia::getTxLevel() const throw(Error)
 {
-    return getSignalLevel(false);
-}
-
-unsigned AudioMedia::getSignalLevel(bool is_rx) const throw(Error)
-{    
-    unsigned rx_level;
-    unsigned tx_level;
-    
-    PJSUA2_CHECK_EXPR( pjsua_conf_get_signal_level(id, &tx_level, &rx_level) );
-    return is_rx?rx_level:tx_level;
+    unsigned level;
+    PJSUA2_CHECK_EXPR( pjsua_conf_get_signal_level(id, NULL, &level) );
+    return level;
 }
 
 AudioMedia* AudioMedia::typecastFromMedia(Media *media)
@@ -267,6 +262,21 @@ void AudioMediaPlayer::createPlayer(const string &file_name,
 					   options, 
 					   &playerId) );
 
+    /* Register EOF callback */
+    pjmedia_port *port;
+    pj_status_t status;
+
+    status = pjsua_player_get_port(playerId, &port);
+    if (status != PJ_SUCCESS) {
+	pjsua_player_destroy(playerId);
+	PJSUA2_RAISE_ERROR2(status, "AudioMediaPlayer::createPlayer()");
+    }
+    status = pjmedia_wav_player_set_eof_cb(port, this, &eof_cb);
+    if (status != PJ_SUCCESS) {
+	pjsua_player_destroy(playerId);
+	PJSUA2_RAISE_ERROR2(status, "AudioMediaPlayer::createPlayer()");
+    }
+
     /* Get media port id. */
     id = pjsua_player_get_conf_port(playerId);
 
@@ -285,6 +295,7 @@ void AudioMediaPlayer::createPlaylist(const StringVector &file_names,
     pj_str_t pj_files[MAX_FILE_NAMES];
     unsigned i, count = 0;
     pj_str_t pj_lbl = str2Pj(label);
+    pj_status_t status;
 
     count = PJ_ARRAY_SIZE(pj_files);
 
@@ -301,10 +312,48 @@ void AudioMediaPlayer::createPlaylist(const StringVector &file_names,
 					     options, 
 					     &playerId) );
 
+    /* Register EOF callback */
+    pjmedia_port *port;
+    status = pjsua_player_get_port(playerId, &port);
+    if (status != PJ_SUCCESS) {
+	pjsua_player_destroy(playerId);
+	PJSUA2_RAISE_ERROR2(status, "AudioMediaPlayer::createPlaylist()");
+    }
+    status = pjmedia_wav_playlist_set_eof_cb(port, this, &eof_cb);
+    if (status != PJ_SUCCESS) {
+	pjsua_player_destroy(playerId);
+	PJSUA2_RAISE_ERROR2(status, "AudioMediaPlayer::createPlaylist()");
+    }
+
     /* Get media port id. */
     id = pjsua_player_get_conf_port(playerId);
 
     registerMediaPort(NULL);
+}
+
+AudioMediaPlayerInfo AudioMediaPlayer::getInfo() const throw(Error)
+{
+    AudioMediaPlayerInfo info;
+    pjmedia_wav_player_info pj_info;
+
+    PJSUA2_CHECK_EXPR( pjsua_player_get_info(playerId, &pj_info) );
+
+    pj_bzero(&info, sizeof(info));
+    info.formatId 		= pj_info.fmt_id;
+    info.payloadBitsPerSample	= pj_info.payload_bits_per_sample;
+    info.sizeBytes		= pj_info.size_bytes;
+    info.sizeSamples		= pj_info.size_samples;
+
+    return info;
+}
+
+pj_uint32_t AudioMediaPlayer::getPos() const throw(Error)
+{
+    pj_ssize_t pos = pjsua_player_get_pos(playerId);
+    if (pos < 0) {
+	PJSUA2_RAISE_ERROR2(-pos, "AudioMediaPlayer::getPos()");
+    }
+    return (pj_uint32_t)pos;
 }
 
 void AudioMediaPlayer::setPos(pj_uint32_t samples) throw(Error)
@@ -316,6 +365,14 @@ AudioMediaPlayer* AudioMediaPlayer::typecastFromAudioMedia(
 						AudioMedia *media)
 {
     return static_cast<AudioMediaPlayer*>(media);
+}
+
+pj_status_t AudioMediaPlayer::eof_cb(pjmedia_port *port,
+                                     void *usr_data)
+{
+    PJ_UNUSED_ARG(port);
+    AudioMediaPlayer *player = (AudioMediaPlayer*)usr_data;
+    return player->onEof() ? PJ_SUCCESS : PJ_EEOF;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -365,6 +422,169 @@ AudioMediaRecorder* AudioMediaRecorder::typecastFromAudioMedia(
 {
     return static_cast<AudioMediaRecorder*>(media);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+ToneGenerator::ToneGenerator()
+: pool(NULL), tonegen(NULL)
+{
+}
+
+ToneGenerator::~ToneGenerator()
+{
+    if (tonegen) {
+	unregisterMediaPort();
+	pjmedia_port_destroy(tonegen);
+	tonegen = NULL;
+    }
+    if (pool) {
+	pj_pool_release(pool);
+	pool = NULL;
+    }
+}
+
+void ToneGenerator::createToneGenerator(unsigned clock_rate,
+					unsigned channel_count) throw(Error)
+{
+    pj_status_t status;
+
+    if (pool) {
+	PJSUA2_RAISE_ERROR(PJ_EEXISTS);
+    }
+
+    pool = pjsua_pool_create( "tonegen%p", 512, 512);
+    if (!pool) {
+	PJSUA2_RAISE_ERROR(PJ_ENOMEM);
+    }
+
+    status = pjmedia_tonegen_create( pool, clock_rate, channel_count,
+				     clock_rate * 20 / 1000, 16,
+				     0, &tonegen);
+    if (status != PJ_SUCCESS) {
+	PJSUA2_RAISE_ERROR(status);
+    }
+
+    registerMediaPort(tonegen);
+}
+
+bool ToneGenerator::isBusy() const
+{
+    return tonegen && pjmedia_tonegen_is_busy(tonegen) != 0;
+}
+
+void ToneGenerator::stop() throw(Error)
+{
+    pj_status_t status;
+
+    if (!tonegen) {
+	PJSUA2_RAISE_ERROR(PJ_EINVALIDOP);
+    }
+
+    status = pjmedia_tonegen_stop(tonegen);
+    PJSUA2_CHECK_RAISE_ERROR2(status, "ToneGenerator::stop()");
+}
+
+void ToneGenerator::rewind() throw(Error)
+{
+    pj_status_t status;
+
+    if (!tonegen) {
+	PJSUA2_RAISE_ERROR(PJ_EINVALIDOP);
+    }
+
+    status = pjmedia_tonegen_rewind(tonegen);
+    PJSUA2_CHECK_RAISE_ERROR2(status, "ToneGenerator::rewind()");
+}
+
+void ToneGenerator::play(const ToneDescVector &tones,
+                         bool loop) throw(Error)
+{
+    pj_status_t status;
+
+    if (!tonegen) {
+	PJSUA2_RAISE_ERROR(PJ_EINVALIDOP);
+    }
+    if (tones.size() == 0) {
+	PJSUA2_RAISE_ERROR(PJ_EINVAL);
+    }
+
+    status = pjmedia_tonegen_play(tonegen, tones.size(), &tones[0],
+				  loop? PJMEDIA_TONEGEN_LOOP : 0);
+    PJSUA2_CHECK_RAISE_ERROR2(status, "ToneGenerator::play()");
+}
+
+void ToneGenerator::playDigits(const ToneDigitVector &digits,
+                               bool loop) throw(Error)
+{
+    pj_status_t status;
+
+    if (!tonegen) {
+	PJSUA2_RAISE_ERROR(PJ_EINVALIDOP);
+    }
+    if (digits.size() == 0) {
+	PJSUA2_RAISE_ERROR(PJ_EINVAL);
+    }
+
+    status = pjmedia_tonegen_play_digits(tonegen, digits.size(), &digits[0],
+					 loop? PJMEDIA_TONEGEN_LOOP : 0);
+    PJSUA2_CHECK_RAISE_ERROR2(status, "ToneGenerator::playDigits()");
+}
+
+ToneDigitMapVector ToneGenerator::getDigitMap() const throw(Error)
+{
+    const pjmedia_tone_digit_map *pdm;
+    ToneDigitMapVector tdm;
+    unsigned i;
+    pj_status_t status;
+
+    if (!tonegen) {
+	PJSUA2_RAISE_ERROR(PJ_EINVALIDOP);
+    }
+
+    status = pjmedia_tonegen_get_digit_map(tonegen, &pdm);
+    PJSUA2_CHECK_RAISE_ERROR2(status, "ToneGenerator::getDigitMap()");
+
+    for (i=0; i<pdm->count; ++i) {
+	ToneDigitMapDigit d;
+	char str_digit[2];
+
+	str_digit[0] = pdm->digits[i].digit;
+	str_digit[1] = '\0';
+
+	d.digit = str_digit;
+	d.freq1 = pdm->digits[i].freq1;
+	d.freq2 = pdm->digits[i].freq2;
+
+	tdm.push_back(d);
+    }
+
+    return tdm;
+}
+
+void ToneGenerator::setDigitMap(const ToneDigitMapVector &digit_map)
+				throw(Error)
+{
+    unsigned i;
+    pj_status_t status;
+
+    if (!tonegen) {
+	PJSUA2_RAISE_ERROR(PJ_EINVALIDOP);
+    }
+
+    digitMap.count = digit_map.size();
+    if (digitMap.count > PJ_ARRAY_SIZE(digitMap.digits))
+	digitMap.count = PJ_ARRAY_SIZE(digitMap.digits);
+
+    for (i=0; i<digitMap.count; ++i) {
+	digitMap.digits[i].digit = digit_map[i].digit.c_str()[0];
+	digitMap.digits[i].freq1 = (short)digit_map[i].freq1;
+	digitMap.digits[i].freq2 = (short)digit_map[i].freq2;
+    }
+
+    status = pjmedia_tonegen_set_digit_map(tonegen, &digitMap);
+    PJSUA2_CHECK_RAISE_ERROR2(status, "ToneGenerator::setDigitMap()");
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 void AudioDevInfo::fromPj(const pjmedia_aud_dev_info &dev_info)
@@ -475,13 +695,13 @@ void AudDevManager::setPlaybackDev(int playback_dev) const throw(Error)
 const AudioDevInfoVector &AudDevManager::enumDev() throw(Error)
 {
     pjmedia_aud_dev_info pj_info[MAX_DEV_COUNT];
-    unsigned count;
+    unsigned count = MAX_DEV_COUNT;
 
     PJSUA2_CHECK_EXPR( pjsua_enum_aud_devs(pj_info, &count) );
 
     pj_enter_critical_section();
     clearAudioDevList();
-    for (unsigned i = 0; (i<count && i<MAX_DEV_COUNT) ;++i) {
+    for (unsigned i = 0; i<count ;++i) {
 	AudioDevInfo *dev_info = new AudioDevInfo;
 	dev_info->fromPj(pj_info[i]);
 	audioDevList.push_back(dev_info);

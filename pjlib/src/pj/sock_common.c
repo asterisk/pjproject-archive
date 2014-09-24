@@ -1,4 +1,4 @@
-/* $Id: sock_common.c 4538 2013-06-19 09:06:55Z nanang $ */
+/* $Id: sock_common.c 4905 2014-08-26 05:14:13Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -128,7 +128,7 @@ PJ_DEF(pj_status_t) pj_sockaddr_in_set_str_addr( pj_sockaddr_in *addr,
                      (addr->sin_addr.s_addr=PJ_INADDR_NONE, PJ_EINVAL));
 
     PJ_SOCKADDR_RESET_LEN(addr);
-    addr->sin_family = AF_INET;
+    addr->sin_family = PJ_AF_INET;
     pj_bzero(addr->sin_zero, sizeof(addr->sin_zero));
 
     if (str_addr && str_addr->slen) {
@@ -802,7 +802,6 @@ PJ_DEF(pj_status_t) pj_gethostip(int af, pj_sockaddr *addr)
     }
 #else
     PJ_UNUSED_ARG(ai);
-    PJ_UNUSED_ARG(count);
 #endif
 
     /* Get default interface (interface for default route) */
@@ -830,7 +829,7 @@ PJ_DEF(pj_status_t) pj_gethostip(int af, pj_sockaddr *addr)
     /* Enumerate IP interfaces */
     if (cand_cnt < PJ_ARRAY_SIZE(cand_addr)) {
 	unsigned start_if = cand_cnt;
-	unsigned count = PJ_ARRAY_SIZE(cand_addr) - start_if;
+	count = PJ_ARRAY_SIZE(cand_addr) - start_if;
 
 	status = pj_enum_ip_interface(af, &count, &cand_addr[start_if]);
 	if (status == PJ_SUCCESS && count) {

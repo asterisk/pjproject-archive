@@ -1,4 +1,4 @@
-/* $Id: endpoint.c 4739 2014-02-11 04:46:49Z riza $ */
+/* $Id: endpoint.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -34,8 +34,6 @@
 
 #define THIS_FILE   "endpoint.c"
 
-static const pj_str_t STR_AUDIO = { "audio", 5};
-static const pj_str_t STR_VIDEO = { "video", 5};
 static const pj_str_t STR_IN = { "IN", 2 };
 static const pj_str_t STR_IP4 = { "IP4", 3};
 static const pj_str_t STR_IP6 = { "IP6", 3};

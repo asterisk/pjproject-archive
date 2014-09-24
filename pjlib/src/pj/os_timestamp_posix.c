@@ -1,4 +1,4 @@
-/* $Id: os_timestamp_posix.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: os_timestamp_posix.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -125,7 +125,9 @@ PJ_DEF(pj_status_t) pj_get_timestamp_freq(pj_timestamp *freq)
 #include <mach/clock.h>
 #include <errno.h>
 
-#define NSEC_PER_SEC	1000000000
+#ifndef NSEC_PER_SEC
+#	define NSEC_PER_SEC	1000000000
+#endif
 
 PJ_DEF(pj_status_t) pj_get_timestamp(pj_timestamp *ts)
 {

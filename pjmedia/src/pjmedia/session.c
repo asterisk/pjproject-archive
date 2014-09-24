@@ -1,4 +1,4 @@
-/* $Id: session.c 3841 2011-10-24 09:28:13Z ming $ */
+/* $Id: session.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -47,24 +47,6 @@ struct pjmedia_session
 #ifndef PJMEDIA_SESSION_INC
 #   define PJMEDIA_SESSION_INC	1024
 #endif
-
-
-static const pj_str_t ID_AUDIO = { "audio", 5};
-static const pj_str_t ID_VIDEO = { "video", 5};
-static const pj_str_t ID_APPLICATION = { "application", 11};
-static const pj_str_t ID_IN = { "IN", 2 };
-static const pj_str_t ID_IP4 = { "IP4", 3};
-static const pj_str_t ID_IP6 = { "IP6", 3};
-static const pj_str_t ID_RTP_AVP = { "RTP/AVP", 7 };
-static const pj_str_t ID_RTP_SAVP = { "RTP/SAVP", 8 };
-//static const pj_str_t ID_SDP_NAME = { "pjmedia", 7 };
-static const pj_str_t ID_RTPMAP = { "rtpmap", 6 };
-static const pj_str_t ID_TELEPHONE_EVENT = { "telephone-event", 15 };
-
-static const pj_str_t STR_INACTIVE = { "inactive", 8 };
-static const pj_str_t STR_SENDRECV = { "sendrecv", 8 };
-static const pj_str_t STR_SENDONLY = { "sendonly", 8 };
-static const pj_str_t STR_RECVONLY = { "recvonly", 8 };
 
 /*
  * Initialize session info from SDP session descriptors.

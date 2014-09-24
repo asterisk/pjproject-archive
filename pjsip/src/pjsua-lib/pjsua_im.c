@@ -1,4 +1,4 @@
-/* $Id: pjsua_im.c 4712 2014-01-23 08:09:29Z nanang $ */
+/* $Id: pjsua_im.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -68,14 +68,14 @@ static pjsip_module mod_pjsua_im =
 /* MIME constants. */
 static const pj_str_t STR_MIME_APP	   = { "application", 11 };
 static const pj_str_t STR_MIME_ISCOMPOSING = { "im-iscomposing+xml", 18 };
-static const pj_str_t STR_MIME_TEXT	   = { "text", 4 };
-static const pj_str_t STR_MIME_PLAIN	   = { "plain", 5 };
 
 
 /* Check if content type is acceptable */
 #if 0
 static pj_bool_t acceptable_message(const pjsip_media_type *mime)
 {
+    const pj_str_t STR_MIME_TEXT	   = { "text", 4 };
+    const pj_str_t STR_MIME_PLAIN	   = { "plain", 5 };
     return (pj_stricmp(&mime->type, &STR_MIME_TEXT)==0 &&
 	    pj_stricmp(&mime->subtype, &STR_MIME_PLAIN)==0)
 	    ||

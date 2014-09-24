@@ -1,4 +1,4 @@
-/* $Id: pjsua_vid.c 4750 2014-02-19 04:11:43Z bennylp $ */
+/* $Id: pjsua_vid.c 4903 2014-08-25 09:46:06Z nanang $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -73,6 +73,15 @@ pj_status_t pjsua_vid_subsys_init(void)
 	goto on_error;
     }
 
+#if PJMEDIA_HAS_VIDEO && PJMEDIA_HAS_OPENH264_CODEC
+    status = pjmedia_codec_openh264_vid_init(NULL, &pjsua_var.cp.factory);
+    if (status != PJ_SUCCESS) {
+	PJ_PERROR(1,(THIS_FILE, status,
+		     "Error initializing OpenH264 library"));
+	goto on_error;
+    }
+#endif
+
 #if PJMEDIA_HAS_VIDEO && PJMEDIA_HAS_FFMPEG_VID_CODEC
     status = pjmedia_codec_ffmpeg_vid_init(NULL, &pjsua_var.cp.factory);
     if (status != PJ_SUCCESS) {
@@ -131,6 +140,10 @@ pj_status_t pjsua_vid_subsys_destroy(void)
 
 #if PJMEDIA_HAS_FFMPEG_VID_CODEC
     pjmedia_codec_ffmpeg_vid_deinit();
+#endif
+
+#if defined(PJMEDIA_HAS_OPENH264_CODEC) && PJMEDIA_HAS_OPENH264_CODEC != 0
+    pjmedia_codec_openh264_vid_deinit();
 #endif
 
     if (pjmedia_vid_codec_mgr_instance())
@@ -1916,7 +1929,7 @@ static pj_status_t call_change_cap_dev(pjsua_call *call,
     if (status != PJ_SUCCESS)
 	goto on_error;
 
-    if (w->vp_rend) {
+    if (new_w->vp_rend) {
 	/* Start renderer */
 	status = pjmedia_vid_port_start(new_w->vp_rend);
 	if (status != PJ_SUCCESS)
