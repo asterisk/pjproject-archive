@@ -1,4 +1,4 @@
-/* $Id: sip_util.h 4347 2013-02-13 10:19:25Z nanang $ */
+/* $Id: sip_util.h 4888 2014-08-18 08:54:43Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -371,6 +371,21 @@ PJ_DECL(pj_status_t) pjsip_endpt_create_cancel( pjsip_endpoint *endpt,
 						const pjsip_tx_data *tdata,
 						pjsip_tx_data **p_tdata);
 
+/**
+ * Get destination address and port and transport type information for the
+ * specified URI.
+ *
+ * @param target_uri	The destination URI.
+ * @param request_uri	Optional request URI to be considered. May be NULL.
+ * @param pool		Pool to allocate memory from.
+ * @param dest_info	To be filled with destination info.
+ *
+ * @return		PJ_SUCCESS or the appropriate error code.
+ */
+PJ_DECL(pj_status_t) pjsip_get_dest_info(const pjsip_uri *target_uri,
+				 	 const pjsip_uri *request_uri,
+				 	 pj_pool_t *pool,
+				 	 pjsip_host_info *dest_info);
 
 /**
  * Find which destination to be used to send the request message, based

@@ -1,4 +1,4 @@
-/* $Id: alt_pjsua_aud.c 4174 2012-06-21 08:09:53Z bennylp $ */
+/* $Id: alt_pjsua_aud.c 4793 2014-03-14 04:09:50Z bennylp $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -494,6 +494,21 @@ PJ_DEF(pj_status_t) pjsua_player_get_port( pjsua_player_id id,
 {
     UNIMPLEMENTED(pjsua_player_get_port)
     return PJ_ENOTSUP;
+}
+
+/* Get number of bits per sample of the WAV payload */
+PJ_DEF(pj_status_t) pjsua_player_get_info(pjsua_player_id id,
+                                          pjmedia_wav_player_info *info)
+{
+    UNIMPLEMENTED(pjsua_player_get_info)
+    return PJ_ENOTSUP;
+}
+
+/* Get position in samples */
+PJ_DEF(pj_ssize_t) pjsua_player_get_pos(pjsua_player_id id)
+{
+    UNIMPLEMENTED(pjsua_player_get_pos)
+    return -PJ_ENOTSUP;
 }
 
 /* Set playback position. */

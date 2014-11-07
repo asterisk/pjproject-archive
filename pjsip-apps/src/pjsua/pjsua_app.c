@@ -1,4 +1,4 @@
-/* $Id: pjsua_app.c 4724 2014-01-31 08:52:09Z nanang $ */
+/* $Id: pjsua_app.c 4848 2014-05-22 04:52:53Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -44,6 +44,10 @@
 
 #ifdef STEREO_DEMO
 static void stereo_demo();
+#endif
+
+#ifdef USE_GUI
+pj_bool_t showNotification(pjsua_call_id call_id);
 #endif
 
 static void ringback_start(pjsua_call_id call_id);
@@ -2070,12 +2074,12 @@ static void stereo_demo()
 
     /* Create stereo-mono splitter/combiner */
     status = pjmedia_splitcomb_create(app_config.pool, 
-				      conf->info.clock_rate /* clock rate */,
-				      2	    /* stereo */,
-				      2 * conf->info.samples_per_frame,
-				      conf->info.bits_per_sample,
-				      0	    /* options */,
-				      &app_config.sc);
+				PJMEDIA_PIA_SRATE(&conf->info) /* clock rate */,
+				2	    /* stereo */,
+				2 * PJMEDIA_PIA_SPF(&conf->info),
+				PJMEDIA_PIA_BITS(&conf->info),
+				0	    /* options */,
+				&app_config.sc);
     pj_assert(status == PJ_SUCCESS);
 
     /* Connect channel0 (left channel?) to conference port slot0 */
@@ -2101,11 +2105,12 @@ static void stereo_demo()
     
     /* Create sound device */
     status = pjmedia_snd_port_create(app_config.pool, -1, -1, 
-				     conf->info.clock_rate,
+				     PJMEDIA_PIA_SRATE(&conf->info),
 				     2	    /* stereo */,
-				     2 * conf->info.samples_per_frame,
-				     conf->info.bits_per_sample,
+				     2 * PJMEDIA_PIA_SPF(&conf->info),
+				     PJMEDIA_PIA_BITS(&conf->info),
 				     0, &app_config.snd);
+
     pj_assert(status == PJ_SUCCESS);
 
 

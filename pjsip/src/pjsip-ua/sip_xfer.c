@@ -1,4 +1,4 @@
-/* $Id: sip_xfer.c 4713 2014-01-23 08:13:11Z nanang $ */
+/* $Id: sip_xfer.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -79,7 +79,6 @@ PJ_DEF(const pjsip_method*) pjsip_get_refer_method()
 static const pj_str_t STR_REFER = { "refer", 5 };
 static const pj_str_t STR_MESSAGE = { "message", 7 };
 static const pj_str_t STR_SIPFRAG = { "sipfrag", 7 };
-static const pj_str_t STR_SIPFRAG_VERSION = {";version=2.0", 12 };
 
 
 /*

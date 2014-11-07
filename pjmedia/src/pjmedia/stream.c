@@ -1,4 +1,4 @@
-/* $Id: stream.c 4739 2014-02-11 04:46:49Z riza $ */
+/* $Id: stream.c 4816 2014-04-14 08:14:11Z bennylp $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1389,6 +1389,7 @@ static pj_status_t put_frame_imp( pjmedia_port *port,
     if (status != PJ_SUCCESS) {
 	PJ_PERROR(4,(stream->port.info.name.ptr, status,
 		     "Error sending RTP"));
+	return PJ_SUCCESS;
     }
 
     /* Update stat */
@@ -2004,8 +2005,9 @@ PJ_DEF(pj_status_t) pjmedia_stream_create( pjmedia_endpt *endpt,
     PJ_ASSERT_RETURN(stream != NULL, PJ_ENOMEM);
     stream->own_pool = own_pool;
     pj_memcpy(&stream->si, info, sizeof(*info));
-    stream->si.param = pjmedia_codec_param_clone(pool, info->param);
     pj_strdup(pool, &stream->si.fmt.encoding_name, &info->fmt.encoding_name);
+    if (info->param)
+	stream->si.param = pjmedia_codec_param_clone(pool, info->param);
 
     /* Init stream/port name */
     name.ptr = (char*) pj_pool_alloc(pool, M);

@@ -1,4 +1,4 @@
-/* $Id: siptypes.cpp 4761 2014-02-24 09:02:44Z nanang $ */
+/* $Id: siptypes.cpp 4884 2014-08-12 11:50:16Z nanang $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -157,6 +157,7 @@ TlsConfig::TlsConfig()
 pjsip_tls_setting TlsConfig::toPj() const
 {
     pjsip_tls_setting ts;
+    pjsip_tls_setting_default(&ts);
 
     ts.ca_list_file	= str2Pj(this->CaListFile);
     ts.cert_file	= str2Pj(this->certFile);
@@ -260,6 +261,7 @@ void TransportConfig::fromPj(const pjsua_transport_config &prm)
 pjsua_transport_config TransportConfig::toPj() const
 {
     pjsua_transport_config tc;
+    pjsua_transport_config_default(&tc);
 
     tc.port		= this->port;
     tc.port_range	= this->portRange;
@@ -446,6 +448,7 @@ void SipEvent::fromPj(const pjsip_event &ev)
         body.tsxState.prevState = (pjsip_tsx_state_e)
         ev.body.tsx_state.prev_state;
         body.tsxState.tsx.fromPj(*ev.body.tsx_state.tsx);
+        body.tsxState.type = ev.body.tsx_state.type;
         if (body.tsxState.type == PJSIP_EVENT_TX_MSG) {
             if (ev.body.tsx_state.src.tdata)
         	body.tsxState.src.tdata.fromPj(*ev.body.tsx_state.src.tdata);

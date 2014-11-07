@@ -1,4 +1,4 @@
-/* $Id: os_time_common.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: os_time_common.c 4784 2014-03-10 08:58:49Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -23,6 +23,8 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#if !defined(PJ_WIN32) || PJ_WIN32==0
 
 PJ_DEF(pj_status_t) pj_time_decode(const pj_time_val *tv, pj_parsed_time *pt)
 {
@@ -64,6 +66,9 @@ PJ_DEF(pj_status_t) pj_time_encode(const pj_parsed_time *pt, pj_time_val *tv)
 
     return PJ_SUCCESS;
 }
+
+#endif /* !PJ_WIN32 */
+
 
 /**
  * Convert local time to GMT.

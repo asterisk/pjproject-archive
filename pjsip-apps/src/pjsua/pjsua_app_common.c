@@ -1,4 +1,4 @@
-/* $Id: pjsua_app_common.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: pjsua_app_common.c 4848 2014-05-22 04:52:53Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -26,6 +26,10 @@
 #   define SOME_BUF_SIZE	(1024 * 10)
 #else
 #   define SOME_BUF_SIZE	(1024 * 3)
+#endif
+
+#ifdef USE_GUI
+void displayWindow(pjsua_vid_win_id wid);
 #endif
 
 static char some_buf[SOME_BUF_SIZE];
@@ -251,6 +255,11 @@ void arrange_window(pjsua_vid_win_id wid)
 
     if (wid != PJSUA_INVALID_ID)
 	pjsua_vid_win_set_pos(wid, &pos);
+
+#ifdef USE_GUI
+    displayWindow(wid);
+#endif
+
 #else
     PJ_UNUSED_ARG(wid);
 #endif

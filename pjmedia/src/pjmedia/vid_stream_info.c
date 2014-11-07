@@ -1,4 +1,4 @@
-/* $Id: vid_stream_info.c 4257 2012-09-17 03:11:44Z ming $ */
+/* $Id: vid_stream_info.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /*
  * Copyright (C) 2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -32,12 +32,6 @@ static const pj_str_t ID_RTP_AVP = { "RTP/AVP", 7 };
 static const pj_str_t ID_RTP_SAVP = { "RTP/SAVP", 8 };
 //static const pj_str_t ID_SDP_NAME = { "pjmedia", 7 };
 static const pj_str_t ID_RTPMAP = { "rtpmap", 6 };
-
-static const pj_str_t STR_INACTIVE = { "inactive", 8 };
-static const pj_str_t STR_SENDRECV = { "sendrecv", 8 };
-static const pj_str_t STR_SENDONLY = { "sendonly", 8 };
-static const pj_str_t STR_RECVONLY = { "recvonly", 8 };
-
 
 /*
  * Internal function for collecting codec info and param from the SDP media.
@@ -190,6 +184,10 @@ PJ_DEF(pj_status_t) pjmedia_vid_stream_info_from_sdp(
 					   const pjmedia_sdp_session *remote,
 					   unsigned stream_idx)
 {
+    const pj_str_t STR_INACTIVE = { "inactive", 8 };
+    const pj_str_t STR_SENDONLY = { "sendonly", 8 };
+    const pj_str_t STR_RECVONLY = { "recvonly", 8 };
+
     const pjmedia_sdp_attr *attr;
     const pjmedia_sdp_media *local_m;
     const pjmedia_sdp_media *rem_m;

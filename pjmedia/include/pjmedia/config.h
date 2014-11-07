@@ -1,4 +1,4 @@
-/* $Id: config.h 4701 2014-01-03 03:44:05Z nanang $ */
+/* $Id: config.h 4875 2014-07-14 02:37:06Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1281,6 +1281,14 @@
 #   endif
 #endif
 
+/**
+ * Specify if libyuv is available.
+ *
+ * Default: 0 (disable)
+ */
+#ifndef PJMEDIA_HAS_LIBYUV
+#   define PJMEDIA_HAS_LIBYUV				0
+#endif
 
 /**
  * @}

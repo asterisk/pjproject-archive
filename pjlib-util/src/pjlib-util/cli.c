@@ -1350,4 +1350,3 @@ static pj_status_t get_available_cmds(pj_cli_sess *sess,
 
     return status;
 }
-

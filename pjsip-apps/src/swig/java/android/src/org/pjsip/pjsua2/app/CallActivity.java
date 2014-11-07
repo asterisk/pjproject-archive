@@ -1,4 +1,4 @@
-/* $Id: CallActivity.java 4704 2014-01-16 05:30:46Z ming $ */
+/* $Id: CallActivity.java 4840 2014-05-09 08:47:06Z bennylp $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -83,8 +83,6 @@ public class CallActivity extends Activity implements Handler.Callback {
 			} catch (Exception e) {
 				System.out.println(e);
 			}
-
-			MainActivity.currentCall = null;
 		}
 	}
 	
@@ -136,7 +134,6 @@ public class CallActivity extends Activity implements Handler.Callback {
 			} else if (ci.getState() == pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED) {
 				buttonHangup.setText("OK");
 				call_state = "Call disconnected: " + ci.getLastReason();
-				MainActivity.currentCall = null;
 			}
 		}
 		

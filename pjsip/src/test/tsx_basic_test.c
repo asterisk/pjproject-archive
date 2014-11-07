@@ -1,4 +1,4 @@
-/* $Id: tsx_basic_test.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: tsx_basic_test.c 4898 2014-08-21 03:43:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -267,7 +267,7 @@ int tsx_destroy_test()
 	    "normal unable to resolve",
 	    &tsx_create_and_send_req,
 	    "sip:user@somehost",
-	    10000,
+	    15000,
 	    1
 	},
 	{
@@ -275,7 +275,7 @@ int tsx_destroy_test()
 	    &tsx_create_and_send_req,
 	    "sip:user@somehost",
 	    1,
-	    10000
+	    15000
 	},
 	{
 	    "tcp connect and destroy",

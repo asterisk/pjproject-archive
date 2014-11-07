@@ -1,4 +1,4 @@
-/* $Id: timer.c 4567 2013-07-19 06:31:28Z bennylp $ */
+/* $Id: timer.c 4855 2014-06-04 09:23:10Z bennylp $ */
 /* 
  * The PJLIB's timer heap is based (or more correctly, copied and modied)
  * from ACE library by Douglas C. Schmidt. ACE is an excellent OO framework
@@ -328,18 +328,23 @@ static int cancel( pj_timer_heap_t *ht,
   PJ_CHECK_STACK();
 
   // Check to see if the timer_id is out of range
-  if (entry->_timer_id < 0 || (pj_size_t)entry->_timer_id > ht->max_size)
+  if (entry->_timer_id < 0 || (pj_size_t)entry->_timer_id > ht->max_size) {
+    entry->_timer_id = -1;
     return 0;
+  }
 
   timer_node_slot = ht->timer_ids[entry->_timer_id];
 
-  if (timer_node_slot < 0) // Check to see if timer_id is still valid.
+  if (timer_node_slot < 0) { // Check to see if timer_id is still valid.
+    entry->_timer_id = -1;
     return 0;
+  }
 
   if (entry != ht->heap[timer_node_slot])
     {
       if ((flags & F_DONT_ASSERT) == 0)
 	  pj_assert(entry == ht->heap[timer_node_slot]);
+      entry->_timer_id = -1;
       return 0;
     }
   else

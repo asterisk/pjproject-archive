@@ -1,4 +1,4 @@
-/* $Id: stun_sock_test.c 4360 2013-02-21 11:26:35Z bennylp $ */
+/* $Id: stun_sock_test.c 4898 2014-08-21 03:43:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -360,7 +360,7 @@ on_return:
     destroy_server(srv);
     destroy_client(client);
     for (i=0; i<7; ++i)
-	handle_events(cfg, 50);
+	handle_events(cfg, 100);
     return ret;
 }
 
@@ -429,7 +429,7 @@ on_return:
     destroy_server(srv);
     destroy_client(client);
     for (i=0; i<7; ++i)
-	handle_events(cfg, 50);
+	handle_events(cfg, 100);
     return ret;
 }
 
@@ -796,7 +796,7 @@ on_return:
     destroy_server(srv);
     destroy_client(client);
     for (i=0; i<7; ++i)
-	handle_events(cfg, 50);
+	handle_events(cfg, 100);
     return ret;
 }
 

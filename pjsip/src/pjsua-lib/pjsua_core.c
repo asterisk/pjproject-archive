@@ -1,4 +1,4 @@
-/* $Id: pjsua_core.c 4735 2014-02-06 05:09:52Z ming $ */
+/* $Id: pjsua_core.c 4889 2014-08-18 09:09:18Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -289,6 +289,7 @@ PJ_DEF(void) pjsua_acc_config_default(pjsua_acc_config *cfg)
     cfg->srtp_optional_dup_offer = pjsua_var.ua_cfg.srtp_optional_dup_offer;
     cfg->reg_retry_interval = PJSUA_REG_RETRY_INTERVAL;
     cfg->contact_rewrite_method = PJSUA_CONTACT_REWRITE_METHOD;
+    cfg->contact_use_src_port = PJ_TRUE;
     cfg->use_rfc5626 = PJ_TRUE;
     cfg->reg_use_proxy = PJSUA_REG_USE_OUTBOUND_PROXY |
 			 PJSUA_REG_USE_ACC_PROXY;
@@ -699,29 +700,6 @@ static int worker_thread(void *arg)
     return 0;
 }
 
-PJ_DEF(pj_status_t) pjsua_register_worker_thread(const char *name)
-{
-    pj_thread_desc desc;
-    pj_thread_t *thread;
-    pj_status_t status;
-
-    if (pjsua_var.thread_quit_flag)
-	return PJ_EGONE;
-
-    status = pj_thread_register(NULL, desc, &thread);
-    if (status != PJ_SUCCESS)
-	return status;
-
-    if (name)
-	PJ_LOG(4,(THIS_FILE, "Worker thread %s started", name));
-
-    worker_thread(NULL);
-
-    if (name)
-	PJ_LOG(4,(THIS_FILE, "Worker thread %s stopped", name));
-
-    return PJ_SUCCESS;
-}
 
 PJ_DEF(void) pjsua_stop_worker_threads(void)
 {
@@ -797,11 +775,21 @@ PJ_DEF(pj_status_t) pjsua_create(void)
 
     /* Init PJLIB-UTIL: */
     status = pjlib_util_init();
-    PJ_ASSERT_RETURN(status == PJ_SUCCESS, status);
+    if (status != PJ_SUCCESS) {
+	pj_log_pop_indent();
+	pjsua_perror(THIS_FILE, "Failed in initializing pjlib-util", status);
+	pj_shutdown();
+	return status;
+    }
 
     /* Init PJNATH */
     status = pjnath_init();
-    PJ_ASSERT_RETURN(status == PJ_SUCCESS, status);
+    if (status != PJ_SUCCESS) {
+	pj_log_pop_indent();
+	pjsua_perror(THIS_FILE, "Failed in initializing pjnath", status);
+	pj_shutdown();
+	return status;
+    }
 
     /* Set default sound device ID */
     pjsua_var.cap_dev = PJMEDIA_AUD_DEFAULT_CAPTURE_DEV;
@@ -816,15 +804,21 @@ PJ_DEF(pj_status_t) pjsua_create(void)
 
     /* Create memory pool for application. */
     pjsua_var.pool = pjsua_pool_create("pjsua", 1000, 1000);
+    if (pjsua_var.pool == NULL) {
+	pj_log_pop_indent();
+	status = PJ_ENOMEM;
+	pjsua_perror(THIS_FILE, "Unable to create pjsua pool", status);
+	pj_shutdown();
+	return status;
+    }
     
-    PJ_ASSERT_RETURN(pjsua_var.pool, PJ_ENOMEM);
-
     /* Create mutex */
     status = pj_mutex_create_recursive(pjsua_var.pool, "pjsua", 
 				       &pjsua_var.mutex);
     if (status != PJ_SUCCESS) {
 	pj_log_pop_indent();
 	pjsua_perror(THIS_FILE, "Unable to create mutex", status);
+	pjsua_destroy();
 	return status;
     }
 
@@ -834,7 +828,12 @@ PJ_DEF(pj_status_t) pjsua_create(void)
     status = pjsip_endpt_create(&pjsua_var.cp.factory, 
 				pj_gethostname()->ptr, 
 				&pjsua_var.endpt);
-    PJ_ASSERT_RETURN(status == PJ_SUCCESS, status);
+    if (status != PJ_SUCCESS) {
+	pj_log_pop_indent();
+	pjsua_perror(THIS_FILE, "Unable to create endpoint", status);
+	pjsua_destroy();
+	return status;
+    }
 
     /* Init timer entry list */
     pj_list_init(&pjsua_var.timer_list);
@@ -845,6 +844,7 @@ PJ_DEF(pj_status_t) pjsua_create(void)
     if (status != PJ_SUCCESS) {
 	pj_log_pop_indent();
 	pjsua_perror(THIS_FILE, "Unable to create mutex", status);
+	pjsua_destroy();
 	return status;
     }
 
@@ -1125,7 +1125,6 @@ PJ_DEF(pj_status_t) pjsua_init( const pjsua_config *ua_cfg,
     return PJ_SUCCESS;
 
 on_error:
-    pjsua_destroy();
     pj_log_pop_indent();
     return status;
 }
@@ -1964,6 +1963,10 @@ static pj_status_t create_sip_udp_sock(int af,
 				&cfg->qos_params, 
 				2, THIS_FILE, "SIP UDP socket");
 
+    /* Apply sockopt, if specified */
+    if (cfg->sockopt_params.cnt)
+	status = pj_sock_setsockopt_params(sock, &cfg->sockopt_params);
+
     /* Bind socket */
     status = pj_sock_bind(sock, &bind_addr, pj_sockaddr_get_len(&bind_addr));
     if (status != PJ_SUCCESS) {
@@ -2186,6 +2189,10 @@ PJ_DEF(pj_status_t) pjsua_transport_create( pjsip_transport_type_e type,
 	pj_memcpy(&tcp_cfg.qos_params, &cfg->qos_params, 
 		  sizeof(cfg->qos_params));
 
+	/* Copy the sockopt */
+	pj_memcpy(&tcp_cfg.sockopt_params, &cfg->sockopt_params,
+		  sizeof(tcp_cfg.sockopt_params));
+	
 	/* Create the TCP transport */
 	status = pjsip_tcp_transport_start3(pjsua_var.endpt, &tcp_cfg, &tcp);
 

@@ -1,4 +1,4 @@
-/* $Id: sdp_neg.c 4712 2014-01-23 08:09:29Z nanang $ */
+/* $Id: sdp_neg.c 4872 2014-07-09 06:43:32Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -502,6 +502,10 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_set_local_answer( pj_pool_t *pool,
     if (local) {
 	neg->neg_local_sdp = pjmedia_sdp_session_clone(pool, local);
 	if (neg->initial_sdp) {
+	    /* Retain initial_sdp value. */
+	    neg->initial_sdp = pjmedia_sdp_session_clone(pool,
+							 neg->initial_sdp);
+        
 	    /* I don't think there is anything in RFC 3264 that mandates
 	     * answerer to place the same origin (and increment version)
 	     * in the answer, but probably it won't hurt either.
@@ -1396,7 +1400,9 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_cancel_offer(pjmedia_sdp_neg *neg)
     neg->neg_local_sdp = neg->neg_remote_sdp = NULL;
     neg->has_remote_answer = PJ_FALSE;
 
-    if (neg->state == PJMEDIA_SDP_NEG_STATE_LOCAL_OFFER) {
+    if (neg->state == PJMEDIA_SDP_NEG_STATE_LOCAL_OFFER &&
+	neg->active_local_sdp) 
+    {
 	/* Increment next version number. This happens if for example
 	 * the reinvite offer is rejected by 488. If we don't increment
 	 * the version here, the next offer will have the same version.

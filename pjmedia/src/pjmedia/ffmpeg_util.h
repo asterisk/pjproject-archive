@@ -1,4 +1,4 @@
-/* $Id: ffmpeg_util.h 3664 2011-07-19 03:42:28Z nanang $ */
+/* $Id: ffmpeg_util.h 4808 2014-04-01 09:47:15Z nanang $ */
 /*
  * Copyright (C) 2010-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -47,9 +47,9 @@ pj_status_t PixelFormat_to_pjmedia_format_id(enum PixelFormat pf,
 					     pjmedia_format_id *fmt_id);
 
 pj_status_t pjmedia_format_id_to_CodecID(pjmedia_format_id fmt_id,
-					 enum CodecID *codec_id);
+					 unsigned *codec_id);
 
-pj_status_t CodecID_to_pjmedia_format_id(enum CodecID codec_id,
+pj_status_t CodecID_to_pjmedia_format_id(unsigned codec_id,
 					 pjmedia_format_id *fmt_id);
 
 #endif /* __PJMEDIA_FFMPEG_UTIL_H__ */

@@ -1,4 +1,4 @@
-/* $Id: transport.h 4345 2013-02-13 07:43:32Z nanang $ */
+/* $Id: transport.h 4811 2014-04-08 07:25:20Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -553,9 +553,8 @@ struct pjmedia_transport_info
  */
 PJ_INLINE(void) pjmedia_transport_info_init(pjmedia_transport_info *info)
 {
-    pj_bzero(&info->sock_info, sizeof(pjmedia_sock_info));
+    pj_bzero(info, sizeof(pjmedia_transport_info));
     info->sock_info.rtp_sock = info->sock_info.rtcp_sock = PJ_INVALID_SOCKET;
-    info->specific_info_cnt = 0;
 }
 
 

@@ -1,4 +1,4 @@
-/* $Id: stun_auth.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: stun_auth.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -149,10 +149,10 @@ PJ_DEF(void) pj_stun_create_key(pj_pool_t *pool,
 }
 
 
-PJ_INLINE(pj_uint16_t) GET_VAL16(const pj_uint8_t *pdu, unsigned pos)
+/*unused PJ_INLINE(pj_uint16_t) GET_VAL16(const pj_uint8_t *pdu, unsigned pos)
 {
     return (pj_uint16_t) ((pdu[pos] << 8) + pdu[pos+1]);
-}
+}*/
 
 
 PJ_INLINE(void) PUT_VAL16(pj_uint8_t *buf, unsigned pos, pj_uint16_t hval)

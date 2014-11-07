@@ -94,12 +94,14 @@ using namespace pj;
 %template(SipMultipartPartVector)	std::vector<pj::SipMultipartPart>;
 %template(BuddyVector)			std::vector<pj::Buddy*>;
 %template(AudioMediaVector)		std::vector<pj::AudioMedia*>;
+%template(ToneDescVector)		std::vector<pj::ToneDesc>;
+%template(ToneDigitVector)		std::vector<pj::ToneDigit>;
+%template(ToneDigitMapVector)	        std::vector<pj::ToneDigitMapDigit>;
 %template(MediaFormatVector)		std::vector<pj::MediaFormat*>;
 %template(AudioDevInfoVector)		std::vector<pj::AudioDevInfo*>;
 %template(CodecInfoVector)		std::vector<pj::CodecInfo*>;
 
 %include "pjsua2/media.hpp"
-%include "pjsua2/endpoint.hpp"
 %include "pjsua2/presence.hpp"
 %include "pjsua2/account.hpp"
 %include "pjsua2/call.hpp"
@@ -109,3 +111,24 @@ using namespace pj;
 %ignore pj::JsonDocument::allocElement;
 %ignore pj::JsonDocument::getPool;
 %include "pjsua2/json.hpp"
+
+// Try force Java GC before destroying the lib:
+// - to avoid late destroy of PJ objects by GC
+// - to avoid destruction of PJ objects from a non-registered GC thread
+#ifdef SWIGJAVA
+%rename(libDestroy_) pj::Endpoint::libDestroy;
+%typemap(javacode) pj::Endpoint %{
+  public void libDestroy(long prmFlags) throws java.lang.Exception {
+	Runtime.getRuntime().gc();
+	libDestroy_(prmFlags);
+  }
+
+  public void libDestroy() throws java.lang.Exception {
+	Runtime.getRuntime().gc();
+	libDestroy_();
+  }
+%}
+#endif
+
+%include "pjsua2/endpoint.hpp"
+

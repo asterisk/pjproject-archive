@@ -1,4 +1,4 @@
-/* $Id: account.cpp 4704 2014-01-16 05:30:46Z ming $ */
+/* $Id: account.cpp 4889 2014-08-18 09:09:18Z bennylp $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -202,6 +202,7 @@ void AccountNatConfig::readObject(const ContainerNode &node) throw(Error)
     NODE_READ_STRING  ( this_node, sipOutboundRegId);
     NODE_READ_UNSIGNED( this_node, udpKaIntervalSec);
     NODE_READ_STRING  ( this_node, udpKaData);
+    NODE_READ_INT     ( this_node, contactUseSrcPort);
 }
 
 void AccountNatConfig::writeObject(ContainerNode &node) const throw(Error)
@@ -232,6 +233,7 @@ void AccountNatConfig::writeObject(ContainerNode &node) const throw(Error)
     NODE_WRITE_STRING  ( this_node, sipOutboundRegId);
     NODE_WRITE_UNSIGNED( this_node, udpKaIntervalSec);
     NODE_WRITE_STRING  ( this_node, udpKaData);
+    NODE_WRITE_INT     ( this_node, contactUseSrcPort);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -397,6 +399,7 @@ void AccountConfig::toPj(pjsua_acc_config &ret) const
 
     ret.allow_contact_rewrite	= natConfig.contactRewriteUse;
     ret.contact_rewrite_method	= natConfig.contactRewriteMethod;
+    ret.contact_use_src_port	= natConfig.contactUseSrcPort;
     ret.allow_via_rewrite	= natConfig.viaRewriteUse;
     ret.allow_sdp_nat_rewrite	= natConfig.sdpNatRewriteUse;
     ret.use_rfc5626		= natConfig.sipOutboundUse;
@@ -558,6 +561,7 @@ void AccountConfig::fromPj(const pjsua_acc_config &prm,
     }
     natConfig.contactRewriteUse	= prm.allow_contact_rewrite;
     natConfig.contactRewriteMethod = prm.contact_rewrite_method;
+    natConfig.contactUseSrcPort	= prm.contact_use_src_port;
     natConfig.viaRewriteUse	= prm.allow_via_rewrite;
     natConfig.sdpNatRewriteUse	= prm.allow_sdp_nat_rewrite;
     natConfig.sipOutboundUse	= prm.use_rfc5626;

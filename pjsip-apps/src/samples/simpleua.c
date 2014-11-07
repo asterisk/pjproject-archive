@@ -1,4 +1,4 @@
-/* $Id: simpleua.c 4051 2012-04-13 08:16:30Z ming $ */
+/* $Id: simpleua.c 4815 2014-04-10 10:01:07Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -385,6 +385,11 @@ int main(int argc, char *argv[])
     status = pjmedia_vid_dev_subsys_init(&cp.factory);
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, 1);
 
+#   if defined(PJMEDIA_HAS_OPENH264_CODEC) && PJMEDIA_HAS_OPENH264_CODEC != 0
+    status = pjmedia_codec_openh264_vid_init(NULL, &cp.factory);
+    PJ_ASSERT_RETURN(status == PJ_SUCCESS, 1);
+#   endif
+
 #  if defined(PJMEDIA_HAS_FFMPEG_VID_CODEC) && PJMEDIA_HAS_FFMPEG_VID_CODEC!=0
     /* Init ffmpeg video codecs */
     status = pjmedia_codec_ffmpeg_vid_init(NULL, &cp.factory);
@@ -575,6 +580,9 @@ int main(int argc, char *argv[])
     /* Deinit ffmpeg codec */
 #   if defined(PJMEDIA_HAS_FFMPEG_VID_CODEC) && PJMEDIA_HAS_FFMPEG_VID_CODEC!=0
     pjmedia_codec_ffmpeg_vid_deinit();
+#   endif
+#   if defined(PJMEDIA_HAS_OPENH264_CODEC) && PJMEDIA_HAS_OPENH264_CODEC != 0
+    pjmedia_codec_openh264_vid_deinit();
 #   endif
 
 #endif

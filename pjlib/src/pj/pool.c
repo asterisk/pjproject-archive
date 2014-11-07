@@ -1,4 +1,4 @@
-/* $Id: pool.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: pool.c 4890 2014-08-19 00:54:34Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -143,7 +143,7 @@ PJ_DEF(void*) pj_pool_allocate_find(pj_pool_t *pool, pj_size_t size)
     pj_assert(p != NULL);
 #if PJ_DEBUG
     if (p == NULL) {
-	p = p;
+	PJ_UNUSED_ARG(p);
     }
 #endif
     return p;

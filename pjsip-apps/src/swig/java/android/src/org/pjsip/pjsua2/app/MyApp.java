@@ -1,4 +1,4 @@
-/* $Id: MyApp.java 4734 2014-02-05 09:32:57Z nanang $ */
+/* $Id: MyApp.java 4870 2014-07-03 09:43:19Z bennylp $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -48,6 +48,14 @@ class MyCall extends Call {
 	@Override
 	public void onCallState(OnCallStateParam prm) {
 		MyApp.observer.notifyCallState(this);
+		try {
+			CallInfo ci = getInfo();
+			if (ci.getState() == pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED) {
+				this.delete();
+			}
+		} catch (Exception e) {
+			return;
+		}
 	}
 	
 	@Override
@@ -100,6 +108,7 @@ class MyAccount extends Account {
 		try {
 			bud.create(this, bud_cfg);
 		} catch (Exception e) {
+			bud.delete();
 			bud = null;
 		}
 		
@@ -116,10 +125,13 @@ class MyAccount extends Account {
 	
 	public void delBuddy(MyBuddy buddy) {
 		buddyList.remove(buddy);
+		buddy.delete();
 	}
 	
 	public void delBuddy(int index) {
+		MyBuddy bud = buddyList.get(index);
 		buddyList.remove(index);
+		bud.delete();
 	}
 	
 	@Override
@@ -167,7 +179,7 @@ class MyBuddy extends Buddy {
 		if (bi.getSubState() == pjsip_evsub_state.PJSIP_EVSUB_STATE_ACTIVE) {
 			if (bi.getPresStatus().getStatus() == pjsua_buddy_status.PJSUA_BUDDY_STATUS_ONLINE) {
 				status = bi.getPresStatus().getStatusText();
-				if (status == null || status.isEmpty()) {
+				if (status == null || status.length()==0) {
 					status = "Online";
 				}
 			} else if (bi.getPresStatus().getStatus() == pjsua_buddy_status.PJSUA_BUDDY_STATUS_OFFLINE) {

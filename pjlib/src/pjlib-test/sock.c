@@ -1,4 +1,4 @@
-/* $Id: sock.c 3841 2011-10-24 09:28:13Z ming $ */
+/* $Id: sock.c 4894 2014-08-20 06:15:23Z bennylp $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -252,7 +252,9 @@ static int parse_test(void)
 	{ "10.0.0.1:abcd", IPv4},   /* port not numeric */
 	{ "10.0.0.1:-1", IPv4},	    /* port contains illegal character */
 	{ "10.0.0.1:123456", IPv4}, /* port too big	*/
-	{ "1.2.3.4.5:80", IPv4},    /* invalid IP */
+	//this actually is fine on my Mac OS 10.9
+	//it will be resolved with gethostbyname() and something is returned!
+	//{ "1.2.3.4.5:80", IPv4},    /* invalid IP */
 	{ "10:0:80", IPv4},	    /* hostname has colon */
 
 #if defined(PJ_HAS_IPV6) && PJ_HAS_IPV6

@@ -1,4 +1,4 @@
-/* $Id: sip_transport.h 4275 2012-10-04 06:11:58Z bennylp $ */
+/* $Id: sip_transport.h 4775 2014-03-04 02:18:51Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -801,6 +801,9 @@ struct pjsip_transport
     pjsip_tpmgr		   *tpmgr;	    /**< Transport manager.	    */
     pj_timer_entry	    idle_timer;	    /**< Timer when ref cnt is zero.*/
 
+    pj_timestamp	    last_recv_ts;   /**< Last time receiving data.  */
+    pj_size_t		    last_recv_len;  /**< Last received data length. */
+
     void		   *data;	    /**< Internal transport data.   */
 
     /**
@@ -1388,9 +1391,15 @@ typedef enum pjsip_transport_state
     PJSIP_TP_STATE_CONNECTED,	    /**< Transport connected, applicable only
 					 to connection-oriented transports
 					 such as TCP and TLS.		    */
-    PJSIP_TP_STATE_DISCONNECTED	    /**< Transport disconnected, applicable
+    PJSIP_TP_STATE_DISCONNECTED,    /**< Transport disconnected, applicable
 					 only to connection-oriented 
 					 transports such as TCP and TLS.    */
+    PJSIP_TP_STATE_SHUTDOWN,        /**< Transport shutdown, either
+                                         due to TCP/TLS disconnect error
+                                         from the network, or when shutdown
+                                         is initiated by PJSIP itself.      */
+    PJSIP_TP_STATE_DESTROY,         /**< Transport destroy, when transport
+                                         is about to be destroyed.          */
 } pjsip_transport_state;
 
 

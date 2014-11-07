@@ -21,7 +21,7 @@ export PJSIP_LIB:=libpjsip-$(TARGET_NAME)$(LIBEXT)
 export PJSIP_UA_LIB:=libpjsip-ua-$(TARGET_NAME)$(LIBEXT)
 export PJSIP_SIMPLE_LIB:=libpjsip-simple-$(TARGET_NAME)$(LIBEXT)
 export PJSUA_LIB_LIB:=libpjsua-$(TARGET_NAME)$(LIBEXT)
-export PJSUA2_LIB_LIB=../lib/libpjsua2-$(TARGET_NAME)$(LIBEXT)
+export PJSUA2_LIB_LIB=libpjsua2-$(TARGET_NAME)$(LIBEXT)
 
 ifeq ($(PJ_SHARED_LIBRARIES),)
 else
@@ -33,7 +33,7 @@ export PJSIP_SIMPLE_SONAME := libpjsip-simple.$(SHLIB_SUFFIX)
 export PJSIP_SIMPLE_SHLIB := $(PJSIP_SIMPLE_SONAME).$(PJ_VERSION_MAJOR)
 export PJSUA_LIB_SONAME := libpjsua.$(SHLIB_SUFFIX)
 export PJSUA_LIB_SHLIB := $(PJSUA_LIB_SONAME).$(PJ_VERSION_MAJOR)
-export PJSUA2_LIB_SONAME := ../lib/libpjsua2.$(SHLIB_SUFFIX)
+export PJSUA2_LIB_SONAME := libpjsua2.$(SHLIB_SUFFIX)
 export PJSUA2_LIB_SHLIB := $(PJSUA2_LIB_SONAME).$(PJ_VERSION_MAJOR)
 endif
 
@@ -141,6 +141,19 @@ export PJSUA2_LIB_OBJS += $(OS_OBJS) $(M_OBJS) $(CC_OBJS) $(HOST_OBJS) \
 			   siptypes.o call.o presence.o media.o
 export PJSUA2_LIB_CFLAGS += $(_CFLAGS) $(PJ_VIDEO_CFLAGS)
 export PJSUA2_LIB_CXXFLAGS = $(PJSUA2_LIB_CFLAGS) 
+export PJSUA2_LIB_LDFLAGS += $(PJSUA_LIB_LDLIB) \
+			     $(PJSIP_UA_LDLIB) \
+			     $(PJSIP_SIMPLE_LDLIB) \
+			     $(PJSIP_LDLIB) \
+			     $(PJMEDIA_AUDIODEV_LDLIB) \
+			     $(PJMEDIA_VIDEODEV_LDLIB) \
+			     $(PJMEDIA_CODEC_LDLIB) \
+			     $(PJMEDIA_LDLIB) \
+			     $(PJNATH_LDLIB) \
+			     $(PJLIB_UTIL_LDLIB) \
+			     $(PJLIB_LDLIB) \
+			     $(_LDFLAGS) \
+			     -lstdc++
 
 
 ###############################################################################
@@ -309,7 +322,7 @@ depend:
 	$(MAKE) -f $(RULES_MAK) APP=TEST app=pjsip-test $@
 	$(MAKE) -f $(RULES_MAK) APP=PJSUA2_TEST app=pjsua2-test $@
 	echo '$(BINDIR)/$(TEST_EXE): $(PJMEDIA_LIB) $(LIBDIR)/$(PJSUA_LIB_LIB) $(LIBDIR)/$(PJSIP_SIMPLE_LIB) $(LIBDIR)/$(PJSIP_UA_LIB) $(LIBDIR)/$(PJSIP_LIB) $(PJNATH_LIB) $(PJLIB_UTIL_LIB) $(PJLIB_LIB)' >> .pjsip-test-$(TARGET_NAME).depend
-	echo '$(BINDIR)/$(PJSUA2_TEST_EXE): $(PJSUA2_LIB_LIB) $(PJMEDIA_LIB) $(LIBDIR)/$(PJSUA_LIB_LIB) $(LIBDIR)/$(PJSIP_SIMPLE_LIB) $(LIBDIR)/$(PJSIP_UA_LIB) $(LIBDIR)/$(PJSIP_LIB) $(PJNATH_LIB) $(PJLIB_UTIL_LIB) $(PJLIB_LIB)' >> .pjsua2-test-$(TARGET_NAME).depend
+	echo '$(BINDIR)/$(PJSUA2_TEST_EXE): $(LIBDIR)/$(PJSUA2_LIB_LIB) $(PJMEDIA_LIB) $(LIBDIR)/$(PJSUA_LIB_LIB) $(LIBDIR)/$(PJSIP_SIMPLE_LIB) $(LIBDIR)/$(PJSIP_UA_LIB) $(LIBDIR)/$(PJSIP_LIB) $(PJNATH_LIB) $(PJLIB_UTIL_LIB) $(PJLIB_LIB)' >> .pjsua2-test-$(TARGET_NAME).depend
 
 realclean:
 	$(subst @@,$(subst /,$(HOST_PSEP),.pjsip-$(TARGET_NAME).depend),$(HOST_RMR))

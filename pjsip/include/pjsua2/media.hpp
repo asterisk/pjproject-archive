@@ -1,4 +1,4 @@
-/* $Id: media.hpp 4740 2014-02-12 04:54:12Z bennylp $ */
+/* $Id: media.hpp 4845 2014-05-19 05:51:10Z bennylp $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -308,13 +308,37 @@ protected:
 private:
     pj_caching_pool 	 mediaCachingPool;
     pj_pool_t 		*mediaPool;
-
-private:
-    unsigned getSignalLevel(bool is_rx = true) const throw(Error);
 };
 
 /** Array of Audio Media */
 typedef std::vector<AudioMedia*> AudioMediaVector;
+
+/**
+ * This structure contains additional info about AudioMediaPlayer.
+ */
+struct AudioMediaPlayerInfo
+{
+    /**
+     * Format ID of the payload.
+     */
+    pjmedia_format_id	formatId;
+
+    /**
+     * The number of bits per sample of the file payload. For example,
+     * the value is 16 for PCM WAV and 8 for Alaw/Ulas WAV files.
+     */
+    unsigned		payloadBitsPerSample;
+
+    /**
+     * The WAV payload size in bytes.
+     */
+    pj_uint32_t		sizeBytes;
+
+    /**
+     * The WAV payload size in samples.
+     */
+    pj_uint32_t		sizeSamples;
+};
 
 /**
  * Audio Media Player.
@@ -357,7 +381,24 @@ public:
 			unsigned options=0) throw(Error);
 
     /**
-     * Set playback position. This operation is not valid for playlist.
+     * Get additional info about the player. This operation is only valid
+     * for player. For playlist, Error will be thrown.
+     *
+     * @return		the info.
+     */
+    AudioMediaPlayerInfo getInfo() const throw(Error);
+
+    /**
+     * Get current playback position in samples. This operation is not valid
+     * for playlist.
+     *
+     * @return		   Current playback position, in samples.
+     */
+    pj_uint32_t getPos() const throw(Error);
+
+    /**
+     * Set playback position in samples. This operation is not valid for
+     * playlist.
      *
      * @param samples	   The desired playback position, in samples.
      */
@@ -374,9 +415,30 @@ public:
     static AudioMediaPlayer* typecastFromAudioMedia(AudioMedia *media);
 
     /**
-     * Virtual destructor.
+     * Destructor.
      */
     virtual ~AudioMediaPlayer();
+
+public:
+    /*
+     * Callbacks
+     */
+
+    /**
+     * Register a callback to be called when the file player reading has
+     * reached the end of file, or when the file reading has reached the
+     * end of file of the last file for a playlist. If the file or playlist
+     * is set to play repeatedly, then the callback will be called multiple
+     * times.
+     *
+     * @return			If the callback returns false, the playback
+     * 				will stop. Note that if application destroys
+     * 				the player in the callback, it must return
+     * 				false here.
+     */
+    virtual bool onEof()
+    { return true; }
+
 
 private:
     /**
@@ -384,6 +446,11 @@ private:
      */
     int	playerId;
 
+    /**
+     *  Low level PJMEDIA callback
+     */
+    static pj_status_t eof_cb(pjmedia_port *port,
+                              void *usr_data);
 };
 
 /**
@@ -433,7 +500,7 @@ public:
     static AudioMediaRecorder* typecastFromAudioMedia(AudioMedia *media);
 
     /**
-     * Virtual destructor.
+     * Destructor.
      */
     virtual ~AudioMediaRecorder();
 
@@ -443,6 +510,145 @@ private:
      */
     int	recorderId;
 };
+
+/**
+ * Tone descriptor (abstraction for pjmedia_tone_desc)
+ */
+class ToneDesc : public pjmedia_tone_desc
+{
+public:
+    ToneDesc()
+    {
+	pj_bzero(this, sizeof(*this));
+    }
+    ~ToneDesc() {}
+};
+
+/**
+ * Array of tone descriptor.
+ */
+typedef std::vector<ToneDesc> ToneDescVector;
+
+/**
+ * Tone digit (abstraction for pjmedia_tone_digit)
+ */
+class ToneDigit : public pjmedia_tone_digit
+{
+public:
+    ToneDigit()
+    {
+	pj_bzero(this, sizeof(*this));
+    }
+    ~ToneDigit() {}
+};
+
+/**
+ * Array of tone digits.
+ */
+typedef std::vector<ToneDigit> ToneDigitVector;
+
+/**
+ * A digit in tone digit map
+ */
+struct ToneDigitMapDigit
+{
+public:
+    string	digit;
+    int		freq1;
+    int		freq2;
+};
+
+/**
+ * Tone digit map
+ */
+typedef std::vector<ToneDigitMapDigit> ToneDigitMapVector;
+
+/**
+ * Tone generator.
+ */
+class ToneGenerator : public AudioMedia
+{
+public:
+    /**
+     * Constructor.
+     */
+    ToneGenerator();
+
+    /**
+     * Destructor.
+     */
+    ~ToneGenerator();
+
+    /**
+     * Create tone generator.
+     */
+    void createToneGenerator(unsigned clock_rate = 16000,
+			     unsigned channel_count = 1) throw(Error);
+
+    /**
+     * Check if the tone generator is still busy producing some tones.
+     * @return		    Non-zero if busy.
+     */
+    bool isBusy() const;
+
+    /**
+     * Instruct the tone generator to stop current processing.
+     */
+    void stop() throw(Error);
+
+    /**
+     * Rewind the playback. This will start the playback to the first
+     * tone in the playback list.
+     */
+    void rewind() throw(Error);
+
+    /**
+     * Instruct the tone generator to play single or dual frequency tones
+     * with the specified duration. The new tones will be appended to
+     * currently playing tones, unless stop() is called before calling this
+     * function. The playback will begin as soon as the tone generator is
+     * connected to other media.
+     *
+     * @param tones	    Array of tones to be played.
+     * @param loop	    Play the tone in a loop.
+     */
+    void play(const ToneDescVector &tones,
+              bool loop=false) throw(Error);
+
+    /**
+     * Instruct the tone generator to play multiple MF digits with each of
+     * the digits having individual ON/OFF duration. Each of the digit in the
+     * digit array must have the corresponding descriptor in the digit map.
+     * The new tones will be appended to currently playing tones, unless
+     * stop() is called before calling this function. The playback will begin
+     * as soon as the tone generator is connected to a sink media.
+     *
+     * @param digits	    Array of MF digits.
+     * @param loop	    Play the tone in a loop.
+     */
+    void playDigits(const ToneDigitVector &digits,
+                    bool loop=false) throw(Error);
+
+    /**
+     * Get the digit-map currently used by this tone generator.
+     *
+     * @return		    The digitmap currently used by the tone generator
+     */
+    ToneDigitMapVector getDigitMap() const throw(Error);
+
+    /**
+     * Set digit map to be used by the tone generator.
+     *
+     * @param digit_map	    Digitmap to be used by the tone generator.
+     */
+    void setDigitMap(const ToneDigitMapVector &digit_map) throw(Error);
+
+private:
+    pj_pool_t *pool;
+    pjmedia_port *tonegen;
+    pjmedia_tone_digit_map digitMap;
+};
+
 
 /*************************************************************************
 * Sound device management

@@ -1,4 +1,4 @@
-/* $Id: call.hpp 4742 2014-02-12 05:18:31Z bennylp $ */
+/* $Id: call.hpp 4780 2014-03-06 01:02:26Z ming $ */
 /*
  * Copyright (C) 2012-2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -1239,13 +1239,15 @@ public:
     void setHold(const CallOpParam &prm) throw(Error);
     
     /**
-     * Send re-INVITE to release hold.
+     * Send re-INVITE.
      * The final status of the request itself will be reported on the
      * \a onCallMediaState() callback, which inform the application that
      * the media state of the call has changed.
      *
      * @param prm.opt       Optional call setting, if empty, the current call
      *                      setting will remain unchanged.
+     * @param prm.opt.flag  Bitmask of pjsua_call_flag constants. Specifying
+     *                      PJSUA_CALL_UNHOLD here will release call hold.
      * @param prm.txOption  Optional message components to be sent with
      *                      the request.
      */

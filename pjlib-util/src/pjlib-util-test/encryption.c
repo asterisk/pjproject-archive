@@ -1,4 +1,4 @@
-/* $Id: encryption.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: encryption.c 4910 2014-09-01 06:32:50Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -53,7 +53,7 @@ static void digest_to_hex(const pj_uint8_t digest[PJ_SHA1_DIGEST_SIZE],
     
     for (i = 0; i < PJ_SHA1_DIGEST_SIZE/4; i++) {
         for (j = 0; j < 4; j++) {
-            sprintf(c,"%02X", digest[i*4+j]);
+            sprintf(c,"%02X", digest[i*4+j] & 0xFF);
             c += 2;
         }
         sprintf(c, " ");
