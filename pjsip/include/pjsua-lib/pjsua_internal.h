@@ -389,6 +389,9 @@ typedef struct pjsua_timer_list
     void                   *user_data;
 } pjsua_timer_list;
 
+#ifndef PJSIP_TRANSPORT_COUNT
+# define PJSIP_TRANSPORT_COUNT 8
+#endif
 
 /**
  * Global pjsua application data.
@@ -411,7 +414,7 @@ struct pjsua_data
     /* SIP: */
     pjsip_endpoint	*endpt;	    /**< Global endpoint.		*/
     pjsip_module	 mod;	    /**< pjsua's PJSIP module.		*/
-    pjsua_transport_data tpdata[8]; /**< Array of transports.		*/
+    pjsua_transport_data tpdata[PJSIP_TRANSPORT_COUNT]; /**< Array of transports.		*/
     pjsip_tp_state_callback old_tp_cb; /**< Old transport callback.	*/
 
     /* Threading: */
