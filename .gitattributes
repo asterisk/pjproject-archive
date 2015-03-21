@@ -183,6 +183,10 @@ pjsip-apps/src/pjsua/bb10/translations/Makefile -text
 pjsip-apps/src/pjsua/bb10/translations/PjsuaBB.pro -text
 pjsip-apps/src/pjsua/bb10/translations/PjsuaBB.ts -text
 pjsip-apps/src/pjsua/ios/ipjsua.xcodeproj/project.pbxproj -text
+pjsip-apps/src/pjsua/ios/ipjsua.xcworkspace/contents.xcworkspacedata -text
+pjsip-apps/src/pjsua/ios/ipjsua.xcworkspace/xcshareddata/ipjsua.xccheckout -text
+pjsip-apps/src/pjsua/ios/ipjsua.xcworkspace/xcuserdata/perry.xcuserdatad/UserInterfaceState.xcuserstate -text
+pjsip-apps/src/pjsua/ios/ipjsua.xcworkspace/xcuserdata/perry.xcuserdatad/WorkspaceSettings.xcsettings -text
 pjsip-apps/src/pjsua/ios/ipjsua/Default-568h@2x.png -text
 pjsip-apps/src/pjsua/ios/ipjsua/Default.png -text
 pjsip-apps/src/pjsua/ios/ipjsua/Default@2x.png -text
