@@ -158,6 +158,7 @@ pjsip-apps/src/pjsua/android/jni/pjsua_wrap.cpp
 pjsip-apps/src/pjsua/android/jni/pjsua_wrap.h
 pjsip-apps/src/pjsua/android/libs
 pjsip-apps/src/pjsua/android/obj
+pjsip-apps/src/pjsua/android/src/org/pjsip/PjCamera*.java
 pjsip-apps/src/pjsua/android/src/org/pjsip/pjsua/PjsuaAppCallback.java
 pjsip-apps/src/pjsua/android/src/org/pjsip/pjsua/SWIGTYPE*
 pjsip-apps/src/pjsua/android/src/org/pjsip/pjsua/pjsua.java
@@ -187,6 +188,7 @@ pjsip-apps/src/swig/java/android/gen
 pjsip-apps/src/swig/java/android/libs/android-support-*.jar
 pjsip-apps/src/swig/java/android/libs/armeabi/*
 pjsip-apps/src/swig/java/android/obj
+pjsip-apps/src/swig/java/android/src/org/pjsip/PjCamera*.java
 pjsip-apps/src/swig/java/android/src/org/pjsip/pjsua2/*.class
 pjsip-apps/src/swig/java/android/src/org/pjsip/pjsua2/*.java
 pjsip-apps/src/swig/java/output/*
