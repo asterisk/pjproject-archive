@@ -106,8 +106,6 @@ pjmedia/docs/sndtest.jpg -text svneol=unset#image/jpeg
 pjmedia/include/pjmedia-codec/config_auto.h.in eol=lf
 pjmedia/include/pjmedia/config_auto.h.in eol=lf
 pjmedia/src/pjmedia-audiodev/bdimad_dev.c -text
-pjmedia/src/pjmedia-videodev/android/PjCamera.java -text
-pjmedia/src/pjmedia-videodev/android/PjCameraInfo.java -text
 pjmedia/src/test/vectors/g722_1_dec_in_24000_fe.itu -text
 pjmedia/src/test/vectors/g722_1_dec_in_32000_fe.itu -text
 pjmedia/src/test/vectors/g722_1_dec_out_24000.pcm -text
