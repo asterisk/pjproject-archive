@@ -1,4 +1,4 @@
-/* $Id: sip_config.h 4899 2014-08-21 05:58:36Z nanang $ */
+/* $Id: sip_config.h 4924 2014-09-17 12:11:45Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1208,6 +1208,18 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
 #   define PJSIP_HAS_TX_DATA_LIST		0
 #endif
 
+/** 
+ * Specify whether to accept INVITE/re-INVITE with unknown content type,
+ * by default the stack will reject this type of message as specified in 
+ * RFC3261 section 8.2.3.
+ * Application that wishes to process the body could set this to PJ_TRUE,
+ * be informed that SDP offer/answer will still be present.
+ *
+ * Default: PJ_FALSE
+ */
+#ifndef PJSIP_INV_ACCEPT_UNKNOWN_BODY
+#   define PJSIP_INV_ACCEPT_UNKNOWN_BODY    PJ_FALSE
+#endif
 
 PJ_END_DECL
 

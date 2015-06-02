@@ -1,4 +1,4 @@
-/* $Id: avi_player.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: avi_player.c 5046 2015-04-06 06:21:41Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -539,8 +539,7 @@ pjmedia_avi_streams_get_stream(pjmedia_avi_streams *streams,
                                unsigned idx)
 {
     pj_assert(streams);
-    return (idx >=0 && idx < streams->num_streams ?
-            streams->streams[idx] : NULL);
+    return (idx < streams->num_streams ? streams->streams[idx] : NULL);
 }
 
 PJ_DEF(pjmedia_avi_stream *)

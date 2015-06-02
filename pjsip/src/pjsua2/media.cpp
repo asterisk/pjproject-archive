@@ -1,4 +1,4 @@
-/* $Id: media.cpp 4897 2014-08-21 03:33:36Z nanang $ */
+/* $Id: media.cpp 5045 2015-04-06 06:13:51Z nanang $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -217,14 +217,14 @@ unsigned AudioMedia::getRxLevel() const throw(Error)
 {
     unsigned level;
     PJSUA2_CHECK_EXPR( pjsua_conf_get_signal_level(id, &level, NULL) );
-    return level;
+    return level * 100 / 255;
 }
 
 unsigned AudioMedia::getTxLevel() const throw(Error)
 {
     unsigned level;
     PJSUA2_CHECK_EXPR( pjsua_conf_get_signal_level(id, NULL, &level) );
-    return level;
+    return level * 100 / 255;
 }
 
 AudioMedia* AudioMedia::typecastFromMedia(Media *media)
@@ -1004,6 +1004,94 @@ int AudDevManager::getActiveDev(bool is_capture) const throw(Error)
     PJSUA2_CHECK_EXPR( pjsua_get_snd_dev(&capture_dev, &playback_dev) );
 
     return is_capture?capture_dev:playback_dev;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+VideoWindow::VideoWindow(pjsua_vid_win_id win_id)
+: winId(win_id)
+{
+#if !PJSUA_HAS_VIDEO
+    /* Suppress warning of unused field when video is disabled */
+    PJ_UNUSED_ARG(winId);
+#endif
+}
+
+VideoWindowInfo VideoWindow::getInfo() const throw(Error)
+{
+    VideoWindowInfo vwi;
+#if PJSUA_HAS_VIDEO
+    pjsua_vid_win_info pj_vwi;
+    
+    PJSUA2_CHECK_EXPR( pjsua_vid_win_get_info(winId, &pj_vwi) );
+    vwi.isNative = (pj_vwi.is_native != PJ_FALSE);
+    vwi.winHandle.type = pj_vwi.hwnd.type;
+    vwi.winHandle.handle.window = pj_vwi.hwnd.info.window;
+    vwi.renderDeviceId = pj_vwi.rdr_dev;
+    vwi.show = (pj_vwi.show != PJ_FALSE);
+    vwi.pos.x = pj_vwi.pos.x;
+    vwi.pos.y = pj_vwi.pos.y;
+    vwi.size.w = pj_vwi.size.w;
+    vwi.size.h = pj_vwi.size.h;
+    
+#endif
+    return vwi;
+}
+    
+void VideoWindow::Show(bool show) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    PJSUA2_CHECK_EXPR( pjsua_vid_win_set_show(winId, show) );
+#else
+    PJ_UNUSED_ARG(show);
+#endif
+}
+
+void VideoWindow::setPos(const MediaCoordinate &pos) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjmedia_coord pj_pos;
+    
+    pj_pos.x = pos.x;
+    pj_pos.y = pos.y;
+    PJSUA2_CHECK_EXPR( pjsua_vid_win_set_pos(winId, &pj_pos) );
+#else
+    PJ_UNUSED_ARG(pos);
+#endif
+}
+
+void VideoWindow::setSize(const MediaSize &size) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjmedia_rect_size pj_size;
+
+    pj_size.w = size.w;
+    pj_size.h = size.h;
+    PJSUA2_CHECK_EXPR( pjsua_vid_win_set_size(winId, &pj_size) );
+#else
+    PJ_UNUSED_ARG(size);
+#endif
+}
+
+void VideoWindow::rotate(int angle) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    PJSUA2_CHECK_EXPR( pjsua_vid_win_rotate(winId, angle) );
+#else
+    PJ_UNUSED_ARG(angle);
+#endif
+}
+
+void VideoWindow::setWindow(const VideoWindowHandle &win) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjmedia_vid_dev_hwnd vhwnd;
+   
+    vhwnd.type = win.type;
+    vhwnd.info.window = win.handle.window;
+    PJSUA2_CHECK_EXPR( pjsua_vid_win_set_win(winId, &vhwnd) );
+#else
+    PJ_UNUSED_ARG(win);
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

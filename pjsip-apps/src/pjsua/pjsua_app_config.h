@@ -1,4 +1,4 @@
-/* $Id: pjsua_app_config.h 4492 2013-04-23 10:59:52Z nanang $ */
+/* $Id: pjsua_app_config.h 5022 2015-03-25 03:41:21Z nanang $ */
 /*
  * Copyright (C) 2008-2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -29,13 +29,16 @@
 const char *pjsua_app_def_argv[] = { "pjsua",
 				     "--use-cli",
 				     "--no-cli-console",
+				     "--quality=4",
+#if defined(PJMEDIA_HAS_VIDEO) && PJMEDIA_HAS_VIDEO
+			             "--video",
+#endif
 #if defined(PJ_SYMBIAN) && PJ_SYMBIAN
 				     /* Can't reuse address on E52 */
 				     "--cli-telnet-port=0",
 #else
 				     "--cli-telnet-port=2323",
 #endif
-				     "--quality=4",
 #if defined(PJ_CONFIG_BB10) && PJ_CONFIG_BB10
 			             "--add-buddy=sip:169.254.0.2",
 #endif

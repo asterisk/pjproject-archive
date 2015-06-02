@@ -1,4 +1,4 @@
-/* $Id: pjsua_dump.c 4613 2013-10-08 09:08:13Z bennylp $ */
+/* $Id: pjsua_dump.c 4977 2015-01-23 04:00:34Z ming $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -166,11 +166,11 @@ static unsigned dump_media_stat(const char *indent,
 
 	   indent,
 	   stat->tx.loss,
-	   (stat->tx.loss? stat->tx.loss * 100.0 / (stat->tx.pkt + stat->tx.loss) : 0),
+	   (stat->tx.loss? stat->tx.loss * 100.0 / stat->tx.pkt : 0),
 	   stat->tx.dup,
-	   (stat->tx.dup? stat->tx.dup * 100.0 / (stat->tx.pkt + stat->tx.loss) : 0),
+	   (stat->tx.dup? stat->tx.dup * 100.0 / stat->tx.pkt : 0),
 	   stat->tx.reorder,
-	   (stat->tx.reorder? stat->tx.reorder * 100.0 / (stat->tx.pkt + stat->tx.loss) : 0),
+	   (stat->tx.reorder? stat->tx.reorder * 100.0 / stat->tx.pkt : 0),
 
 	   indent, indent,
 	   stat->tx.loss_period.min / 1000.0,

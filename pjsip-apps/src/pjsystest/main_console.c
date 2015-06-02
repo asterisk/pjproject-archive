@@ -1,4 +1,4 @@
-/* $Id: main_console.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: main_console.c 5035 2015-03-27 06:17:27Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -99,7 +99,7 @@ pj_status_t gui_start(gui_menu *menu)
 	choice = menu;
 	while (*p && *p!='\r' && *p!='\n') {
 	    unsigned d = (*p - '0');
-	    if (d < 0 || d >= choice->submenu_cnt) {
+	    if (d >= choice->submenu_cnt) {
 		puts("Invalid selection");
 		choice = NULL;
 		break;

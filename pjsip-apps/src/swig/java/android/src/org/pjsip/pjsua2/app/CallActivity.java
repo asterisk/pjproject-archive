@@ -1,4 +1,4 @@
-/* $Id: CallActivity.java 4840 2014-05-09 08:47:06Z bennylp $ */
+/* $Id: CallActivity.java 5017 2015-03-22 10:22:44Z nanang $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -21,6 +21,8 @@ package org.pjsip.pjsua2.app;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -28,116 +30,180 @@ import android.app.Activity;
 
 import org.pjsip.pjsua2.*;
 
-public class CallActivity extends Activity implements Handler.Callback {
-	
-	public static Handler handler_;
+public class CallActivity extends Activity
+			  implements Handler.Callback, SurfaceHolder.Callback
+{
 
-	private final Handler handler = new Handler(this);
-	private static CallInfo lastCallInfo;
+    public static Handler handler_;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_call);
-		
-		handler_ = handler;
-		if (MainActivity.currentCall != null) {
-			try {
-				lastCallInfo = MainActivity.currentCall.getInfo();
-				updateCallState(lastCallInfo);
-			} catch (Exception e) {
-				System.out.println(e);
-			}
-		} else {
-			updateCallState(lastCallInfo);
-		}
-	}
+    private final Handler handler = new Handler(this);
+    private static CallInfo lastCallInfo;
 
     @Override
-    protected void onDestroy() {
-    	super.onDestroy();
-    	handler_ = null;
+    protected void onCreate(Bundle savedInstanceState)
+    {
+	super.onCreate(savedInstanceState);
+	setContentView(R.layout.activity_call);
+
+	SurfaceView surfaceView = (SurfaceView)
+				  findViewById(R.id.surfaceIncomingVideo);
+	if (MainActivity.currentCall == null ||
+	    MainActivity.currentCall.vidWin == null)
+	{
+	    surfaceView.setVisibility(View.GONE);
+	}
+	surfaceView.getHolder().addCallback(this);
+
+	handler_ = handler;
+	if (MainActivity.currentCall != null) {
+	    try {
+		lastCallInfo = MainActivity.currentCall.getInfo();
+		updateCallState(lastCallInfo);
+	    } catch (Exception e) {
+		System.out.println(e);
+	    }
+	} else {
+	    updateCallState(lastCallInfo);
+	}
     }
-	
-	public void acceptCall(View view) {
-		CallOpParam prm = new CallOpParam();
-		prm.setStatusCode(pjsip_status_code.PJSIP_SC_OK);
-		try {
-			MainActivity.currentCall.answer(prm);
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-		
-		view.setVisibility(View.GONE);
+
+    @Override
+    protected void onDestroy()
+    {
+	super.onDestroy();
+	handler_ = null;
+    }
+
+    private void updateVideoWindow(SurfaceHolder holder)
+    {
+	if (MainActivity.currentCall != null &&
+	    MainActivity.currentCall.vidWin != null)
+	{
+	    VideoWindowHandle vidWH = new VideoWindowHandle();
+	    if (holder == null)
+		vidWH.getHandle().setWindow(null);
+	    else
+		vidWH.getHandle().setWindow(holder.getSurface());
+	    try {
+		MainActivity.currentCall.vidWin.setWindow(vidWH);
+	    } catch (Exception e) {}
+	}
+    }
+
+    public void surfaceChanged(SurfaceHolder holder, int format, int w, int h)
+    {
+	updateVideoWindow(holder);
+    }
+
+    public void surfaceCreated(SurfaceHolder holder)
+    {
+    }
+
+    public void surfaceDestroyed(SurfaceHolder holder)
+    {
+	updateVideoWindow(null);
+    }
+
+    public void acceptCall(View view)
+    {
+	CallOpParam prm = new CallOpParam();
+	prm.setStatusCode(pjsip_status_code.PJSIP_SC_OK);
+	try {
+	    MainActivity.currentCall.answer(prm);
+	} catch (Exception e) {
+	    System.out.println(e);
 	}
 
-	public void hangupCall(View view) {
-		handler_ = null;
-		finish();
-		
-		if (MainActivity.currentCall != null) {
-			CallOpParam prm = new CallOpParam();
-			prm.setStatusCode(pjsip_status_code.PJSIP_SC_DECLINE);
-			try {
-				MainActivity.currentCall.hangup(prm);
-			} catch (Exception e) {
-				System.out.println(e);
-			}
-		}
+	view.setVisibility(View.GONE);
+    }
+
+    public void hangupCall(View view)
+    {
+	handler_ = null;
+	finish();
+
+	if (MainActivity.currentCall != null) {
+	    CallOpParam prm = new CallOpParam();
+	    prm.setStatusCode(pjsip_status_code.PJSIP_SC_DECLINE);
+	    try {
+		MainActivity.currentCall.hangup(prm);
+	    } catch (Exception e) {
+		System.out.println(e);
+	    }
 	}
-	
-	@Override
-	public boolean handleMessage(Message m) {
-		
-		if (m.what == MainActivity.MSG_TYPE.CALL_STATE) {
-			
-			lastCallInfo = (CallInfo) m.obj;
-			updateCallState(lastCallInfo);
-			
-		} else {
-			
-			/* Message not handled */
-			return false;
-			
-		}
-			
-		return true;
+    }
+
+    private void setupVideoSurface()
+    {
+	SurfaceView surfaceView = (SurfaceView)
+				  findViewById(R.id.surfaceIncomingVideo);
+	surfaceView.setVisibility(View.VISIBLE);
+	updateVideoWindow(surfaceView.getHolder());
+    }
+
+    @Override
+    public boolean handleMessage(Message m)
+    {
+	if (m.what == MainActivity.MSG_TYPE.CALL_STATE) {
+
+	    lastCallInfo = (CallInfo) m.obj;
+	    updateCallState(lastCallInfo);
+
+	} else if (m.what == MainActivity.MSG_TYPE.CALL_MEDIA_STATE) {
+
+	    if (MainActivity.currentCall.vidWin != null) {
+		/* If there's incoming video, display it. */
+		setupVideoSurface();
+	    }
+
+	} else {
+
+	    /* Message not handled */
+	    return false;
+
 	}
-	
-	private void updateCallState(CallInfo ci) {
-		TextView tvPeer  = (TextView) findViewById(R.id.textViewPeer);
-		TextView tvState = (TextView) findViewById(R.id.textViewCallState);
-		Button buttonHangup = (Button) findViewById(R.id.buttonHangup);
-		Button buttonAccept = (Button) findViewById(R.id.buttonAccept);
-		String call_state = "";
-		
-		if (ci.getRole() == pjsip_role_e.PJSIP_ROLE_UAC) {
-			buttonAccept.setVisibility(View.GONE);
-		}
-				
-		if (ci.getState().swigValue() < pjsip_inv_state.PJSIP_INV_STATE_CONFIRMED.swigValue())
-		{
-			if (ci.getRole() == pjsip_role_e.PJSIP_ROLE_UAS) {
-				call_state = "Incoming call..";
-				/* Default button texts are already 'Accept' & 'Reject' */
-			} else {
-				buttonHangup.setText("Cancel");
-				call_state = ci.getStateText();
-			}
-		}
-		else if (ci.getState().swigValue() >= pjsip_inv_state.PJSIP_INV_STATE_CONFIRMED.swigValue())
-		{
-			buttonAccept.setVisibility(View.GONE);
-			call_state = ci.getStateText();
-			if (ci.getState() == pjsip_inv_state.PJSIP_INV_STATE_CONFIRMED) {
-				buttonHangup.setText("Hangup");
-			} else if (ci.getState() == pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED) {
-				buttonHangup.setText("OK");
-				call_state = "Call disconnected: " + ci.getLastReason();
-			}
-		}
-		
-		tvPeer.setText(ci.getRemoteUri());
-		tvState.setText(call_state);
+
+	return true;
+    }
+
+    private void updateCallState(CallInfo ci) {
+	TextView tvPeer  = (TextView) findViewById(R.id.textViewPeer);
+	TextView tvState = (TextView) findViewById(R.id.textViewCallState);
+	Button buttonHangup = (Button) findViewById(R.id.buttonHangup);
+	Button buttonAccept = (Button) findViewById(R.id.buttonAccept);
+	String call_state = "";
+
+	if (ci.getRole() == pjsip_role_e.PJSIP_ROLE_UAC) {
+	    buttonAccept.setVisibility(View.GONE);
 	}
+
+	if (ci.getState().swigValue() <
+	    pjsip_inv_state.PJSIP_INV_STATE_CONFIRMED.swigValue())
+	{
+	    if (ci.getRole() == pjsip_role_e.PJSIP_ROLE_UAS) {
+		call_state = "Incoming call..";
+		/* Default button texts are already 'Accept' & 'Reject' */
+	    } else {
+		buttonHangup.setText("Cancel");
+		call_state = ci.getStateText();
+	    }
+	}
+	else if (ci.getState().swigValue() >=
+		 pjsip_inv_state.PJSIP_INV_STATE_CONFIRMED.swigValue())
+	{
+	    buttonAccept.setVisibility(View.GONE);
+	    call_state = ci.getStateText();
+	    if (ci.getState() == pjsip_inv_state.PJSIP_INV_STATE_CONFIRMED) {
+		buttonHangup.setText("Hangup");
+	    } else if (ci.getState() ==
+		       pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED)
+	    {
+		buttonHangup.setText("OK");
+		call_state = "Call disconnected: " + ci.getLastReason();
+	    }
+	}
+
+	tvPeer.setText(ci.getRemoteUri());
+	tvState.setText(call_state);
+    }
 }

@@ -1,4 +1,4 @@
-/* $Id: pjsua_media.c 4860 2014-06-19 05:07:12Z riza $ */
+/* $Id: pjsua_media.c 5048 2015-04-07 02:24:47Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1224,8 +1224,10 @@ static pj_status_t call_media_init_cb(pjsua_call_media *call_med,
     pjmedia_transport_info tpinfo;
     int err_code = 0;
 
-    if (status != PJ_SUCCESS)
+    if (status != PJ_SUCCESS) {
+	err_code = PJSIP_SC_TEMPORARILY_UNAVAILABLE;
         goto on_return;
+    }
 
     pjmedia_transport_simulate_lost(call_med->tp, PJMEDIA_DIR_ENCODING,
 				    pjsua_var.media_cfg.tx_drop_pct);
@@ -1360,6 +1362,12 @@ pj_status_t pjsua_call_media_init(pjsua_call_media *call_med,
      *   the unused transport of a disabled media.
      */
     if (call_med->tp == NULL) {
+        /* Initializations. If media transport creation completes immediately, 
+         * we don't need to call the callbacks.
+         */
+        call_med->med_init_cb = NULL;
+        call_med->med_create_cb = NULL;
+
 #if defined(PJMEDIA_HAS_VIDEO) && (PJMEDIA_HAS_VIDEO != 0)
 	/* While in initial call, set default video devices */
 	if (type == PJMEDIA_TYPE_VIDEO) {
@@ -1392,11 +1400,6 @@ pj_status_t pjsua_call_media_init(pjsua_call_media *call_med,
 	    PJ_PERROR(1,(THIS_FILE, status, "Error creating media transport"));
 	    return status;
 	}
-
-        /* Media transport creation completed immediately, so 
-         * we don't need to call the callback.
-         */
-        call_med->med_init_cb = NULL;
 
     } else if (call_med->tp_st == PJSUA_MED_TP_DISABLED) {
 	/* Media is being reenabled. */
@@ -1529,6 +1532,12 @@ static void media_prov_clean_up(pjsua_call_id call_id, int idx)
     pjsua_call *call = &pjsua_var.calls[call_id];
     unsigned i;
 
+    if (call->med_prov_cnt > call->med_cnt) {
+        PJ_LOG(4,(THIS_FILE, "Call %d: cleaning up provisional media, "
+        		     "prov_med_cnt=%d, med_cnt=%d",
+			     call_id, call->med_prov_cnt, call->med_cnt));
+    }
+
     for (i = idx; i < call->med_prov_cnt; ++i) {
 	pjsua_call_media *call_med = &call->media_prov[i];
 	unsigned j;
@@ -1554,6 +1563,8 @@ static void media_prov_clean_up(pjsua_call_id call_id, int idx)
 	    call_med->tp = call_med->tp_orig = NULL;
 	}
     }
+    
+    call->med_prov_cnt = 0;
 }
 
 void pjsua_media_prov_clean_up(pjsua_call_id call_id)
@@ -2681,6 +2692,34 @@ pj_status_t pjsua_media_channel_update(pjsua_call_id call_id,
 	    } else {
 		pjmedia_transport_info tp_info;
 		pjmedia_srtp_info *srtp_info;
+
+		if (call->inv->following_fork) {
+		    /* Normally media transport will automatically restart
+		     * itself (if needed, based on info from the SDP) in
+		     * pjmedia_transport_media_start(), however in "following
+		     * forked media" case (see #1644), we need to explicitly
+		     * restart it as it cannot detect fork scenario from
+		     * the SDP only.
+		     */
+		    status = pjmedia_transport_media_stop(call_med->tp);
+		    if (status != PJ_SUCCESS) {
+			PJ_PERROR(1,(THIS_FILE, status,
+				     "pjmedia_transport_media_stop() failed "
+				     "for call_id %d media %d",
+				     call_id, mi));
+			continue;
+		    }
+		    status = pjmedia_transport_media_create(call_med->tp,
+							    tmp_pool,
+							    0, NULL, mi);
+		    if (status != PJ_SUCCESS) {
+			PJ_PERROR(1,(THIS_FILE, status,
+				     "pjmedia_transport_media_create() failed "
+				     "for call_id %d media %d",
+				     call_id, mi));
+			continue;
+		    }
+		}
 
 		/* Start/restart media transport based on info in SDP */
 		status = pjmedia_transport_media_start(call_med->tp,

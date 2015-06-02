@@ -1,4 +1,4 @@
-/* $Id: videodev.c 4908 2014-08-26 11:01:57Z nanang $ */
+/* $Id: videodev.c 4998 2015-03-19 04:10:11Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -99,6 +99,10 @@ pjmedia_vid_dev_factory* pjmedia_ios_factory(pj_pool_factory *pf);
 
 #if PJMEDIA_VIDEO_DEV_HAS_OPENGL
 pjmedia_vid_dev_factory* pjmedia_opengl_factory(pj_pool_factory *pf);
+#endif
+
+#if PJMEDIA_VIDEO_DEV_HAS_ANDROID
+pjmedia_vid_dev_factory* pjmedia_and_factory(pj_pool_factory *pf);
 #endif
 
 #define MAX_DRIVERS	16
@@ -393,11 +397,17 @@ PJ_DEF(pj_status_t) pjmedia_vid_dev_subsys_init(pj_pool_factory *pf)
 #if PJMEDIA_VIDEO_DEV_HAS_FFMPEG
     vid_subsys.drv[vid_subsys.drv_cnt++].create = &pjmedia_ffmpeg_factory;
 #endif
-#if PJMEDIA_VIDEO_DEV_HAS_CBAR_SRC
-    vid_subsys.drv[vid_subsys.drv_cnt++].create = &pjmedia_cbar_factory;
-#endif
 #if PJMEDIA_VIDEO_DEV_HAS_SDL
     vid_subsys.drv[vid_subsys.drv_cnt++].create = &pjmedia_sdl_factory;
+#endif
+#if PJMEDIA_VIDEO_DEV_HAS_ANDROID
+    vid_subsys.drv[vid_subsys.drv_cnt++].create = &pjmedia_and_factory;
+#endif
+#if PJMEDIA_VIDEO_DEV_HAS_CBAR_SRC
+    /* Better put colorbar at the last, so the default capturer will be
+     * a real capturer, if any.
+     */
+    vid_subsys.drv[vid_subsys.drv_cnt++].create = &pjmedia_cbar_factory;
 #endif
 
     /* Initialize each factory and build the device ID list */
@@ -825,6 +835,27 @@ PJ_DEF(pj_status_t) pjmedia_vid_dev_stream_set_cap(
 					    pjmedia_vid_dev_cap cap,
 					    const void *value)
 {
+    /* For fast switching, device global index needs to be converted to
+     * local index before forwarding the request to the device stream.
+     */
+    if (cap == PJMEDIA_VID_DEV_CAP_SWITCH) {
+	pjmedia_vid_dev_factory *f;
+	unsigned local_idx;
+	pj_status_t status;
+	pjmedia_vid_dev_switch_param p = *(pjmedia_vid_dev_switch_param*)value;
+
+	status = lookup_dev(p.target_id, &f, &local_idx);
+	if (status != PJ_SUCCESS)
+	    return status;
+
+	/* Make sure that current & target devices share the same factory */
+	if (f->sys.drv_idx != strm->sys.drv_idx)
+	    return PJMEDIA_EVID_INVDEV;
+
+	p.target_id = local_idx;
+	return strm->op->set_cap(strm, cap, &p);
+    }
+
     return strm->op->set_cap(strm, cap, value);
 }
 

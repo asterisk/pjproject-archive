@@ -1,4 +1,4 @@
-/* $Id: pjsua_core.c 4889 2014-08-18 09:09:18Z bennylp $ */
+/* $Id: pjsua_core.c 4957 2014-11-04 08:00:15Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -288,6 +288,7 @@ PJ_DEF(void) pjsua_acc_config_default(pjsua_acc_config *cfg)
     cfg->srtp_secure_signaling = pjsua_var.ua_cfg.srtp_secure_signaling;
     cfg->srtp_optional_dup_offer = pjsua_var.ua_cfg.srtp_optional_dup_offer;
     cfg->reg_retry_interval = PJSUA_REG_RETRY_INTERVAL;
+    cfg->reg_retry_random_interval = 10;
     cfg->contact_rewrite_method = PJSUA_CONTACT_REWRITE_METHOD;
     cfg->contact_use_src_port = PJ_TRUE;
     cfg->use_rfc5626 = PJ_TRUE;
@@ -1460,7 +1461,7 @@ PJ_DEF(pj_status_t) pjsua_cancel_stun_resolution( void *token,
 static void internal_stun_resolve_cb(const pj_stun_resolve_result *result)
 {
     pjsua_var.stun_status = result->status;
-    if (result->status == PJ_SUCCESS) {
+    if ((result->status == PJ_SUCCESS) && (pjsua_var.ua_cfg.stun_srv_cnt>0)) {
 	pj_memcpy(&pjsua_var.stun_srv, &result->addr, sizeof(result->addr));
     }
 }

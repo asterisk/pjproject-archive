@@ -137,6 +137,7 @@ else
   MY_JNI_CFLAGS	 += -fPIC
   ifeq ($(OS),android)
     MY_JNI_CFLAGS+= -D__ANDROID__
+    SWIG_FLAGS+= -D__ANDROID__
   endif
 endif
 
@@ -175,6 +176,10 @@ clean distclean realclean:
 		$(MY_PACKAGE_PATH)/*.java $(MY_PACKAGE_PATH)/*.class
 
 java: $(MY_PACKAGE_PATH)/Error.class $(MY_PACKAGE_PATH)/test.class $(MY_PACKAGE_PATH)/sample.class
+ifneq (,$(findstring PJMEDIA_VIDEO_DEV_HAS_ANDROID=1,$(ANDROID_CFLAGS)))
+	@echo "Copying Android camera helper components..."
+	cp $(PJDIR)/pjmedia/src/pjmedia-videodev/android/PjCamera*.java $(MY_PACKAGE_PATH)/..
+endif
 
 $(MY_PACKAGE_PATH)/Error.class: $(MY_PACKAGE_PATH)/Error.java
 	$(MY_JAVAC) -d $(OUT_DIR) $(MY_PACKAGE_PATH)/*.java $(MY_APP_JAVA)

@@ -1,4 +1,4 @@
-/* $Id: stun_transaction.c 4717 2014-01-29 06:33:38Z nanang $ */
+/* $Id: stun_transaction.c 5045 2015-04-06 06:13:51Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -137,6 +137,17 @@ PJ_DEF(pj_status_t) pj_stun_client_tsx_schedule_destroy(
     return PJ_SUCCESS;
 }
 
+
+PJ_DEF(pj_status_t) pj_stun_client_tsx_destroy(pj_stun_client_tsx *tsx)
+{
+    /*
+     * Currently tsx has no objects to destroy so we don't need to do anything
+     * here.
+     */
+    /* pj_stun_client_tsx_stop(tsx); */
+    PJ_UNUSED_ARG(tsx);
+    return PJ_SUCCESS;
+}
 
 /*
  * Destroy transaction immediately.

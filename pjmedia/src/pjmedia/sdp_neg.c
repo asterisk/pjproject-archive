@@ -1,4 +1,4 @@
-/* $Id: sdp_neg.c 4872 2014-07-09 06:43:32Z riza $ */
+/* $Id: sdp_neg.c 5045 2015-04-06 06:13:51Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -84,7 +84,7 @@ static pj_status_t custom_fmt_match( pj_pool_t *pool,
  */
 PJ_DEF(const char*) pjmedia_sdp_neg_state_str(pjmedia_sdp_neg_state state)
 {
-    if (state >=0 && state < (pjmedia_sdp_neg_state)PJ_ARRAY_SIZE(state_str))
+    if ((int)state >=0 && state < (pjmedia_sdp_neg_state)PJ_ARRAY_SIZE(state_str))
 	return state_str[state];
 
     return "<?UNKNOWN?>";
@@ -426,6 +426,8 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_send_local_offer( pj_pool_t *pool,
 	neg->state = PJMEDIA_SDP_NEG_STATE_LOCAL_OFFER;
 	neg->neg_local_sdp = pjmedia_sdp_session_clone(pool, 
 						       neg->active_local_sdp);
+	neg->initial_sdp = pjmedia_sdp_session_clone(pool,
+						     neg->active_local_sdp);
 	*offer = neg->active_local_sdp;
 
     } else {
@@ -518,6 +520,7 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_set_local_answer( pj_pool_t *pool,
 	}
     } else {
 	PJ_ASSERT_RETURN(neg->initial_sdp, PJMEDIA_SDPNEG_ENOINITIAL);
+	neg->initial_sdp = pjmedia_sdp_session_clone(pool, neg->initial_sdp);
 	neg->neg_local_sdp = pjmedia_sdp_session_clone(pool, neg->initial_sdp);
     }
 
@@ -1400,7 +1403,9 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_cancel_offer(pjmedia_sdp_neg *neg)
     neg->neg_local_sdp = neg->neg_remote_sdp = NULL;
     neg->has_remote_answer = PJ_FALSE;
 
-    if (neg->state == PJMEDIA_SDP_NEG_STATE_LOCAL_OFFER) {
+    if (neg->state == PJMEDIA_SDP_NEG_STATE_LOCAL_OFFER &&
+	neg->active_local_sdp) 
+    {
 	/* Increment next version number. This happens if for example
 	 * the reinvite offer is rejected by 488. If we don't increment
 	 * the version here, the next offer will have the same version.
@@ -1503,7 +1508,7 @@ static pj_status_t custom_fmt_match(pj_pool_t *pool,
 }
 
 /* Register customized SDP format negotiation callback function. */
-PJ_DECL(pj_status_t) pjmedia_sdp_neg_register_fmt_match_cb(
+PJ_DEF(pj_status_t) pjmedia_sdp_neg_register_fmt_match_cb(
 					const pj_str_t *fmt_name,
 					pjmedia_sdp_neg_fmt_match_cb cb)
 {

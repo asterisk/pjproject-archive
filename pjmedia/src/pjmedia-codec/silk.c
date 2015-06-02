@@ -1,4 +1,4 @@
-/* $Id: silk.c 4339 2013-01-31 05:23:46Z ming $ */
+/* $Id: silk.c 5046 2015-04-06 06:21:41Z nanang $ */
 /* 
  * Copyright (C) 2012-2012 Teluu Inc. (http://www.teluu.com)
  * Contributed by Regis Montoya (aka r3gis - www.r3gis.fr)
@@ -366,6 +366,7 @@ PJ_DEF(pj_status_t) pjmedia_codec_silk_deinit(void)
     silk_factory.endpt = NULL;
 
     /* Destroy mutex. */
+    pj_mutex_unlock(silk_factory.mutex);
     pj_mutex_destroy(silk_factory.mutex);
     silk_factory.mutex = NULL;
 
@@ -894,12 +895,12 @@ static pj_status_t silk_codec_decode(pjmedia_codec *codec,
     }
 
     if (output->size == 0) {
-        output->type = PJMEDIA_TYPE_NONE;
+        output->type = PJMEDIA_FRAME_TYPE_NONE;
         output->buf = NULL;
         return PJMEDIA_CODEC_EFAILED;
     }
 
-    output->type = PJMEDIA_TYPE_AUDIO;
+    output->type = PJMEDIA_FRAME_TYPE_AUDIO;
     output->timestamp = input->timestamp;
 
     return PJ_SUCCESS;

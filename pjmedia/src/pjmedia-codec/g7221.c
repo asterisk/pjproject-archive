@@ -1,4 +1,4 @@
-/* $Id: g7221.c 4001 2012-03-30 07:53:36Z bennylp $ */
+/* $Id: g7221.c 5060 2015-04-10 11:47:48Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -375,11 +375,17 @@ PJ_DEF(pj_status_t) pjmedia_codec_g7221_set_mode(unsigned sample_rate,
 						 unsigned bitrate, 
 						 pj_bool_t enabled)
 {
+    pjmedia_codec_mgr *codec_mgr;
     unsigned i;
 
     /* Validate mode */
     if (!validate_mode(sample_rate, bitrate))
 	return PJMEDIA_CODEC_EINMODE;
+
+    /* Get codec manager */
+    codec_mgr = pjmedia_endpt_get_codec_mgr(codec_factory.endpt);
+    if (!codec_mgr)
+	return PJMEDIA_CODEC_EFAILED;
 
     /* Look up in factory modes table */
     for (i = 0; i < codec_factory.mode_count; ++i) {
@@ -387,6 +393,12 @@ PJ_DEF(pj_status_t) pjmedia_codec_g7221_set_mode(unsigned sample_rate,
 	    codec_factory.modes[i].bitrate == bitrate)
 	{
 	    codec_factory.modes[i].enabled = enabled;
+
+	    /* Re-register G722.1 codec factory to update codec list */
+	    pjmedia_codec_mgr_unregister_factory(codec_mgr,
+						 &codec_factory.base);
+	    pjmedia_codec_mgr_register_factory(codec_mgr,
+					       &codec_factory.base);
 	    return PJ_SUCCESS;
 	}
     }
@@ -412,6 +424,12 @@ PJ_DEF(pj_status_t) pjmedia_codec_g7221_set_mode(unsigned sample_rate,
 	    mode->sample_rate = sample_rate;
 	    mode->bitrate = bitrate;
 	    pj_utoa(mode->bitrate, mode->bitrate_str);
+
+	    /* Re-register G722.1 codec factory to update codec list */
+	    pjmedia_codec_mgr_unregister_factory(codec_mgr,
+						 &codec_factory.base);
+	    pjmedia_codec_mgr_register_factory(codec_mgr,
+					       &codec_factory.base);
 
 	    return PJ_SUCCESS;
 	}
@@ -451,6 +469,7 @@ PJ_DEF(pj_status_t) pjmedia_codec_g7221_deinit(void)
     if (!codec_mgr) {
 	pj_pool_release(codec_factory.pool);
 	codec_factory.pool = NULL;
+	pj_mutex_unlock(codec_factory.mutex);
 	return PJ_EINVALIDOP;
     }
 
@@ -459,7 +478,9 @@ PJ_DEF(pj_status_t) pjmedia_codec_g7221_deinit(void)
 						  &codec_factory.base);
     
     /* Destroy mutex. */
+    pj_mutex_unlock(codec_factory.mutex);
     pj_mutex_destroy(codec_factory.mutex);
+    codec_factory.mutex = NULL;
 
     /* Destroy pool. */
     pj_pool_release(codec_factory.pool);
@@ -648,10 +669,20 @@ static pj_status_t codec_open( pjmedia_codec *codec,
 {
     codec_private_t *codec_data = (codec_private_t*) codec->codec_data;
     pj_pool_t *pool;
+    pjmedia_codec_fmtp *fmtp = &attr->setting.dec_fmtp;
+    pj_uint16_t fmtp_bitrate = 0;
     unsigned tmp;
 
-    /* Validation mode first! */
-    if (!validate_mode(attr->info.clock_rate, attr->info.avg_bps))
+    for (tmp = 0; tmp < fmtp->cnt && !fmtp_bitrate; ++tmp) {
+	if (!pj_strcmp2(&fmtp->param[tmp].name, "bitrate"))
+	    fmtp_bitrate = (pj_uint16_t)pj_strtoul(&fmtp->param[tmp].val);
+    }
+
+    if (fmtp_bitrate == 0)
+	fmtp_bitrate = (pj_uint16_t)attr->info.avg_bps;
+
+    /* Validate bitrate */
+    if (!fmtp_bitrate || !validate_mode(attr->info.clock_rate, fmtp_bitrate))
 	return PJMEDIA_CODEC_EINMODE;
 
     pool = codec_data->pool;
@@ -660,8 +691,8 @@ static pj_status_t codec_open( pjmedia_codec *codec,
     codec_data->vad_enabled = (attr->setting.vad != 0);
     codec_data->plc_enabled = (attr->setting.plc != 0);
 
-    codec_data->bitrate = (pj_uint16_t)attr->info.avg_bps;
-    codec_data->frame_size_bits = (pj_uint16_t)(attr->info.avg_bps*20/1000);
+    codec_data->bitrate = fmtp_bitrate;
+    codec_data->frame_size_bits = fmtp_bitrate*20/1000;
     codec_data->frame_size = (pj_uint16_t)(codec_data->frame_size_bits>>3);
     codec_data->samples_per_frame = (pj_uint16_t)
 				    (attr->info.clock_rate*20/1000);
@@ -686,6 +717,9 @@ static pj_status_t codec_open( pjmedia_codec *codec,
     codec_data->dec_randobj.seed1 = 1;
     codec_data->dec_randobj.seed2 = 1;
     codec_data->dec_randobj.seed3 = 1;
+
+    /* Update codec param */
+    attr->info.avg_bps = attr->info.max_bps = fmtp_bitrate;
 
     return PJ_SUCCESS;
 }

@@ -1,4 +1,4 @@
-/* $Id: sip_msg.c 4849 2014-05-23 03:24:55Z nanang $ */
+/* $Id: sip_msg.c 4979 2015-02-10 03:20:04Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1220,8 +1220,8 @@ static int pjsip_contact_hdr_print( pjsip_contact_hdr *hdr, char *buf,
 	char *endbuf = buf + size;
 
 	copy_advance(buf, (*hname));
-	*buf++ = ':';
-	*buf++ = ' ';
+	copy_advance_char_check(buf, ':');
+	copy_advance_char_check(buf, ' ');
 
 	printed = pjsip_uri_print(PJSIP_URI_IN_CONTACT_HDR, hdr->uri, 
 				  buf, endbuf-buf);

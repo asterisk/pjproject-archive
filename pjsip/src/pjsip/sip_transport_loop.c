@@ -1,4 +1,4 @@
-/* $Id: sip_transport_loop.c 4713 2014-01-23 08:13:11Z nanang $ */
+/* $Id: sip_transport_loop.c 5024 2015-03-26 02:51:19Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -222,7 +222,9 @@ static pj_status_t loop_destroy(pjsip_transport *tp)
     
     loop->thread_quit_flag = 1;
     /* Unlock transport mutex before joining thread. */
-    pj_lock_release(tp->lock);
+    /// This raised assertion failed "mutex->owner == pj_thread_this()",
+    /// where mutex->owner==NULL
+    //pj_lock_release(tp->lock);
     pj_thread_join(loop->thread);
     pj_thread_destroy(loop->thread);
 

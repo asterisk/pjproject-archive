@@ -1,4 +1,4 @@
-/* $Id: activesock.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: activesock.c 5044 2015-04-02 06:44:08Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -157,7 +157,9 @@ static void activesock_create_iphone_os_stream(pj_activesock_t *asock)
 	    CFReadStreamOpen(asock->readStream) != TRUE)
 	{
 	    PJ_LOG(2,("", "Failed to configure TCP transport for VoIP "
-		      "usage. Background mode will not be supported."));
+		      "usage. Usage of THIS particular TCP transport in "
+		      "background mode will not be supported."));
+
 	    
 	    activesock_destroy_iphone_os_stream(asock);
 	}

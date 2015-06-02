@@ -1,4 +1,4 @@
-/* $Id: ffmpeg_vid_codecs.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: ffmpeg_vid_codecs.c 4987 2015-03-03 02:41:27Z ming $ */
 /* 
  * Copyright (C) 2010-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -880,7 +880,9 @@ PJ_DEF(pj_status_t) pjmedia_codec_ffmpeg_vid_deinit(void)
 						      &ffmpeg_factory.base);
 
     /* Destroy mutex. */
+    pj_mutex_unlock(ffmpeg_factory.mutex);
     pj_mutex_destroy(ffmpeg_factory.mutex);
+    ffmpeg_factory.mutex = NULL;
 
     /* Destroy pool. */
     pj_pool_release(ffmpeg_factory.pool);

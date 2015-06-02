@@ -1,4 +1,4 @@
-/* $Id: pjsua_acc.c 4897 2014-08-21 03:33:36Z nanang $ */
+/* $Id: pjsua_acc.c 5053 2015-04-08 09:09:17Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -363,6 +363,8 @@ static pj_status_t initialize_acc(unsigned acc_id)
 		             acc_cfg->rfc5626_reg_id.ptr);
 	    acc->rfc5626_regprm.slen = len;
 	}
+
+	acc->rfc5626_status = OUTBOUND_WANTED;
     }
 
     /* Mark account as valid */
@@ -652,6 +654,7 @@ PJ_DEF(pj_status_t) pjsua_acc_del(pjsua_acc_id acc_id)
     acc->valid = PJ_FALSE;
     acc->contact.slen = 0;
     acc->reg_mapped_addr.slen = 0;
+    acc->rfc5626_status = OUTBOUND_UNKNOWN;
     pj_bzero(&acc->via_addr, sizeof(acc->via_addr));
     acc->via_tp = NULL;
     acc->next_rtp_port = 0;
@@ -782,7 +785,7 @@ PJ_DEF(pj_status_t) pjsua_acc_modify( pjsua_acc_id acc_id,
     PJ_ASSERT_RETURN(acc_id>=0 && acc_id<(int)PJ_ARRAY_SIZE(pjsua_var.acc),
 		     PJ_EINVAL);
 
-    PJ_LOG(4,(THIS_FILE, "Modifying accunt %d", acc_id));
+    PJ_LOG(4,(THIS_FILE, "Modifying account %d", acc_id));
     pj_log_push_indent();
 
     PJSUA_LOCK();
@@ -1204,6 +1207,7 @@ PJ_DEF(pj_status_t) pjsua_acc_modify( pjsua_acc_id acc_id,
     acc->cfg.allow_contact_rewrite = cfg->allow_contact_rewrite;
     acc->cfg.reg_retry_interval = cfg->reg_retry_interval;
     acc->cfg.reg_first_retry_interval = cfg->reg_first_retry_interval;
+    acc->cfg.reg_retry_random_interval = cfg->reg_retry_random_interval;    
     acc->cfg.drop_calls_on_reg_fail = cfg->drop_calls_on_reg_fail;
     acc->cfg.register_on_acc_add = cfg->register_on_acc_add;
     if (acc->cfg.reg_delay_before_refresh != cfg->reg_delay_before_refresh) {
@@ -1249,12 +1253,7 @@ PJ_DEF(pj_status_t) pjsua_acc_modify( pjsua_acc_id acc_id,
 	    pj_strdup_with_null(acc->pool, &acc->cfg.reg_uri, &cfg->reg_uri);
 	    if (reg_sip_uri)
 		acc->srv_port = reg_sip_uri->port;
-	} else {
-	    /* Unregister if registration was set */
-	    if (acc->cfg.reg_uri.slen)
-		pjsua_acc_set_registration(acc->index, PJ_FALSE);
-	    pj_bzero(&acc->cfg.reg_uri, sizeof(acc->cfg.reg_uri));
-	}
+	} 
 	update_reg = PJ_TRUE;
 	unreg_first = PJ_TRUE;
     }
@@ -1282,8 +1281,13 @@ PJ_DEF(pj_status_t) pjsua_acc_modify( pjsua_acc_id acc_id,
 	pjsua_transport_config_dup(acc->pool, &acc->cfg.rtp_cfg,
 				   &cfg->rtp_cfg);
     } else {
+    	pj_str_t p_addr = acc->cfg.rtp_cfg.public_addr;
+    	pj_str_t b_addr = acc->cfg.rtp_cfg.bound_addr;
+    	
 	/* ..to save memory by not using the pool */
 	acc->cfg.rtp_cfg =  cfg->rtp_cfg;
+	acc->cfg.rtp_cfg.public_addr = p_addr;
+	acc->cfg.rtp_cfg.bound_addr = b_addr;
     }
 
     acc->cfg.ipv6_media_use = cfg->ipv6_media_use;
@@ -1333,25 +1337,47 @@ PJ_DEF(pj_status_t) pjsua_acc_modify( pjsua_acc_id acc_id,
 
     /* Unregister first */
     if (unreg_first) {
-	pjsua_acc_set_registration(acc->index, PJ_FALSE);
+	status = pjsua_acc_set_registration(acc->index, PJ_FALSE);
+	if (status != PJ_SUCCESS) {
+	    pjsua_perror(THIS_FILE, "Ignored failure in unregistering the "
+			 "old account setting in modifying account", status);
+	    /* Not really sure if we should return error */
+	    status = PJ_SUCCESS;
+	}
 	if (acc->regc != NULL) {
 	    pjsip_regc_destroy(acc->regc);
 	    acc->regc = NULL;
 	    acc->contact.slen = 0;
 	    acc->reg_mapped_addr.slen = 0;
+	    acc->rfc5626_status = OUTBOUND_UNKNOWN;
+	}
+	
+	if (!cfg->reg_uri.slen) {
+	    /* Reg URI still needed, delay unset after sending unregister. */
+	    pj_bzero(&acc->cfg.reg_uri, sizeof(acc->cfg.reg_uri));
 	}
     }
 
     /* Update registration */
     if (update_reg) {
 	/* If accounts has registration enabled, start registration */
-	if (acc->cfg.reg_uri.slen)
-	    pjsua_acc_set_registration(acc->index, PJ_TRUE);
+	if (acc->cfg.reg_uri.slen) {
+	    status = pjsua_acc_set_registration(acc->index, PJ_TRUE);
+	    if (status != PJ_SUCCESS) {
+		pjsua_perror(THIS_FILE, "Failed to register with new account "
+			     "setting in modifying account", status);
+		goto on_return;
+	    }
+	}
     }
 
     /* Update MWI subscription */
     if (update_mwi) {
-	pjsua_start_mwi(acc_id, PJ_TRUE);
+	status = pjsua_start_mwi(acc_id, PJ_TRUE);
+	if (status != PJ_SUCCESS) {
+	    pjsua_perror(THIS_FILE, "Failed in starting MWI subscription for "
+			 "new account setting in modifying account", status);
+	}
     }
 
 on_return:
@@ -1955,8 +1981,10 @@ static void update_keep_alive(pjsua_acc *acc, pj_bool_t start,
 	pjsip_endpt_cancel_timer(pjsua_var.endpt, &acc->ka_timer);
 	acc->ka_timer.id = PJ_FALSE;
 
-	pjsip_transport_dec_ref(acc->ka_transport);
-	acc->ka_transport = NULL;
+	if (acc->ka_transport) {
+	    pjsip_transport_dec_ref(acc->ka_transport);
+	    acc->ka_transport = NULL;
+	}
     }
 
     if (start) {
@@ -2084,7 +2112,12 @@ static void regc_tsx_cb(struct pjsip_regc_tsx_cb_param *param)
 
     pj_log_push_indent();
 
-    if ((acc->cfg.contact_rewrite_method &
+    /* Check if we should do NAT bound address check for contact rewrite.
+     * Note that '!contact_rewritten' check here is to avoid overriding
+     * the current contact generated from last 2xx.
+     */
+    if (!acc->contact_rewritten &&
+	(acc->cfg.contact_rewrite_method &
          PJSUA_CONTACT_REWRITE_ALWAYS_UPDATE) ==
         PJSUA_CONTACT_REWRITE_ALWAYS_UPDATE &&
         param->cbparam.code >= 400 &&
@@ -2095,6 +2128,10 @@ static void regc_tsx_cb(struct pjsip_regc_tsx_cb_param *param)
         {
             param->contact_cnt = 1;
             param->contact[0] = acc->reg_contact;
+
+	    /* Don't set 'contact_rewritten' to PJ_TRUE here to allow
+	     * further check of NAT bound address in 2xx response.
+	     */
         }
     }
 
@@ -2130,6 +2167,7 @@ static void regc_cb(struct pjsip_regc_cbparam *param)
 	acc->regc = NULL;
 	acc->contact.slen = 0;
 	acc->reg_mapped_addr.slen = 0;
+	acc->rfc5626_status = OUTBOUND_UNKNOWN;
 	
 	/* Stop keep-alive timer if any. */
 	update_keep_alive(acc, PJ_FALSE, NULL);
@@ -2142,6 +2180,7 @@ static void regc_cb(struct pjsip_regc_cbparam *param)
 	acc->regc = NULL;
 	acc->contact.slen = 0;
 	acc->reg_mapped_addr.slen = 0;
+	acc->rfc5626_status = OUTBOUND_UNKNOWN;
 
 	/* Stop keep-alive timer if any. */
 	update_keep_alive(acc, PJ_FALSE, NULL);
@@ -2157,6 +2196,7 @@ static void regc_cb(struct pjsip_regc_cbparam *param)
 	    acc->regc = NULL;
 	    acc->contact.slen = 0;
 	    acc->reg_mapped_addr.slen = 0;
+	    acc->rfc5626_status = OUTBOUND_UNKNOWN;
 
 	    /* Stop keep-alive timer if any. */
 	    update_keep_alive(acc, PJ_FALSE, NULL);
@@ -2169,12 +2209,16 @@ static void regc_cb(struct pjsip_regc_cbparam *param)
 	     */
 	    update_rfc5626_status(acc, param->rdata);
 
-	    /* Check NAT bound address */
-            if (acc_check_nat_addr(acc, (acc->cfg.contact_rewrite_method & 3),
+	    /* Check NAT bound address if it hasn't been done before */
+            if (!acc->contact_rewritten &&
+		acc_check_nat_addr(acc, (acc->cfg.contact_rewrite_method & 3),
                                    param))
             {
 		PJSUA_UNLOCK();
 		pj_log_pop_indent();
+
+		/* Avoid another check of NAT bound address */
+		acc->contact_rewritten = PJ_TRUE;
 		return;
 	    }
 
@@ -2208,6 +2252,9 @@ static void regc_cb(struct pjsip_regc_cbparam *param)
     acc->reg_last_err = param->status;
     acc->reg_last_code = param->code;
 
+    /* Reaching this point means no contact rewrite, so reset the flag */
+    acc->contact_rewritten = PJ_FALSE;
+
     /* Check if we need to auto retry registration. Basically, registration
      * failure codes triggering auto-retry are those of temporal failures
      * considered to be recoverable in relatively short term.
@@ -2232,8 +2279,12 @@ static void regc_cb(struct pjsip_regc_cbparam *param)
 
     if (pjsua_var.ua_cfg.cb.on_reg_state2) {
 	pjsua_reg_info reg_info;
+	pjsip_regc_info rinfo;
 
+	pjsip_regc_get_info(param->regc, &rinfo);
 	reg_info.cbparam = param;
+	reg_info.regc = param->regc;
+	reg_info.renew = (rinfo.interval != 0);
 	(*pjsua_var.ua_cfg.cb.on_reg_state2)(acc->index, &reg_info);
     }
     
@@ -2265,6 +2316,7 @@ static pj_status_t pjsua_regc_init(int acc_id)
 	acc->regc = NULL;
 	acc->contact.slen = 0;
 	acc->reg_mapped_addr.slen = 0;
+	acc->rfc5626_status = OUTBOUND_UNKNOWN;
     }
 
     /* initialize SIP registration if registrar is configured */
@@ -2314,6 +2366,8 @@ static pj_status_t pjsua_regc_init(int acc_id)
 	acc->regc = NULL;
 	acc->contact.slen = 0;
 	acc->reg_mapped_addr.slen = 0;
+	acc->rfc5626_status = OUTBOUND_UNKNOWN;
+
 	return status;
     }
 
@@ -2396,7 +2450,9 @@ static pj_status_t pjsua_regc_init(int acc_id)
     }
 
     /* If SIP outbound is used, add "Supported: outbound, path header" */
-    if (acc->rfc5626_status == OUTBOUND_WANTED) {
+    if (acc->rfc5626_status == OUTBOUND_WANTED ||
+	acc->rfc5626_status == OUTBOUND_ACTIVE)
+    {
 	pjsip_hdr hdr_list;
 	pjsip_supported_hdr *hsup;
 
@@ -2536,6 +2592,14 @@ PJ_DEF(pj_status_t) pjsua_acc_set_registration( pjsua_acc_id acc_id,
         
         if (pjsua_var.ua_cfg.cb.on_reg_started) {
             (*pjsua_var.ua_cfg.cb.on_reg_started)(acc_id, renew);
+        }
+	if (pjsua_var.ua_cfg.cb.on_reg_started2) {
+	    pjsua_reg_info rinfo;
+
+	    rinfo.cbparam = NULL;
+	    rinfo.regc = pjsua_var.acc[acc_id].regc;
+	    rinfo.renew = renew;
+            (*pjsua_var.ua_cfg.cb.on_reg_started2)(acc_id, &rinfo);
         }
     }
 
@@ -3084,18 +3148,24 @@ pj_status_t pjsua_acc_get_uac_addr(pjsua_acc_id acc_id,
 	}
 
 	if (status == PJ_SUCCESS) {
+	    pjsip_tx_data tdata;
 	    int addr_len = pj_sockaddr_get_len(&ai.ai_addr);
 	    pj_uint16_t port = (pj_uint16_t)dinfo.addr.port;
+
+	    /* Create a dummy tdata to inform remote host name to transport */
+	    pj_bzero(&tdata, sizeof(tdata));
+	    pj_strdup(pool, &tdata.dest_info.name, &dinfo.addr.host);
 
 	    if (port==0) {
 		port = (dinfo.flag & PJSIP_TRANSPORT_SECURE) ? 5061 : 5060;
 	    }
 	    pj_sockaddr_set_port(&ai.ai_addr, port);
-	    status = pjsip_endpt_acquire_transport(pjsua_var.endpt,
-						   dinfo.type,
-						   &ai.ai_addr,
-						   addr_len,
-						   &tp_sel, &tp);
+	    status = pjsip_endpt_acquire_transport2(pjsua_var.endpt,
+						    dinfo.type,
+						    &ai.ai_addr,
+						    addr_len,
+						    &tp_sel,
+						    &tdata, &tp);
 	}
 
 	if (status == PJ_SUCCESS && (tp->local_name.port == 0 ||
@@ -3500,12 +3570,15 @@ static void schedule_reregistration(pjsua_acc *acc)
 					     acc->cfg.reg_first_retry_interval;
     delay.msec = 0;
 
-    /* Randomize interval by +/- 10 secs */
-    if (delay.sec >= 10) {
-	delay.msec = -10000 + (pj_rand() % 20000);
-    } else {
-	delay.sec = 0;
-	delay.msec = (pj_rand() % 10000);
+    /* Randomize interval by +/- reg_retry_random_interval, if configured */
+    if (acc->cfg.reg_retry_random_interval) {
+	long rand_ms = acc->cfg.reg_retry_random_interval * 1000;
+	if (delay.sec >= (long)acc->cfg.reg_retry_random_interval) {
+	    delay.msec = -rand_ms + (pj_rand() % (rand_ms * 2));
+	} else {
+	    delay.sec = 0;
+	    delay.msec = (pj_rand() % (delay.sec * 1000 + rand_ms));
+	}
     }
     pj_time_val_normalize(&delay);
 

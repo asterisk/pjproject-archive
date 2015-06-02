@@ -1,4 +1,4 @@
-/* $Id: os_core_unix.c 4728 2014-02-04 10:13:56Z bennylp $ */
+/* $Id: os_core_unix.c 5012 2015-03-22 07:50:28Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -48,6 +48,24 @@
 
 #define SIGNATURE1  0xDEAFBEEF
 #define SIGNATURE2  0xDEADC0DE
+
+#ifndef PJ_JNI_HAS_JNI_ONLOAD
+#  define PJ_JNI_HAS_JNI_ONLOAD    PJ_ANDROID
+#endif
+
+#if defined(PJ_JNI_HAS_JNI_ONLOAD) && PJ_JNI_HAS_JNI_ONLOAD != 0
+
+#include <jni.h>
+
+JavaVM *pj_jni_jvm = NULL;
+
+JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
+{
+    pj_jni_jvm = vm;
+    
+    return JNI_VERSION_1_4;
+}
+#endif
 
 struct pj_thread_t
 {
@@ -699,6 +717,9 @@ PJ_DEF(pj_status_t) pj_thread_join(pj_thread_t *p)
 
     PJ_CHECK_STACK();
 
+    if (p == pj_thread_this())
+	return PJ_ECANCELLED;
+
     PJ_LOG(6, (pj_thread_this()->obj_name, "Joining thread %s", p->obj_name));
     result = pthread_join( rec->thread, &ret);
 
@@ -1152,6 +1173,7 @@ static pj_status_t init_mutex(pj_mutex_t *mutex, const char *name, int type)
     /* Set owner. */
     mutex->nesting_level = 0;
     mutex->owner = NULL;
+    mutex->owner_name[0] = '\0';
 #endif
 
     /* Set name. */

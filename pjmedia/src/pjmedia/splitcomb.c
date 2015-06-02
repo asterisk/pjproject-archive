@@ -1,4 +1,4 @@
-/* $Id: splitcomb.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: splitcomb.c 4959 2014-11-10 01:44:37Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -536,7 +536,7 @@ static pj_status_t put_frame(pjmedia_port *this_port,
 
 		/* Generate zero frame. */
 		pjmedia_zero_samples(sc->put_buf, 
-				     PJMEDIA_PIA_SPF(&this_port->info));
+				     PJMEDIA_PIA_SPF(&port->info));
 
 		/* Put frame to delay buffer */
 		pjmedia_delay_buf_put(rport->buf[DIR_DOWNSTREAM].dbuf,

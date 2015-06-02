@@ -1,4 +1,4 @@
-/* $Id: ipp_codecs.c 4002 2012-03-30 08:05:43Z bennylp $ */
+/* $Id: ipp_codecs.c 4987 2015-03-03 02:41:27Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -766,6 +766,7 @@ PJ_DEF(pj_status_t) pjmedia_codec_ipp_deinit(void)
     if (!codec_mgr) {
 	pj_pool_release(ipp_factory.pool);
 	ipp_factory.pool = NULL;
+	pj_mutex_unlock(ipp_factory.mutex);
 	return PJ_EINVALIDOP;
     }
 
@@ -774,7 +775,9 @@ PJ_DEF(pj_status_t) pjmedia_codec_ipp_deinit(void)
 						  &ipp_factory.base);
     
     /* Destroy mutex. */
+    pj_mutex_unlock(ipp_factory.mutex);
     pj_mutex_destroy(ipp_factory.mutex);
+    ipp_factory.mutex = NULL;
 
     /* Destroy pool. */
     pj_pool_release(ipp_factory.pool);

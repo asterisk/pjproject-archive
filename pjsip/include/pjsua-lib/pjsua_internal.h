@@ -1,4 +1,4 @@
-/* $Id: pjsua_internal.h 4750 2014-02-19 04:11:43Z bennylp $ */
+/* $Id: pjsua_internal.h 4986 2015-03-02 09:43:20Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -142,6 +142,9 @@ struct pjsua_call
     unsigned		 med_prov_cnt;/**< Number of provisional media.	    */
     pjsua_call_media	 media_prov[PJSUA_MAX_CALL_MEDIA];
 				    /**< Array of provisional media.	    */
+    pj_bool_t		 med_update_success;
+    				    /**< Is media update successful?	    */
+    pj_bool_t		 hanging_up;/**< Is call in the process of hangup?  */
 
     int			 audio_idx; /**< First active audio media.	    */
     pj_mutex_t          *med_ch_mutex;/**< Media channel callback's mutex.  */
@@ -219,6 +222,8 @@ typedef struct pjsua_acc
     pj_str_t         reg_contact;   /**< Contact header for REGISTER.
 				         It may be different than acc
 				         contact if outbound is used    */
+    pj_bool_t	     contact_rewritten;
+				    /**< Contact rewrite has been done? */
     pjsip_host_port  via_addr;      /**< Address for Via header         */
     pjsip_transport *via_tp;        /**< Transport associated with
                                          the Via address                */

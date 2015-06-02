@@ -1,4 +1,4 @@
-/* $Id: sip_inv.h 4653 2013-11-19 10:18:17Z bennylp $ */
+/* $Id: sip_inv.h 4985 2015-03-02 03:04:19Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -410,6 +410,8 @@ struct pjsip_inv_session
     pj_int32_t		 last_ack_cseq;		    /**< CSeq of last ACK   */
     void		*mod_data[PJSIP_MAX_MODULE];/**< Modules data.	    */
     struct pjsip_timer	*timer;			    /**< Session Timers.    */
+    pj_bool_t		 following_fork;	    /**< Internal, following
+							 forked media?	    */
 };
 
 

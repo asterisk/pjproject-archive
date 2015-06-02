@@ -1,4 +1,4 @@
-/* $Id: call.hpp 4780 2014-03-06 01:02:26Z ming $ */
+/* $Id: call.hpp 4996 2015-03-18 08:25:24Z ming $ */
 /*
  * Copyright (C) 2012-2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -86,6 +86,15 @@ public:
 };
 
 /**
+ * Types of loss detected.
+ */
+struct LossType
+{
+    unsigned        burst;	/**< Burst/sequential packet lost detected  */
+    unsigned        random;	/**< Random packet lost detected.	    */
+};
+
+/**
  * Unidirectional RTP stream statistics.
  */
 struct RtcpStreamStat
@@ -101,10 +110,7 @@ struct RtcpStreamStat
     
     MathStat        lossPeriodUsec; /**< Loss period statistics 	    */
 
-    struct {
-        unsigned    burst;	/**< Burst/sequential packet lost detected  */
-        unsigned    random;	/**< Random packet lost detected.	    */
-    } lossType;                 /**< Types of loss detected.                */
+    LossType        lossType;   /**< Types of loss detected.                */
     
     MathStat        jitterUsec;	/**< Jitter statistics                      */
     
@@ -237,6 +243,23 @@ struct MediaFmtChangedEvent
 };
 
 /**
+ * Media event data.
+ */
+typedef union MediaEventData {
+    /**
+     * Media format changed event data.
+     */
+    MediaFmtChangedEvent    fmtChanged;
+    
+    /**
+     * Pointer to storage to user event data, if it's outside
+     * this struct
+     */
+    GenericData		ptr;
+
+} MediaEventData;
+
+/**
  * This structure describes a media event. It corresponds to the
  * pjmedia_event structure.
  */
@@ -251,18 +274,7 @@ struct MediaEvent
      * Additional data/parameters about the event. The type of data
      * will be specific to the event type being reported.
      */
-    union {
-	/**
-         * Media format changed event data.
-         */
-	MediaFmtChangedEvent    fmtChanged;
-        
-	/**
-         * Pointer to storage to user event data, if it's outside
-	 * this struct
-	 */
-	GenericData		ptr;
-    } data;
+    MediaEventData              data;
     
     /**
      * Pointer to original pjmedia_event. Only valid when the struct
@@ -399,6 +411,13 @@ struct CallMediaInfo
      * PJSUA_INVALID_ID. Only valid if the media type is video.
      */
     pjsua_vid_win_id	    videoIncomingWindowId;
+    
+    /**
+     * The video window instance for incoming video. Only valid if
+     * videoIncomingWindowId is not PJSUA_INVALID_ID and
+     * the media type is video.
+     */
+    VideoWindow	    	    videoWindow;
     
     /**
      * The video capture device for outgoing transmission, if any,

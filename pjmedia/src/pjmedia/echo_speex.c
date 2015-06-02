@@ -1,4 +1,4 @@
-/* $Id: echo_speex.c 4622 2013-10-21 03:11:14Z nanang $ */
+/* $Id: echo_speex.c 4981 2015-02-11 05:10:06Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -109,10 +109,16 @@ PJ_DEF(pj_status_t) speex_aec_create(pj_pool_t *pool,
 			 &enabled);
 #endif
 
-    /* Enable AGC */
+    /* Enable/disable AGC & denoise */
     {
-	spx_int32_t enabled = 1;
+	spx_int32_t enabled;
+
+	enabled = PJMEDIA_SPEEX_AEC_USE_AGC;
 	speex_preprocess_ctl(echo->preprocess, SPEEX_PREPROCESS_SET_AGC, 
+			     &enabled);
+
+	enabled = PJMEDIA_SPEEX_AEC_USE_DENOISE;
+	speex_preprocess_ctl(echo->preprocess, SPEEX_PREPROCESS_SET_DENOISE, 
 			     &enabled);
     }
 

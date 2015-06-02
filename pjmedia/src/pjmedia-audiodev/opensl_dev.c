@@ -1,4 +1,4 @@
-/* $Id: opensl_dev.c 4731 2014-02-05 05:49:13Z bennylp $ */
+/* $Id: opensl_dev.c 4960 2014-11-13 01:48:34Z ming $ */
 /* 
  * Copyright (C) 2012-2012 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2010-2012 Regis Montoya (aka r3gis - www.r3gis.fr)
@@ -646,6 +646,12 @@ static pj_status_t opensl_create_stream(pjmedia_aud_dev_factory *f,
         if (result == SL_RESULT_SUCCESS) {
             SLint32 streamType = SL_ANDROID_RECORDING_PRESET_GENERIC;
 #if __ANDROID_API__ >= 14
+	    streamType = SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION;
+#endif
+#if 0
+            /* Android-L (android-21) removes __system_property_get
+             * from the NDK.
+	     */
             char sdk_version[PROP_VALUE_MAX];
             pj_str_t pj_sdk_version;
             int sdk_v;

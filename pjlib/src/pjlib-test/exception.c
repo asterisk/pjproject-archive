@@ -1,4 +1,4 @@
-/* $Id: exception.c 4890 2014-08-19 00:54:34Z bennylp $ */
+/* $Id: exception.c 5060 2015-04-10 11:47:48Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -47,6 +47,10 @@
 #if INCLUDE_EXCEPTION_TEST
 
 #include <pjlib.h>
+
+#ifdef	_MSC_VER
+#pragma warning(disable:4702) // warning C4702: unreachable code
+#endif
 
 #define	ID_1	1
 #define ID_2	2

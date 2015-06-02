@@ -1,4 +1,4 @@
-/* $Id: sip_resolve.c 4108 2012-04-27 01:32:12Z bennylp $ */
+/* $Id: sip_resolve.c 5055 2015-04-08 10:10:44Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -70,6 +70,7 @@ struct query
 struct pjsip_resolver_t
 {
     pj_dns_resolver *res;
+    pjsip_ext_resolver *ext_res;
 };
 
 
@@ -112,6 +113,26 @@ PJ_DEF(pj_status_t) pjsip_resolver_set_resolver(pjsip_resolver_t *res,
     pj_assert(!"Resolver is disabled (PJSIP_HAS_RESOLVER==0)");
     return PJ_EINVALIDOP;
 #endif
+}
+
+/*
+ * Public API to set the DNS external resolver implementation for the SIP 
+ * resolver.
+ */
+PJ_DEF(pj_status_t) pjsip_resolver_set_ext_resolver(pjsip_resolver_t *res,
+                                                    pjsip_ext_resolver *ext_res)
+{
+    if (ext_res && !ext_res->resolve)
+	return PJ_EINVAL;
+
+    if (ext_res && res->res) {
+#if PJSIP_HAS_RESOLVER
+	pj_dns_resolver_destroy(res->res, PJ_FALSE);
+#endif
+	res->res = NULL;
+    }
+    res->ext_res = ext_res;
+    return PJ_SUCCESS;
 }
 
 
@@ -174,6 +195,12 @@ PJ_DEF(void) pjsip_resolve( pjsip_resolver_t *resolver,
     int ip_addr_ver;
     struct query *query;
     pjsip_transport_type_e type = target->type;
+
+    /* If an external implementation has been provided use it instead */
+    if (resolver->ext_res) {
+        (*resolver->ext_res->resolve)(resolver, pool, target, token, cb);
+        return;
+    }
 
     /* Is it IP address or hostname? And if it's an IP, which version? */
     ip_addr_ver = get_ip_addr_ver(&target->addr.host);
@@ -453,7 +480,9 @@ static void dns_a_callback(void *user_data,
 
     /* Build server addresses and call callback */
     srv.count = 0;
-    for (i=0; i<rec.addr_count; ++i) {
+    for (i = 0; i < rec.addr_count &&
+		srv.count < PJSIP_MAX_RESOLVED_ADDRESSES; ++i)
+    {
 	srv.entry[srv.count].type = query->naptr[0].type;
 	srv.entry[srv.count].priority = 0;
 	srv.entry[srv.count].weight = 0;
@@ -498,7 +527,9 @@ static void srv_resolver_cb(void *user_data,
     for (i=0; i<rec->count; ++i) {
 	unsigned j;
 
-	for (j=0; j<rec->entry[i].server.addr_count; ++j) {
+	for (j = 0; j < rec->entry[i].server.addr_count &&
+		    srv.count < PJSIP_MAX_RESOLVED_ADDRESSES; ++j)
+	{
 	    srv.entry[srv.count].type = query->naptr[0].type;
 	    srv.entry[srv.count].priority = rec->entry[i].priority;
 	    srv.entry[srv.count].weight = rec->entry[i].weight;

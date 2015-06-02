@@ -1,4 +1,4 @@
-/* $Id: wmme_dev.c 4760 2014-02-24 08:49:40Z nanang $ */
+/* $Id: wmme_dev.c 5035 2015-03-27 06:17:27Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -39,8 +39,11 @@
 #endif
 
 #ifndef PJMEDIA_WMME_DEV_USE_MMDEVICE_API
-#   define PJMEDIA_WMME_DEV_USE_MMDEVICE_API \
-	   (defined(_WIN32_WINNT) && (_WIN32_WINNT>=0x0600))
+#   if defined(_WIN32_WINNT) && (_WIN32_WINNT>=0x0600)
+#      define PJMEDIA_WMME_DEV_USE_MMDEVICE_API 1
+#   else
+#      define PJMEDIA_WMME_DEV_USE_MMDEVICE_API 0
+#   endif
 #endif
 
 #if PJMEDIA_WMME_DEV_USE_MMDEVICE_API != 0
@@ -276,8 +279,11 @@ static void get_dev_names(pjmedia_aud_dev_factory *f)
 
 	for (i = 0; i < wf->dev_count; ++i) {
 	    if (0 == wcscmp(wf->dev_info[i].endpointId, pwszID)) {
-		wcstombs(wf->dev_info[i].info.name, varName.pwszVal,
-			 sizeof(wf->dev_info[i].info.name));
+		pj_unicode_to_ansi(varName.pwszVal, 
+				   wcslen(varName.pwszVal), 
+				   wf->dev_info[i].info.name, 
+				   sizeof(wf->dev_info[i].info.name));
+
 		break;
 	    }
 	}
@@ -888,6 +894,9 @@ static int PJ_THREAD_FUNC wmme_dev_thread(void *arg)
     static unsigned rec_cnt, play_cnt;
     enum { MAX_BURST = 1000 };
 
+    /* Suppress compile warning for unused debugging vars */
+    PJ_UNUSED_ARG(rec_cnt);
+    PJ_UNUSED_ARG(play_cnt);
     rec_cnt = play_cnt = 0;
 
     eventCount = 0;

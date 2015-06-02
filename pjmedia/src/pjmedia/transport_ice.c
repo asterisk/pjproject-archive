@@ -1,4 +1,4 @@
-/* $Id: transport_ice.c 4613 2013-10-08 09:08:13Z bennylp $ */
+/* $Id: transport_ice.c 4949 2014-10-17 00:48:33Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -572,8 +572,8 @@ static pj_status_t encode_session_in_sdp(struct transport_ice *tp_ice,
 	}
 
     } else if (pj_ice_strans_has_sess(tp_ice->ice_st) &&
-	       pj_ice_strans_get_state(tp_ice->ice_st) !=
-		        PJ_ICE_STRANS_STATE_FAILED)
+	       (restart_session || pj_ice_strans_get_state(tp_ice->ice_st) !=
+		PJ_ICE_STRANS_STATE_FAILED))
     {
 	/* Encode all candidates to SDP media */
 	char *attr_buf;

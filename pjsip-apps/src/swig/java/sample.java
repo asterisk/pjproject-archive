@@ -1,4 +1,4 @@
-/* $Id: sample.java 4767 2014-02-27 02:26:53Z ming $ */
+/* $Id: sample.java 4997 2015-03-18 12:02:51Z ming $ */
 /* 
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -44,6 +44,9 @@ class MyObserver implements MyAppObserver {
 	}
 	
 	@Override
+	public void notifyCallMediaState(MyCall call) {
+	}
+
 	public void notifyCallState(MyCall call) {
 		if (currentCall == null || call.getId() != currentCall.getId())
 			return;

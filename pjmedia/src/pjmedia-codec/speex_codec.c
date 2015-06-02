@@ -1,4 +1,4 @@
-/* $Id: speex_codec.c 4713 2014-01-23 08:13:11Z nanang $ */
+/* $Id: speex_codec.c 5035 2015-03-27 06:17:27Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -387,7 +387,9 @@ PJ_DEF(pj_status_t) pjmedia_codec_speex_deinit(void)
 						  &spx_factory.base);
     
     /* Destroy mutex. */
+    pj_mutex_unlock(spx_factory.mutex);
     pj_mutex_destroy(spx_factory.mutex);
+    spx_factory.mutex = NULL;
 
     /* Destroy pool. */
     pj_pool_release(spx_factory.pool);
@@ -802,7 +804,7 @@ static int speex_get_next_frame(SpeexBits *bits)
 	    return -1;
 	} else {
 	    /* NB frame */
-	    unsigned int advance = submode;
+	    int advance = submode;
 	    speex_mode_query(&speex_nb_mode, SPEEX_SUBMODE_BITS_PER_FRAME, &advance);
 	    if (advance < 0) {
 		TRACE__((THIS_FUNC, "Invalid mode encountered. "

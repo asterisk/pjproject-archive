@@ -1,4 +1,4 @@
-/* $Id: config.h 4875 2014-07-14 02:37:06Z riza $ */
+/* $Id: config.h 4981 2015-02-11 05:10:06Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -632,6 +632,27 @@
  */
 #ifndef PJMEDIA_HAS_SPEEX_AEC
 #   define PJMEDIA_HAS_SPEEX_AEC		1
+#endif
+
+
+/**
+ * Specify whether Automatic Gain Control (AGC) should also be enabled in
+ * Speex AEC.
+ *
+ * Default: 1 (yes)
+ */
+#ifndef PJMEDIA_SPEEX_AEC_USE_AGC
+#   define PJMEDIA_SPEEX_AEC_USE_AGC		1
+#endif
+
+
+/**
+ * Specify whether denoise should also be enabled in Speex AEC.
+ *
+ * Default: 1 (yes)
+ */
+#ifndef PJMEDIA_SPEEX_AEC_USE_DENOISE
+#   define PJMEDIA_SPEEX_AEC_USE_DENOISE	1
 #endif
 
 

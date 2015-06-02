@@ -101,6 +101,25 @@ using namespace pj;
 %template(AudioDevInfoVector)		std::vector<pj::AudioDevInfo*>;
 %template(CodecInfoVector)		std::vector<pj::CodecInfo*>;
 
+/* pj::WindowHandle::setWindow() receives Surface object */
+#if defined(SWIGJAVA) && defined(__ANDROID__)
+%{
+#if defined(PJMEDIA_HAS_VIDEO) && PJMEDIA_HAS_VIDEO!=0
+#  include <android/native_window_jni.h>
+#else
+#  define ANativeWindow_fromSurface(a,b) NULL
+#endif
+%}
+%ignore pj::WindowHandle::display;
+%ignore pj::WindowHandle::window;
+%typemap(in) jobject surface {
+    $1 = ($input? (jobject)ANativeWindow_fromSurface(jenv, $input): NULL);
+}
+%extend pj::WindowHandle {
+    void setWindow(jobject surface) { $self->window = surface; }
+}
+#endif
+
 %include "pjsua2/media.hpp"
 %include "pjsua2/presence.hpp"
 %include "pjsua2/account.hpp"

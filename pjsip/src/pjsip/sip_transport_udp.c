@@ -1,4 +1,4 @@
-/* $Id: sip_transport_udp.c 4862 2014-06-19 09:42:02Z nanang $ */
+/* $Id: sip_transport_udp.c 5035 2015-03-27 06:17:27Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -153,7 +153,7 @@ static void udp_on_read_complete( pj_ioqueue_key_t *key,
 	 * is relatively big enough for a SIP packet.
 	 */
 	if (bytes_read > MIN_SIZE) {
-	    pj_size_t size_eaten;
+	    pj_ssize_t size_eaten;
 	    const pj_sockaddr *src_addr = &rdata->pkt_info.src_addr;
 
 	    /* Init pkt_info part. */
@@ -367,6 +367,8 @@ static void udp_on_destroy(void *arg)
     /* Destroy lock */
     if (tp->base.lock)
 	pj_lock_destroy(tp->base.lock);
+
+    PJ_LOG(4,(tp->base.obj_name, "SIP UDP transport destroyed"));
 
     /* Destroy pool. */
     pjsip_endpt_release_pool(tp->base.endpt, tp->base.pool);

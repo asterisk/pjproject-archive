@@ -1,4 +1,4 @@
-/* $Id: allocation.c 4728 2014-02-04 10:13:56Z bennylp $ */
+/* $Id: allocation.c 4987 2015-03-03 02:41:27Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1282,7 +1282,7 @@ static pj_status_t stun_on_rx_request(pj_stun_session *sess,
 	p2->channel = PJ_STUN_GET_CH_NB(ch_attr->value);
 
 	/* Register to hash table */
-	pj_assert(sizeof(p2->channel==2));
+	pj_assert(sizeof(p2->channel)==2);
 	pj_hash_set(alloc->pool, alloc->ch_table, &p2->channel,
 		    sizeof(p2->channel), 0, p2);
 

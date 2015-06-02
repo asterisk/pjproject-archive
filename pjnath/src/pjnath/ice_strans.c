@@ -1,4 +1,4 @@
-/* $Id: ice_strans.c 4728 2014-02-04 10:13:56Z bennylp $ */
+/* $Id: ice_strans.c 5035 2015-03-27 06:17:27Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -851,8 +851,7 @@ PJ_DEF(pj_status_t) pj_ice_strans_init_ice(pj_ice_strans *ice_st,
      * type priority to ICE session so that SRFLX candidates will get
      * checked first.
      */
-    if (ice_st->comp[0]->default_cand >= 0 &&
-	ice_st->comp[0]->cand_list[ice_st->comp[0]->default_cand].type
+    if (ice_st->comp[0]->cand_list[ice_st->comp[0]->default_cand].type
 	    == PJ_ICE_CAND_TYPE_SRFLX)
     {
 	pj_ice_sess_set_prefs(ice_st->ice, srflx_pref_table);
@@ -1040,7 +1039,7 @@ PJ_DEF(pj_status_t) pj_ice_strans_get_def_cand( pj_ice_strans *ice_st,
 	pj_memcpy(cand, valid_pair->lcand, sizeof(pj_ice_sess_cand));
     } else {
 	pj_ice_strans_comp *comp = ice_st->comp[comp_id - 1];
-	pj_assert(comp->default_cand>=0 && comp->default_cand<comp->cand_cnt);
+	pj_assert(comp->default_cand<comp->cand_cnt);
 	pj_memcpy(cand, &comp->cand_list[comp->default_cand],
 		  sizeof(pj_ice_sess_cand));
     }

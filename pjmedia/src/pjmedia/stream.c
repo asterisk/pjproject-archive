@@ -1,4 +1,4 @@
-/* $Id: stream.c 4816 2014-04-14 08:14:11Z bennylp $ */
+/* $Id: stream.c 5043 2015-04-02 03:45:28Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -2515,6 +2515,7 @@ PJ_DEF(pj_status_t) pjmedia_stream_destroy( pjmedia_stream *stream )
     /* Free mutex */
 
     if (stream->jb_mutex) {
+        pj_mutex_unlock(stream->jb_mutex);
 	pj_mutex_destroy(stream->jb_mutex);
 	stream->jb_mutex = NULL;
     }

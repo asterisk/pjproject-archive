@@ -1,4 +1,4 @@
-/* $Id: sip_endpoint.c 4704 2014-01-16 05:30:46Z ming $ */
+/* $Id: sip_endpoint.c 5055 2015-04-08 10:10:44Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1125,6 +1125,15 @@ PJ_DEF(pj_status_t) pjsip_endpt_set_resolver( pjsip_endpoint *endpt,
 					      pj_dns_resolver *resv)
 {
     return pjsip_resolver_set_resolver(endpt->resolver, resv);
+}
+
+/*
+ * Set DNS external resolver implementation to be used by the SIP resolver.
+ */
+PJ_DEF(pj_status_t) pjsip_endpt_set_ext_resolver(pjsip_endpoint *endpt,
+						 pjsip_ext_resolver *ext_res)
+{
+    return pjsip_resolver_set_ext_resolver(endpt->resolver, ext_res);
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: videodev.h 4704 2014-01-16 05:30:46Z ming $ */
+/* $Id: videodev.h 4994 2015-03-17 04:02:44Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -58,7 +58,17 @@ typedef enum pjmedia_vid_dev_hwnd_type
     /**
      * Native window handle on Windows.
      */
-    PJMEDIA_VID_DEV_HWND_TYPE_WINDOWS
+    PJMEDIA_VID_DEV_HWND_TYPE_WINDOWS,
+
+    /**
+     * Native view on iOS.
+     */
+    PJMEDIA_VID_DEV_HWND_TYPE_IOS,
+
+    /**
+     * Native window handle on Android.
+     */
+    PJMEDIA_VID_DEV_HWND_TYPE_ANDROID
 
 } pjmedia_vid_dev_hwnd_type;
 
@@ -90,6 +100,9 @@ typedef struct pjmedia_vid_dev_hwnd
 	struct {
 	    void    *window;    /**< Window	*/
 	} ios;
+	struct {
+	    void    *window;    /**< Native window */
+	} android;
 	void 	    *window;
     } info;
 
@@ -219,7 +232,7 @@ typedef enum pjmedia_vid_dev_cap
      * show or hide a preview window showing video directly from the camera
      * by setting this capability to PJ_TRUE or PJ_FALSE. Once the preview
      * is started, application may use PJMEDIA_VID_DEV_CAP_OUTPUT_WINDOW
-     * capability to query the vidow window.
+     * capability to query the video window.
      *
      * The value of this capability is a pj_bool_t containing boolean
      * PJ_TRUE or PJ_FALSE.

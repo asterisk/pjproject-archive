@@ -1,4 +1,4 @@
-/* $Id: siprtp.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: siprtp.c 5035 2015-03-27 06:17:27Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -914,8 +914,9 @@ static pj_status_t init_options(int argc, char *argv[])
 	switch (c) {
 	case 'c':
 	    app.max_calls = atoi(pj_optarg);
-	    if (app.max_calls < 0 || app.max_calls > MAX_CALLS) {
-		PJ_LOG(3,(THIS_FILE, "Invalid max calls value %s", pj_optarg));
+	    if (app.max_calls > MAX_CALLS) {
+		PJ_LOG(3,(THIS_FILE,"Invalid max calls value %s "
+				    "(must be <= %d)", pj_optarg, MAX_CALLS));
 		return 1;
 	    }
 	    break;

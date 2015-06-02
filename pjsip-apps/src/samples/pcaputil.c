@@ -1,4 +1,4 @@
-/* $Id: pcaputil.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: pcaputil.c 5035 2015-03-27 06:17:27Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -307,7 +307,7 @@ static void pcap2wav(const pj_str_t *codec,
 
     /* Get codec info and param for the specified payload type */
     app.pt = pkt0.rtp->pt;
-    if (app.pt >=0 && app.pt < 96) {
+    if (app.pt < 96) {
 	T( pjmedia_codec_mgr_get_codec_info(cmgr, pkt0.rtp->pt, &ci) );
     } else {
 	unsigned cnt = 2;

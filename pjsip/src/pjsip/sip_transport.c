@@ -1,4 +1,4 @@
-/* $Id: sip_transport.c 4865 2014-06-26 10:39:35Z ming $ */
+/* $Id: sip_transport.c 4988 2015-03-03 04:29:54Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1113,6 +1113,7 @@ static pj_status_t destroy_transport( pjsip_tpmgr *mgr,
     }
 
     pj_lock_release(mgr->lock);
+    pj_lock_release(tp->lock);
 
     /* Destroy. */
     return tp->destroy(tp);
@@ -1137,8 +1138,8 @@ PJ_DEF(pj_status_t) pjsip_transport_shutdown(pjsip_transport *tp)
 
     /* Do nothing if transport is being shutdown already */
     if (tp->is_shutdown) {
-	pj_lock_release(tp->lock);
 	pj_lock_release(mgr->lock);
+	pj_lock_release(tp->lock);
 	return PJ_SUCCESS;
     }
 
@@ -1167,8 +1168,8 @@ PJ_DEF(pj_status_t) pjsip_transport_shutdown(pjsip_transport *tp)
 	pjsip_transport_dec_ref(tp);
     }
 
-    pj_lock_release(tp->lock);
     pj_lock_release(mgr->lock);
+    pj_lock_release(tp->lock);
 
     return status;
 }

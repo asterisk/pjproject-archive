@@ -1,4 +1,4 @@
-/* $Id: g711.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: g711.c 4987 2015-03-03 02:41:27Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -221,6 +221,7 @@ PJ_DEF(pj_status_t) pjmedia_codec_g711_deinit(void)
     g711_factory.endpt = NULL;
 
     /* Destroy mutex. */
+    pj_mutex_unlock(g711_factory.mutex);
     pj_mutex_destroy(g711_factory.mutex);
     g711_factory.mutex = NULL;
 

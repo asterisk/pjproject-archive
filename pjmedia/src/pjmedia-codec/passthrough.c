@@ -1,4 +1,4 @@
-/* $Id: passthrough.c 4886 2014-08-13 02:57:01Z nanang $ */
+/* $Id: passthrough.c 4987 2015-03-03 02:41:27Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -447,6 +447,7 @@ PJ_DEF(pj_status_t) pjmedia_codec_passthrough_deinit(void)
     if (!codec_mgr) {
 	pj_pool_release(codec_factory.pool);
 	codec_factory.pool = NULL;
+	pj_mutex_unlock(codec_factory.mutex);
 	return PJ_EINVALIDOP;
     }
 
@@ -455,7 +456,9 @@ PJ_DEF(pj_status_t) pjmedia_codec_passthrough_deinit(void)
 						  &codec_factory.base);
     
     /* Destroy mutex. */
+    pj_mutex_unlock(codec_factory.mutex);
     pj_mutex_destroy(codec_factory.mutex);
+    codec_factory.mutex = NULL;
 
     /* Destroy pool. */
     pj_pool_release(codec_factory.pool);

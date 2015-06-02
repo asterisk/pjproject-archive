@@ -1,4 +1,4 @@
-/* $Id: print_util.h 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: print_util.h 4979 2015-02-10 03:20:04Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -19,6 +19,12 @@
  */
 #ifndef __PJSIP_PRINT_H__
 #define __PJSIP_PRINT_H__
+
+#define copy_advance_char_check(buf,chr)   \
+	do { \
+	    if (1 >= (endbuf-buf)) return -1;	\
+	    *buf++ = chr; \
+	} while (0)
 
 #define copy_advance_check(buf,str)   \
 	do { \

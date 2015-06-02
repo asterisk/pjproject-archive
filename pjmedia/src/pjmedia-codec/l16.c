@@ -1,4 +1,4 @@
-/* $Id: l16.c 4621 2013-10-17 02:43:59Z nanang $ */
+/* $Id: l16.c 4987 2015-03-03 02:41:27Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -229,6 +229,7 @@ PJ_DEF(pj_status_t) pjmedia_codec_l16_deinit(void)
     l16_factory.endpt = NULL;
 
     /* Destroy mutex. */
+    pj_mutex_unlock(l16_factory.mutex);
     pj_mutex_destroy(l16_factory.mutex);
     l16_factory.mutex = NULL;
 

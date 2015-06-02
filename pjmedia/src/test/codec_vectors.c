@@ -1,4 +1,4 @@
-/* $Id: codec_vectors.c 4712 2014-01-23 08:09:29Z nanang $ */
+/* $Id: codec_vectors.c 5058 2015-04-09 08:15:48Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -73,6 +73,14 @@ static int codec_test_encode(pjmedia_codec_mgr *mgr,
 
     codec_param.info.avg_bps = bitrate;
     codec_param.setting.vad = 0;
+
+    /* For G7221, the bitrate is set via param.setting.dec_fmtp, if it has
+     * no info about bitrate, the codec will check info.avg_bps. So, let's
+     * just clear the SDP fmtp.
+     */
+    if (pj_ansi_strstr(codec_name, "G7221/")) {
+	codec_param.setting.dec_fmtp.cnt = 0;
+    }
 
     status = pjmedia_codec_init(codec, pool);
     if (status != PJ_SUCCESS) {
@@ -324,6 +332,14 @@ static int codec_test_decode(pjmedia_codec_mgr *mgr,
 
     codec_param.info.avg_bps = bitrate;
     codec_param.setting.vad = 0;
+
+    /* For G7221, the bitrate is set via param.setting.dec_fmtp, if it has
+     * no info about bitrate, the codec will check info.avg_bps. So, let's
+     * just clear the SDP fmtp.
+     */
+    if (pj_ansi_strstr(codec_name, "G7221/")) {
+	codec_param.setting.dec_fmtp.cnt = 0;
+    }
 
     status = pjmedia_codec_init(codec, pool);
     if (status != PJ_SUCCESS) {

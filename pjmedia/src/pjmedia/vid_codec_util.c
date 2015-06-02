@@ -1,4 +1,4 @@
-/* $Id: vid_codec_util.c 4854 2014-06-04 03:48:28Z nanang $ */
+/* $Id: vid_codec_util.c 5046 2015-04-06 06:21:41Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -39,12 +39,12 @@
 #define H264_STRICT_SDP_NEGO	    0
 
 /* Default frame rate, if not specified */
-#define DEFAULT_H264_FPS_NUM	    15
+#define DEFAULT_H264_FPS_NUM	    10
 #define DEFAULT_H264_FPS_DENUM	    1
 
 /* Default aspect ratio, if not specified */
-#define DEFAULT_H264_RATIO_NUM	    16
-#define DEFAULT_H264_RATIO_DENUM    9
+#define DEFAULT_H264_RATIO_NUM	    4
+#define DEFAULT_H264_RATIO_DENUM    3
 
 
 /* ITU resolution definition */
@@ -399,7 +399,7 @@ PJ_DEF(pj_status_t) pjmedia_vid_codec_h264_parse_fmtp(
 		return status;
 	} else if (pj_stricmp(&fmtp->param[i].name, &PACKETIZATION_MODE)==0) {
 	    tmp = pj_strtoul(&fmtp->param[i].val);
-	    if (tmp >= 0 && tmp <= 2) 
+	    if (tmp <= 2) 
 		h264_fmtp->packetization_mode = (pj_uint8_t)tmp;
 	    else
 		return PJMEDIA_SDP_EINFMTP;
@@ -636,10 +636,14 @@ static pj_status_t find_highest_res(pjmedia_vid_codec_h264_fmtp *fmtp,
     max_fs = PJ_MIN(max_fs, fmtp->max_fs);
 
     /* Check if the specified ratio is using big numbers
-     * (not normalizable), override it with default ratio!
+     * (not normalizable), override it!
      */
-    if ((int)max_fs < asp_ratio.num * asp_ratio.denum)
-	asp_ratio = def_ratio;
+    if ((int)max_fs < asp_ratio.num * asp_ratio.denum) {
+        if ((int)max_fs >= def_ratio.num * def_ratio.denum)
+	    asp_ratio = def_ratio;
+	else
+	    asp_ratio.num = asp_ratio.denum = 1;
+    }
 
     /* Calculate the scale factor for size */
     scale = pj_isqrt(max_fs / asp_ratio.denum / asp_ratio.num);

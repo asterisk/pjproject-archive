@@ -1,4 +1,4 @@
-/* $Id: ioqueue_select.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: ioqueue_select.c 4991 2015-03-06 06:04:21Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -830,6 +830,7 @@ on_error:
 PJ_DEF(int) pj_ioqueue_poll( pj_ioqueue_t *ioqueue, const pj_time_val *timeout)
 {
     pj_fd_set_t rfdset, wfdset, xfdset;
+    int nfds;
     int count, i, counter;
     pj_ioqueue_key_t *h;
     struct event
@@ -876,10 +877,12 @@ PJ_DEF(int) pj_ioqueue_poll( pj_ioqueue_t *ioqueue, const pj_time_val *timeout)
     validate_sets(ioqueue, &rfdset, &wfdset, &xfdset);
 #endif
 
+    nfds = ioqueue->nfds;
+
     /* Unlock ioqueue before select(). */
     pj_lock_release(ioqueue->lock);
 
-    count = pj_sock_select(ioqueue->nfds+1, &rfdset, &wfdset, &xfdset, 
+    count = pj_sock_select(nfds+1, &rfdset, &wfdset, &xfdset, 
 			   timeout);
     
     if (count == 0)

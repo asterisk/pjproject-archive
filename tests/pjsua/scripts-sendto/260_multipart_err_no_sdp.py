@@ -1,4 +1,4 @@
-# $Id: 260_multipart_err_no_sdp.py 3243 2010-08-01 09:48:51Z bennylp $
+# $Id: 260_multipart_err_no_sdp.py 5020 2015-03-24 09:25:12Z ismangil $
 import inc_sip as sip
 import inc_sdp as sdp
 
@@ -32,7 +32,7 @@ include = []
 exclude = []
 
 sendto_cfg = sip.SendtoCfg( "Multipart/mixed body without SDP", 
-			    pjsua_args=args, sdp="", resp_code=400, 
+			    pjsua_args=args, sdp="", resp_code=415,
 			    extra_headers=extra_headers, body=body,
 			    resp_inc=include, resp_exc=exclude)
 
