@@ -169,6 +169,7 @@ pjsip-apps/src/pjsua/bb10/arm
 pjsip-apps/src/pjsua/bb10/translations/PjsuaBB.qm
 pjsip-apps/src/pjsua/ios/ipjsua.xcodeproj/project.xcworkspace
 pjsip-apps/src/pjsua/ios/ipjsua.xcodeproj/xcuserdata
+pjsip-apps/src/pjsua/ios/lib*.a
 pjsip-apps/src/pjsua/symbian/.cproject
 pjsip-apps/src/pjsua/symbian/.project
 pjsip-apps/src/pjsua/symbian/sis/*.sis*
