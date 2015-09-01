@@ -958,17 +958,16 @@ PJ_DEF(pj_status_t) pjsip_transport_add_ref( pjsip_transport *tp )
 {
     PJ_ASSERT_RETURN(tp != NULL, PJ_EINVAL);
 
+    pj_lock_acquire(tp->tpmgr->lock);
+
     if (pj_atomic_inc_and_get(tp->ref_cnt) == 1) {
-	pj_lock_acquire(tp->tpmgr->lock);
-	/* Verify again. */
-	if (pj_atomic_get(tp->ref_cnt) == 1) {
 	    if (tp->idle_timer.id != PJ_FALSE) {
 		pjsip_endpt_cancel_timer(tp->tpmgr->endpt, &tp->idle_timer);
 		tp->idle_timer.id = PJ_FALSE;
-	    }
-	}
-	pj_lock_release(tp->tpmgr->lock);
     }
+	}
+
+    pj_lock_release(tp->tpmgr->lock);
 
     return PJ_SUCCESS;
 }
@@ -982,12 +981,13 @@ PJ_DEF(pj_status_t) pjsip_transport_dec_ref( pjsip_transport *tp )
 
     pj_assert(pj_atomic_get(tp->ref_cnt) > 0);
 
+    pj_lock_acquire(tp->tpmgr->lock);
+
     if (pj_atomic_dec_and_get(tp->ref_cnt) == 0) {
-	pj_lock_acquire(tp->tpmgr->lock);
 	/* Verify again. Do not register timer if the transport is
 	 * being destroyed.
 	 */
-	if (pj_atomic_get(tp->ref_cnt) == 0 && !tp->is_destroying) {
+	if (!tp->is_destroying) {
 	    pj_time_val delay;
 	    
 	    /* If transport is in graceful shutdown, then this is the
@@ -1008,8 +1008,9 @@ PJ_DEF(pj_status_t) pjsip_transport_dec_ref( pjsip_transport *tp )
 	    pjsip_endpt_schedule_timer(tp->tpmgr->endpt, &tp->idle_timer, 
 				       &delay);
 	}
-	pj_lock_release(tp->tpmgr->lock);
     }
+
+    pj_lock_release(tp->tpmgr->lock);
 
     return PJ_SUCCESS;
 }
