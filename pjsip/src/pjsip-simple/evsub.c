@@ -236,6 +236,8 @@ struct pjsip_evsub
     pjsip_transaction	 *pending_sub;	/**< Pending UAC SUBSCRIBE tsx.	    */
     pj_timer_entry	 *pending_sub_timer; /**< Stop pending sub timer.   */
 
+    pj_bool_t             timer_ignore; /**< Timer should not execute.      */
+
     void		 *mod_data[PJSIP_MAX_MODULE];	/**< Module data.   */
 };
 
@@ -501,7 +503,13 @@ static void set_timer( pjsip_evsub *sub, int timer_id,
 	PJ_LOG(5,(sub->obj_name, "%s %s timer", 
 		  (timer_id==sub->timer.id ? "Updating" : "Cancelling"),
 		  timer_names[sub->timer.id]));
-	pjsip_endpt_cancel_timer(sub->endpt, &sub->timer);
+	/* If the existing timer can not be cancelled it means it is currently
+	 * blocking waiting on the dialog lock. Since we are about to schedule a
+	 * new timer or just cancel this one we tell it to do nothing instead.
+	 */
+	if (!pj_timer_heap_cancel(pjsip_endpt_get_timer_heap(sub->endpt), &sub->timer)) {
+		sub->timer_ignore = PJ_TRUE;
+	}
 	sub->timer.id = TIMER_TYPE_NONE;
     }
 
@@ -627,6 +635,15 @@ static void on_timer( pj_timer_heap_t *timer_heap,
     sub = (pjsip_evsub*) entry->user_data;
 
     pjsip_dlg_inc_lock(sub->dlg);
+
+    /* Another timer has been scheduled in our place and we need to do
+     * nothing as a result.
+     */
+    if (sub->timer_ignore == PJ_TRUE) {
+	sub->timer_ignore = PJ_FALSE;
+	pjsip_dlg_dec_lock(sub->dlg);
+	return;
+    }
 
     timer_id = entry->id;
     entry->id = TIMER_TYPE_NONE;
