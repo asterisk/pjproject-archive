@@ -1,4 +1,4 @@
-/* $Id: sound_port.c 4982 2015-02-11 05:15:29Z nanang $ */
+/* $Id: sound_port.c 5140 2015-07-31 07:12:36Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -377,6 +377,12 @@ PJ_DEF(pj_status_t) pjmedia_snd_port_create( pj_pool_t *pool,
 
     pjmedia_snd_port_param_default(&param);
 
+    /* Normalize rec_id & play_id */
+    if (rec_id < 0)
+	rec_id = PJMEDIA_AUD_DEFAULT_CAPTURE_DEV;
+    if (play_id < 0)
+	play_id = PJMEDIA_AUD_DEFAULT_PLAYBACK_DEV;
+
     status = pjmedia_aud_dev_default_param(rec_id, &param.base);
     if (status != PJ_SUCCESS)
 	return status;
@@ -411,6 +417,10 @@ PJ_DEF(pj_status_t) pjmedia_snd_port_create_rec( pj_pool_t *pool,
 
     pjmedia_snd_port_param_default(&param);
 
+    /* Normalize dev_id */
+    if (dev_id < 0)
+	dev_id = PJMEDIA_AUD_DEFAULT_CAPTURE_DEV;
+
     status = pjmedia_aud_dev_default_param(dev_id, &param.base);
     if (status != PJ_SUCCESS)
 	return status;
@@ -444,6 +454,10 @@ PJ_DEF(pj_status_t) pjmedia_snd_port_create_player( pj_pool_t *pool,
     pj_status_t status;
 
     pjmedia_snd_port_param_default(&param);
+
+    /* Normalize dev_id */
+    if (dev_id < 0)
+	dev_id = PJMEDIA_AUD_DEFAULT_PLAYBACK_DEV;
 
     status = pjmedia_aud_dev_default_param(dev_id, &param.base);
     if (status != PJ_SUCCESS)

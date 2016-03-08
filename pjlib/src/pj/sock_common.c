@@ -1,4 +1,4 @@
-/* $Id: sock_common.c 4905 2014-08-26 05:14:13Z riza $ */
+/* $Id: sock_common.c 5092 2015-05-12 01:56:29Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -180,7 +180,7 @@ PJ_DEF(pj_status_t) pj_sockaddr_set_str_addr(int af,
 	    status = pj_getaddrinfo(PJ_AF_INET6, str_addr, &count, &ai);
 	    if (status==PJ_SUCCESS) {
 		pj_memcpy(&addr->ipv6.sin6_addr, &ai.ai_addr.ipv6.sin6_addr,
-			  sizeof(pj_sockaddr_in6));
+			  sizeof(addr->ipv6.sin6_addr));
 	    }
 	}
     } else {

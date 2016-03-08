@@ -1,4 +1,4 @@
-# $Id: importsym.py 4704 2014-01-16 05:30:46Z ming $
+# $Id: importsym.py 5148 2015-08-06 06:37:49Z ming $
 #
 # importsym.py: Import C symbol decls (structs, enums, etc) and write them
 #               to another file 
@@ -62,7 +62,7 @@ else:
 	PYCPARSER_DIR="/Library/Python/2.7/site-packages/pycparser"
 
 if not os.path.exists(PYCPARSER_DIR + '/utils/fake_libc_include'):
-	print "Error: couldn't find pycparser utils in '%s'" % PYPARSER_DIR 
+	print "Error: couldn't find pycparser utils in '%s'" % PYCPARSER_DIR 
 	sys.exit(1)
 
 # Heading, to be placed before the source files

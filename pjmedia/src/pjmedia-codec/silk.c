@@ -1,4 +1,4 @@
-/* $Id: silk.c 5046 2015-04-06 06:21:41Z nanang $ */
+/* $Id: silk.c 5085 2015-05-05 07:48:13Z nanang $ */
 /* 
  * Copyright (C) 2012-2012 Teluu Inc. (http://www.teluu.com)
  * Contributed by Regis Montoya (aka r3gis - www.r3gis.fr)
@@ -772,7 +772,7 @@ static pj_status_t  silk_codec_parse( pjmedia_codec *codec,
     for (i = 0; i < count; i++) {
         frames[i].type = PJMEDIA_FRAME_TYPE_AUDIO;
         frames[i].bit_info = (((unsigned)ts->u64 & 0xFFFF) << 16) |
-                              (((unsigned)pkt & 0xFF) << 8) |
+                              (((pj_size_t)pkt & 0xFF) << 8) |
                               (toc.framesInPacket << 4) | i;
         frames[i].buf = pkt;
         frames[i].size = pkt_size;

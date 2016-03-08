@@ -1,4 +1,4 @@
-/* $Id: sound_legacy.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: sound_legacy.c 5140 2015-07-31 07:12:36Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -123,6 +123,12 @@ static pj_status_t open_stream( pjmedia_dir dir,
     pjmedia_snd_stream *snd_strm;
     pjmedia_aud_param param;
     pj_status_t status;
+
+    /* Normalize rec_id & play_id */
+    if (dir & PJMEDIA_DIR_CAPTURE && rec_id < 0)
+	rec_id = PJMEDIA_AUD_DEFAULT_CAPTURE_DEV;
+    if (dir & PJMEDIA_DIR_PLAYBACK && play_id < 0)
+	play_id = PJMEDIA_AUD_DEFAULT_PLAYBACK_DEV;
 
     /* Initialize parameters */
     if (dir & PJMEDIA_DIR_CAPTURE) {

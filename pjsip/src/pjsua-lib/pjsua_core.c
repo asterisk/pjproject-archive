@@ -1,4 +1,4 @@
-/* $Id: pjsua_core.c 4957 2014-11-04 08:00:15Z nanang $ */
+/* $Id: pjsua_core.c 5133 2015-07-14 01:18:19Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1161,7 +1161,20 @@ static void destroy_stun_resolve(pjsua_stun_resolve *sess)
 	return;
 
     PJSUA_LOCK();
+
+    if (sess->stun_sock) {
+        pj_stun_sock_destroy(sess->stun_sock);
+        sess->stun_sock = NULL;
+    }
+
+    if (pjsua_var.stun_status == PJ_EUNKNOWN ||
+    	pjsua_var.stun_status == PJ_EPENDING)
+    {
+        pjsua_var.stun_status = PJNATH_ESTUNDESTROYED;
+    }
+    
     pj_list_erase(sess);
+
     PJSUA_UNLOCK();
 
     pj_assert(sess->stun_sock==NULL);
@@ -1463,7 +1476,17 @@ static void internal_stun_resolve_cb(const pj_stun_resolve_result *result)
     pjsua_var.stun_status = result->status;
     if ((result->status == PJ_SUCCESS) && (pjsua_var.ua_cfg.stun_srv_cnt>0)) {
 	pj_memcpy(&pjsua_var.stun_srv, &result->addr, sizeof(result->addr));
+
+	/* Perform NAT type detection if not yet */
+	if (pjsua_var.nat_type == PJ_STUN_NAT_TYPE_UNKNOWN &&
+	    pjsua_var.ua_cfg.nat_type_in_sdp)
+	{
+	    pjsua_detect_nat_type();
+	}
     }
+    
+    if (pjsua_var.ua_cfg.cb.on_stun_resolution_complete)
+    	(*pjsua_var.ua_cfg.cb.on_stun_resolution_complete)(result);
 }
 
 /*

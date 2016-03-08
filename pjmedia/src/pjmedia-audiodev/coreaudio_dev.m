@@ -1,4 +1,4 @@
-/* $Id: coreaudio_dev.m 4883 2014-07-28 01:43:22Z ming $ */
+/* $Id: coreaudio_dev.m 5142 2015-07-31 08:35:34Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -334,6 +334,32 @@ static pj_status_t ca_factory_init(pjmedia_aud_dev_factory *f)
 #endif
     }
 #endif
+
+    /* Initialize audio session category and mode */
+    {
+	AVAudioSession *sess = [AVAudioSession sharedInstance];
+	pj_bool_t err;
+
+	if ([sess respondsToSelector:@selector(setCategory:withOptions:error:)])
+	{
+	    err = [sess setCategory:AVAudioSessionCategoryPlayAndRecord
+		        withOptions:AVAudioSessionCategoryOptionAllowBluetooth
+		        error:nil] != YES;
+        } else {
+    	    err = [sess setCategory:AVAudioSessionCategoryPlayAndRecord
+		        error:nil] != YES;
+        }
+	if (err) {
+            PJ_LOG(3, (THIS_FILE,
+   	               "Warning: failed settting audio session category"));
+	}
+
+	if ([sess respondsToSelector:@selector(setMode:error:)] &&
+	    [sess setMode:AVAudioSessionModeVoiceChat error:nil] != YES)
+	{
+	    PJ_LOG(3, (THIS_FILE, "Warning: failed settting audio mode"));
+	}
+    }
 
     cf_instance = cf;
 #endif
@@ -1236,15 +1262,9 @@ static pj_status_t create_audio_unit(AudioComponent io_comp,
 				     AudioUnit *io_unit)
 {
     OSStatus ostatus;
+
 #if !COREAUDIO_MAC
-    /* We want to be able to open playback and recording streams */
     strm->sess = [AVAudioSession sharedInstance];
-    if ([strm->sess setCategory:AVAudioSessionCategoryPlayAndRecord
-                    error:nil] != YES)
-    {
-	PJ_LOG(4, (THIS_FILE,
-		   "Warning: cannot set the audio session category"));
-    }    
 #endif
     
     /* Create an audio unit to interface with the device */

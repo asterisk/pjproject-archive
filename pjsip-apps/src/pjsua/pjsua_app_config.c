@@ -1,4 +1,4 @@
-/* $Id: pjsua_app_config.c 4868 2014-07-02 18:07:12Z bennylp $ */
+/* $Id: pjsua_app_config.c 5077 2015-04-23 02:47:49Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -211,6 +211,12 @@ static void usage(void)
     puts  ("When URL is specified, pjsua will immediately initiate call to that URL");
     puts  ("");
 
+    fflush(stdout);
+}
+
+static void log_writer_nobuf(int level, const char *buffer, int len)
+{
+    pj_log_write(level, buffer, len);
     fflush(stdout);
 }
 
@@ -1210,12 +1216,12 @@ static pj_status_t parse_args(int argc, char *argv[],
 		}
 
 		if (pj_ssl_cipher_is_supported(cipher)) {
-		    static pj_ssl_cipher tls_ciphers[128];
+		    static pj_ssl_cipher tls_ciphers[PJ_SSL_SOCK_MAX_CIPHERS];
 
 		    tls_ciphers[cfg->udp_cfg.tls_setting.ciphers_num++] = cipher;
 		    cfg->udp_cfg.tls_setting.ciphers = tls_ciphers;
 		} else {
-		    pj_ssl_cipher ciphers[128];
+		    pj_ssl_cipher ciphers[PJ_SSL_SOCK_MAX_CIPHERS];
 		    unsigned j, ciphers_cnt;
 
 		    ciphers_cnt = PJ_ARRAY_SIZE(ciphers);
@@ -1251,6 +1257,7 @@ static pj_status_t parse_args(int argc, char *argv[],
 #ifdef _IONBF
 	case OPT_STDOUT_NO_BUF:
 	    setvbuf(stdout, NULL, _IONBF, 0);
+	    cfg->log_cfg.cb = &log_writer_nobuf;
 	    break;
 #endif
 

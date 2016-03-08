@@ -1,4 +1,4 @@
-/* $Id: cmp_wav.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: cmp_wav.c 5066 2015-04-13 12:16:47Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -147,13 +147,16 @@ int main(int argc, char *argv[])
 	return 1;
     }
 
-    if (file_ori_port->info.clock_rate != file_deg_port->info.clock_rate) {
+    if (file_ori_port->info.fmt.det.aud.clock_rate !=
+	file_deg_port->info.fmt.det.aud.clock_rate)
+    {
 	app_perror(THIS_FILE, "Clock rates must be same.", PJ_EINVAL);
 	return 1;
     }
 
     if (argc > 3)
-	first_nsamples = atoi(argv[3]) * file_ori_port->info.clock_rate / 1000;
+	first_nsamples = atoi(argv[3]) *
+			 file_ori_port->info.fmt.det.aud.clock_rate / 1000;
 
     if (argc > 4)
 	detail = atoi(argv[4]);

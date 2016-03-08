@@ -1,4 +1,4 @@
-/* $Id: audiodev.h 4243 2012-08-31 11:42:17Z nanang $ */
+/* $Id: audiodev.h 5110 2015-06-18 06:06:02Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -196,7 +196,11 @@ typedef enum pjmedia_aud_dev_cap
  */
 typedef enum pjmedia_aud_dev_route
 {
-    /** Default route. */
+    /**
+     * Default route, it is the default audio route of the audio framework
+     * backend, as in opening audio device without specifying any route
+     * setting or with specifying neutral route setting.
+     */
     PJMEDIA_AUD_DEV_ROUTE_DEFAULT = 0,
 
     /** Route to loudspeaker */

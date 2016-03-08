@@ -1,4 +1,4 @@
-/* $Id: streamutil.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: streamutil.c 5095 2015-05-15 06:47:00Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -138,6 +138,7 @@ static pj_status_t create_stream( pj_pool_t *pool,
     info.dir = dir;
     pj_memcpy(&info.fmt, codec_info, sizeof(pjmedia_codec_info));
     info.tx_pt = codec_info->pt;
+    info.rx_pt = codec_info->pt;
     info.ssrc = pj_rand();
     
 #if PJMEDIA_HAS_RTCP_XR && PJMEDIA_STREAM_ENABLE_XR

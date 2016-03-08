@@ -1,4 +1,4 @@
-/* $Id: pjsua_vid.c 5049 2015-04-07 09:25:07Z riza $ */
+/* $Id: pjsua_vid.c 5125 2015-07-03 06:21:30Z ming $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -32,6 +32,8 @@
 #define PJSUA_HIDE_WINDOW	0
 
 
+static pjsua_vid_win_id vid_preview_get_win(pjmedia_vid_dev_index id,
+                                            pj_bool_t running_only);
 static void free_vid_win(pjsua_vid_win_id wid);
 
 /*****************************************************************************
@@ -211,6 +213,99 @@ PJ_DEF(pj_status_t) pjsua_vid_dev_get_info(pjmedia_vid_dev_index id,
                                            pjmedia_vid_dev_info *vdi)
 {
     return pjmedia_vid_dev_get_info(id, vdi);
+}
+
+/*
+ * Check whether the video device is currently active.
+ */
+PJ_DEF(pj_bool_t) pjsua_vid_dev_is_active(pjmedia_vid_dev_index id)
+{
+    pjsua_vid_win_id wid = vid_preview_get_win(id, PJ_FALSE);
+    
+    return (wid != PJSUA_INVALID_ID? PJ_TRUE: PJ_FALSE);
+}
+
+/*
+ * Set the capability of the video device.
+ */
+PJ_DEF(pj_status_t) pjsua_vid_dev_set_setting( pjmedia_vid_dev_index id,
+					       pjmedia_vid_dev_cap cap,
+					       const void *pval,
+					       pj_bool_t keep)
+{
+    pj_status_t status = PJ_SUCCESS;
+    pjsua_vid_win_id wid = vid_preview_get_win(id, PJ_FALSE);
+    
+    if (wid != PJSUA_INVALID_ID) {
+        pjsua_vid_win *w;
+        pjmedia_vid_dev_stream *cap_dev;
+
+        w = &pjsua_var.win[wid];
+        cap_dev = pjmedia_vid_port_get_stream(w->vp_cap);
+
+    	status = pjmedia_vid_dev_stream_set_cap(cap_dev, cap, pval);
+	if (status != PJ_SUCCESS)
+	    return status;
+    } else {
+	status = PJ_ENOTFOUND;
+    }
+
+    if (keep) {
+	pjmedia_vid_dev_info info;
+	    
+	status = pjmedia_vid_dev_get_info(id, &info);
+	if (status != PJ_SUCCESS || (info.dir & PJMEDIA_DIR_CAPTURE) == 0)
+	    return status;
+	
+        /* Get real capture ID, if set to PJMEDIA_VID_DEFAULT_CAPTURE_DEV */
+	id = info.id;
+    	status = pjmedia_vid_dev_param_set_cap(&pjsua_var.vid_param[id],
+    					       cap, pval);
+    	if (status == PJ_SUCCESS) {
+            pjsua_var.vid_caps[id] |= cap;
+    	}
+    }
+    
+    return status;
+}
+
+/*
+ * Get the value of the video device capability.
+ */
+PJ_DEF(pj_status_t) pjsua_vid_dev_get_setting( pjmedia_vid_dev_index id,
+					       pjmedia_vid_dev_cap cap,
+					       void *pval)
+{
+    pj_status_t status = PJ_SUCCESS;
+    pjsua_vid_win_id wid = vid_preview_get_win(id, PJ_FALSE);
+    
+    if (wid != PJSUA_INVALID_ID) {
+        pjsua_vid_win *w;
+        pjmedia_vid_dev_stream *cap_dev;
+
+        w = &pjsua_var.win[wid];
+        cap_dev = pjmedia_vid_port_get_stream(w->vp_cap);
+
+    	status = pjmedia_vid_dev_stream_get_cap(cap_dev, cap, pval);
+    } else {
+	pjmedia_vid_dev_info info;
+	    
+	status = pjmedia_vid_dev_get_info(id, &info);
+	if (status != PJ_SUCCESS)
+	    return status;
+	
+        /* Get real device ID, if set to default device */
+	id = info.id;
+    
+        if ((pjsua_var.vid_caps[id] & cap) != 0) {
+            status = pjmedia_vid_dev_param_get_cap(&pjsua_var.vid_param[id],
+            					   cap, pval);
+        } else {
+	    status = PJ_ENOTFOUND;
+	}
+    }
+
+    return status;
 }
 
 /*
@@ -478,21 +573,44 @@ static pj_status_t create_vid_win(pjsua_vid_win_type type,
 	    } else {
 		strm = pjmedia_vid_port_get_stream(w->vp_rend);
 	    }
-
 	    pj_assert(strm);
-	    status = pjmedia_vid_dev_stream_set_cap(
-				    strm, PJMEDIA_VID_DEV_CAP_OUTPUT_HIDE,
-				    &hide);
 
-	    pjmedia_vid_dev_stream_set_cap(
+	    /* Try to apply show/hide, window flags, and output window */
+
+	    status = pjmedia_vid_dev_stream_set_cap(
+				strm, PJMEDIA_VID_DEV_CAP_OUTPUT_HIDE,
+				&hide);
+	    if (status != PJ_SUCCESS) {
+		PJ_PERROR(4,(THIS_FILE, status,
+			     "Ignored error on setting window visibility "
+			     "on wid=%d", wid));
+	    }
+
+	    status = pjmedia_vid_dev_stream_set_cap(
                                 strm, PJMEDIA_VID_DEV_CAP_OUTPUT_WINDOW_FLAGS,
 				&wnd_flags);
+	    if (status != PJ_SUCCESS) {
+		PJ_PERROR(4,(THIS_FILE, status,
+			     "Ignored error on setting window flags "
+			     "on wid=%d", wid));
+	    }
+
+	    if (wnd) {
+		status = pjmedia_vid_dev_stream_set_cap(
+				 strm, PJMEDIA_VID_DEV_CAP_OUTPUT_WINDOW, wnd);
+
+		if (status != PJ_SUCCESS) {
+		    PJ_PERROR(4, (THIS_FILE, status,
+				  "Ignored error on setting window handle "
+				  "on wid=%d", wid));
+		}
+	    }
 
 	    /* Done */
 	    *id = wid;
 	    pj_log_pop_indent();
 
-	    return status;
+	    return PJ_SUCCESS;
 	}
     }
 
@@ -553,8 +671,25 @@ static pj_status_t create_vid_win(pjsua_vid_win_type type,
 	/* Create capture video port */
 	vp_param.active = PJ_TRUE;
 	vp_param.vidparam.dir = PJMEDIA_DIR_CAPTURE;
-	if (fmt)
+
+        /* Update the video setting with user preference */
+#define update_param(cap, field)    \
+	    if ((pjsua_var.vid_caps[cap_id] & cap) && (vdi.caps & cap)) { \
+	        vp_param.vidparam.flags |= cap; \
+	        pj_memcpy(&vp_param.vidparam.field, \
+	        	  &pjsua_var.vid_param[cap_id].field, \
+	        	  sizeof(vp_param.vidparam.field)); \
+	    }
+
+	if (fmt) {
 	    vp_param.vidparam.fmt = *fmt;
+	} else {
+	    update_param(PJMEDIA_VID_DEV_CAP_FORMAT, fmt);
+	}
+	
+	update_param(PJMEDIA_VID_DEV_CAP_ORIENTATION, orient);
+
+#undef update_param
 
 	status = pjmedia_vid_port_create(w->pool, &vp_param, &w->vp_cap);
 	if (status != PJ_SUCCESS)

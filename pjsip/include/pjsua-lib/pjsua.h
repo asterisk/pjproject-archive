@@ -1,4 +1,4 @@
-/* $Id: pjsua.h 4999 2015-03-19 04:59:23Z riza $ */
+/* $Id: pjsua.h 5131 2015-07-13 07:56:19Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -283,6 +283,9 @@ typedef struct pjsua_srv_pres pjsua_srv_pres;
 /** Forward declaration for pjsua_msg_data */
 typedef struct pjsua_msg_data pjsua_msg_data;
 
+/** Forward declaration for pj_stun_resolve_result */
+typedef struct pj_stun_resolve_result pj_stun_resolve_result;
+
 
 /**
  * Maximum proxies in account.
@@ -557,6 +560,13 @@ typedef struct pjsua_med_tp_state_info
 typedef pj_status_t
 (*pjsua_med_tp_state_cb)(pjsua_call_id call_id,
                          const pjsua_med_tp_state_info *info);
+
+
+/**
+ * Typedef of callback to be registered to #pjsua_resolve_stun_servers()
+ * and to be called when STUN resolution completes.
+ */
+typedef void (*pj_stun_resolve_cb)(const pj_stun_resolve_result *result);
 
 
 /**
@@ -1351,6 +1361,18 @@ typedef struct pjsua_callback
     void (*on_acc_find_for_incoming)(const pjsip_rx_data *rdata,
 				     pjsua_acc_id* acc_id);
 
+    /**
+     * Calling #pjsua_init() will initiate an async process to resolve and
+     * contact each of the STUN server entries to find which is usable.
+     * This callback is called when the process is complete, and can be
+     * used by the application to start creating and registering accounts.
+     * This way, the accounts can avoid call setup delay caused by pending
+     * STUN resolution.
+     *
+     * See also #pj_stun_resolve_cb.
+     */
+    pj_stun_resolve_cb on_stun_resolution_complete;
+
 } pjsua_callback;
 
 
@@ -1969,7 +1991,7 @@ PJ_DECL(pj_pool_factory*) pjsua_get_pool_factory(void);
  * resolution and testing, the #pjsua_resolve_stun_servers() function.
  * This structure will be passed in #pj_stun_resolve_cb callback.
  */
-typedef struct pj_stun_resolve_result
+struct pj_stun_resolve_result
 {
     /**
      * Arbitrary data that was passed to #pjsua_resolve_stun_servers()
@@ -1996,13 +2018,8 @@ typedef struct pj_stun_resolve_result
      */
     pj_sockaddr	     addr;
 
-} pj_stun_resolve_result;
+};
 
-
-/**
- * Typedef of callback to be registered to #pjsua_resolve_stun_servers().
- */
-typedef void (*pj_stun_resolve_cb)(const pj_stun_resolve_result *result);
 
 /**
  * This is a utility function to detect NAT type in front of this
@@ -6598,6 +6615,74 @@ PJ_DECL(unsigned) pjsua_vid_dev_count(void);
  */
 PJ_DECL(pj_status_t) pjsua_vid_dev_get_info(pjmedia_vid_dev_index id,
                                             pjmedia_vid_dev_info *vdi);
+
+/**
+ * Check whether the video capture device is currently active, i.e. if
+ * a video preview has been started or there is a video call using
+ * the device. This function will return PJ_FALSE for video renderer device.
+ *
+ * @param id		The video device index.
+ *
+ * @return		PJ_TRUE if active, PJ_FALSE otherwise.
+ */
+PJ_DECL(pj_bool_t) pjsua_vid_dev_is_active(pjmedia_vid_dev_index id);
+
+/**
+ * Configure the capability of a video capture device. If the device is 
+ * currently active (i.e. if there is a video call using the device or
+ * a video preview has been started), the function will forward the setting
+ * to the video device instance to be applied immediately, if it supports it.
+ *
+ * The setting will be saved for future opening of the video device, if the 
+ * "keep" argument is set to non-zero. If the video device is currently
+ * inactive, and the "keep" argument is false, this function will return
+ * error.
+ *
+ * Note: This function will only works for video capture devices. To
+ * configure the setting of video renderer device instances, use
+ * pjsua_vid_win API instead.
+ *
+ * Warning: If application refreshes the video device list, it needs to
+ * manually update the settings to reflect the newly updated video device
+ * indexes. See #pjmedia_vid_dev_refresh() for more information.
+ *
+ * See also #pjmedia_vid_stream_set_cap() for more information about setting
+ * a video device capability.
+ *
+ * @param id		The video device index.
+ * @param cap		The video device capability to change.
+ * @param pval		Pointer to value. Please see #pjmedia_vid_dev_cap
+ *			documentation about the type of value to be 
+ *			supplied for each setting.
+ *
+ * @return		PJ_SUCCESS on success or the appropriate error code.
+ */
+PJ_DECL(pj_status_t) pjsua_vid_dev_set_setting(pjmedia_vid_dev_index id,
+					       pjmedia_vid_dev_cap cap,
+					       const void *pval,
+					       pj_bool_t keep);
+
+/**
+ * Retrieve the value of a video capture device setting. If the device is
+ * currently active (i.e. if there is a video call using the device or
+ * a video preview has been started), the function will forward the request
+ * to the video device. If video device is currently inactive, and if
+ * application had previously set the setting and mark the setting as kept,
+ * then that setting will be returned. Otherwise, this function will return
+ * error.
+ * The function only works for video capture device.
+ *
+ * @param id		The video device index.
+ * @param cap		The video device capability to retrieve.
+ * @param pval		Pointer to receive the value. 
+ *			Please see #pjmedia_vid_dev_cap documentation about
+ *			the type of value to be supplied for each setting.
+ *
+ * @return		PJ_SUCCESS on success or the appropriate error code.
+ */
+PJ_DECL(pj_status_t) pjsua_vid_dev_get_setting(pjmedia_vid_dev_index id,
+					       pjmedia_vid_dev_cap cap,
+					       void *pval);
 
 /**
  * Enum all video devices installed in the system.

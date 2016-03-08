@@ -1,4 +1,4 @@
-/* $Id: sip_config.h 4924 2014-09-17 12:11:45Z riza $ */
+/* $Id: sip_config.h 5152 2015-08-07 09:00:52Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -216,6 +216,30 @@ typedef struct pjsip_cfg_t
 	pj_bool_t   add_xuid_param;
 
     } regc;
+
+    /** TCP transport settings */
+    struct {
+        /**
+         * Set the interval to send keep-alive packet for TCP transports.
+         * If the value is zero, keep-alive will be disabled for TCP.
+         *
+         * Default is PJSIP_TCP_KEEP_ALIVE_INTERVAL.
+         */
+        long keep_alive_interval;
+
+    } tcp;
+
+    /** TLS transport settings */
+    struct {
+        /**
+         * Set the interval to send keep-alive packet for TLS transports.
+         * If the value is zero, keep-alive will be disabled for TLS.
+         *
+         * Default is PJSIP_TLS_KEEP_ALIVE_INTERVAL.
+         */
+        long keep_alive_interval;
+
+    } tls;
 
 } pjsip_cfg_t;
 
@@ -646,8 +670,51 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
 
 
 /**
+ * Specify whether TCP transport should skip creating the listener.
+ * Not having a listener means that application will not be able to
+ * function in server mode and accept incoming connections.
+ *
+ * When enabling this setting, if you use PJSUA, it is recommended to set 
+ * pjsua_acc_config.contact_use_src_port to PJ_TRUE.
+ * Warning: If contact_use_src_port is disabled or failed (because it's
+ * unsupported in some platforms or automatically turned off due to
+ * DNS server resolution), Contact header will be generated from
+ * pj_getipinterface()/pj_gethostip(), but the address will not be
+ * able to accept connections. 
+ *
+ * Default is FALSE (listener will be created).
+ */
+#ifndef PJSIP_TCP_TRANSPORT_DONT_CREATE_LISTENER
+#   define PJSIP_TCP_TRANSPORT_DONT_CREATE_LISTENER 0
+#endif
+
+
+/**
+ * Specify whether TLS transport should skip creating the listener.
+ * Not having a listener means that application will not be able to
+ * function in server mode and accept incoming connections.
+ *
+ * When enabling this setting, if you use PJSUA, it is recommended to set 
+ * pjsua_acc_config.contact_use_src_port to PJ_TRUE.
+ * Warning: If contact_use_src_port is disabled or failed (because it's
+ * unsupported in some platforms or automatically turned off due to
+ * DNS server resolution), Contact header will be generated from
+ * pj_getipinterface()/pj_gethostip(), but the address will not be
+ * able to accept connections.
+ *
+ * Default is FALSE (listener will be created).
+ */
+#ifndef PJSIP_TLS_TRANSPORT_DONT_CREATE_LISTENER
+#   define PJSIP_TLS_TRANSPORT_DONT_CREATE_LISTENER 0
+#endif
+
+
+/**
  * Set the interval to send keep-alive packet for TCP transports.
  * If the value is zero, keep-alive will be disabled for TCP.
+ *
+ * This option can be changed in run-time by settting
+ * \a tcp.keep_alive_interval field of pjsip_cfg().
  *
  * Default: 90 (seconds)
  *
@@ -671,6 +738,9 @@ PJ_INLINE(pjsip_cfg_t*) pjsip_cfg(void)
 /**
  * Set the interval to send keep-alive packet for TLS transports.
  * If the value is zero, keep-alive will be disabled for TLS.
+ *
+ * This option can be changed in run-time by settting
+ * \a tls.keep_alive_interval field of pjsip_cfg().
  *
  * Default: 90 (seconds)
  *

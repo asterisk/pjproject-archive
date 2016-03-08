@@ -1,4 +1,4 @@
-/* $Id: stun_transaction.c 5045 2015-04-06 06:13:51Z nanang $ */
+/* $Id: stun_transaction.c 5133 2015-07-14 01:18:19Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -262,7 +262,7 @@ static pj_status_t tsx_transmit_msg(pj_stun_client_tsx *tsx,
     if (status == PJNATH_ESTUNDESTROYED) {
 	/* We've been destroyed, don't access the object. */
     } else if (status != PJ_SUCCESS) {
-	if (mod_count) {
+	if (mod_count || status == PJ_EINVALIDOP) {
 		pj_timer_heap_cancel_if_active( tsx->timer_heap,
 	                               		&tsx->retransmit_timer,
 	                               		TIMER_INACTIVE);

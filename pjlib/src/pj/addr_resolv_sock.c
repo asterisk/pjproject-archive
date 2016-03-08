@@ -1,4 +1,4 @@
-/* $Id: addr_resolv_sock.c 3553 2011-05-05 06:14:19Z nanang $ */
+/* $Id: addr_resolv_sock.c 5146 2015-08-05 06:31:45Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -129,6 +129,7 @@ PJ_DEF(pj_status_t) pj_getaddrinfo(int af, const pj_str_t *nodename,
 	    naddr = CFArrayGetCount(addrRef);
 	    for (idx = 0; idx < naddr && i < *count; idx++) {
 		struct sockaddr *addr;
+		size_t addr_size;
 		
 		addr = (struct sockaddr *)
 		       CFDataGetBytePtr(CFArrayGetValueAtIndex(addrRef, idx));
@@ -143,9 +144,12 @@ PJ_DEF(pj_status_t) pj_getaddrinfo(int af, const pj_str_t *nodename,
 		pj_ansi_strcpy(ai[i].ai_canonname, nodecopy);
 		
 		/* Store address */
-		PJ_ASSERT_ON_FAIL(sizeof(*addr) <= sizeof(pj_sockaddr),
-				  continue);
-		pj_memcpy(&ai[i].ai_addr, addr, sizeof(*addr));
+		addr_size = sizeof(*addr);
+		if (af == PJ_AF_INET6) {
+		    addr_size = addr->sa_len;
+		}
+		PJ_ASSERT_ON_FAIL(addr_size <= sizeof(pj_sockaddr), 				  continue);
+		pj_memcpy(&ai[i].ai_addr, addr, addr_size);
 		PJ_SOCKADDR_RESET_LEN(&ai[i].ai_addr);
 		
 		i++;
