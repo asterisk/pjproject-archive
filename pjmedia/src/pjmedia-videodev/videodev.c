@@ -1,4 +1,4 @@
-/* $Id: videodev.c 4998 2015-03-19 04:10:11Z nanang $ */
+/* $Id: videodev.c 5125 2015-07-03 06:21:30Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -105,8 +105,8 @@ pjmedia_vid_dev_factory* pjmedia_opengl_factory(pj_pool_factory *pf);
 pjmedia_vid_dev_factory* pjmedia_and_factory(pj_pool_factory *pf);
 #endif
 
-#define MAX_DRIVERS	16
-#define MAX_DEVS	64
+#define MAX_DRIVERS	PJMEDIA_VID_DEV_MAX_DRIVERS
+#define MAX_DEVS	PJMEDIA_VID_DEV_MAX_DEVS
 
 
 /* driver structure */

@@ -1,4 +1,4 @@
-/* $Id: config.h 5027 2015-03-26 05:08:40Z nanang $ */
+/* $Id: config.h 5125 2015-07-03 06:21:30Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -53,6 +53,25 @@ PJ_BEGIN_DECL
 
 
 #if defined(PJMEDIA_HAS_VIDEO) && (PJMEDIA_HAS_VIDEO != 0)
+
+/**
+ * This setting controls the maximum number of supported video device drivers.
+ *
+ * Default: 8
+ */
+#ifndef PJMEDIA_VID_DEV_MAX_DRIVERS
+#   define PJMEDIA_VID_DEV_MAX_DRIVERS 8
+#endif
+
+/**
+ * This setting controls the maximum number of supported video devices.
+ *
+ * Default: 16
+ */
+#ifndef PJMEDIA_VID_DEV_MAX_DEVS
+#   define PJMEDIA_VID_DEV_MAX_DEVS 16
+#endif
+
 
 /**
  * This setting controls whether OpenGL for iOS should be included.

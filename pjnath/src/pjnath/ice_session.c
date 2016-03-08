@@ -1,4 +1,4 @@
-/* $Id: ice_session.c 4713 2014-01-23 08:13:11Z nanang $ */
+/* $Id: ice_session.c 5070 2015-04-15 00:38:54Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -560,7 +560,11 @@ PJ_DEF(pj_status_t) pj_ice_sess_set_prefs(pj_ice_sess *ice,
 /* Find component by ID */
 static pj_ice_sess_comp *find_comp(const pj_ice_sess *ice, unsigned comp_id)
 {
-    pj_assert(comp_id > 0 && comp_id <= ice->comp_cnt);
+    /* Ticket #1844: possible wrong assertion when remote has less ICE comp */
+    //pj_assert(comp_id > 0 && comp_id <= ice->comp_cnt);
+    if (comp_id > ice->comp_cnt)
+	return NULL;
+
     return (pj_ice_sess_comp*) &ice->comp[comp_id-1];
 }
 

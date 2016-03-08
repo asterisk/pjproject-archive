@@ -1,4 +1,4 @@
-/* $Id: sip_config.c 4899 2014-08-21 05:58:36Z nanang $ */
+/* $Id: sip_config.c 5090 2015-05-11 05:57:50Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -49,6 +49,16 @@ pjsip_cfg_t pjsip_sip_cfg_var =
     /* Client registration client */
     {
 	PJSIP_REGISTER_CLIENT_CHECK_CONTACT
+    },
+
+    /* TCP transport settings */
+    {
+        PJSIP_TCP_KEEP_ALIVE_INTERVAL
+    },
+
+    /* TLS transport settings */
+    {
+        PJSIP_TLS_KEEP_ALIVE_INTERVAL
     }
 };
 

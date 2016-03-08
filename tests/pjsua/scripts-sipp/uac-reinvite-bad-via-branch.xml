@@ -24,15 +24,18 @@
      
 
 <scenario name="UAC re-INVITE with bad Via branch">
-  <send retrans="500">
+
+  <label id="1"/>
+  
+  <send>
     <![CDATA[
 
       INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=z9hG4bKPj-1
       From: sipp <sip:sipp@[local_ip]:[local_port]>;tag=[call_number]
-      To: sut <sip:[service]@[remote_ip]:[remote_port]>
+      To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
       Call-ID: [call_id]
-      CSeq: 1 INVITE
+      CSeq: [cseq] INVITE
       Contact: sip:sipp@[local_ip]:[local_port]
       Max-Forwards: 70
       Subject: Performance Test
@@ -74,7 +77,7 @@
       From: sipp <sip:sipp@[local_ip]:[local_port]>;tag=[call_number]
       To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
       Call-ID: [call_id]
-      CSeq: 1 ACK
+      CSeq: [cseq] ACK
       Contact: sip:sipp@[local_ip]:[local_port]
       Max-Forwards: 70
       Subject: Performance Test
@@ -83,9 +86,11 @@
     ]]>
   </send>
 
+  <!-- Uncomment this to the test retry/looping scenario -->
+  <!--pause distribution="uniform" min="0" max="100"/-->
 
   <!-- Re-INVITE with Via branch value the same as previous INVITE -->
-  <send retrans="500">
+  <send>
     <![CDATA[
 
       INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
@@ -93,7 +98,7 @@
       From: sipp <sip:sipp@[local_ip]:[local_port]>;tag=[call_number]
       To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
       Call-ID: [call_id]
-      CSeq: 2 INVITE
+      CSeq: [cseq+1] INVITE
       Contact: sip:sipp@[local_ip]:[local_port]
       Max-Forwards: 70
       Subject: Performance Test
@@ -112,6 +117,12 @@
     ]]>
   </send>
 
+  <!-- Previous INVITE transaction may have been destroyed, and 200     -->
+  <!-- response is received, instead of 500. So, let's just try again,  -->
+  <!-- i.e: send ACK and repeat the scenario.                           -->
+  <recv response="200" optional="true" next="9">
+  </recv>
+  
   <!-- By adding rrs="true" (Record Route Sets), the route sets         -->
   <!-- are saved and used for following messages sent. Useful to test   -->
   <!-- against stateful SIP proxies/B2BUAs.                             -->
@@ -128,7 +139,7 @@
       From: sipp <sip:sipp@[local_ip]:[local_port]>;tag=[call_number]
       To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
       Call-ID: [call_id]
-      CSeq: 2 ACK
+      CSeq: [cseq] ACK
       Contact: sip:sipp@[local_ip]:[local_port]
       Max-Forwards: 70
       Subject: Performance Test
@@ -138,11 +149,11 @@
   </send>
 
 
-  <pause milliseconds="2000"/>
+  <pause milliseconds="500"/>
 
 
   <!-- The 'crlf' option inserts a blank line in the statistics report. -->
-  <send retrans="500">
+  <send>
     <![CDATA[
 
       BYE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
@@ -150,7 +161,7 @@
       From: sipp <sip:sipp@[local_ip]:[local_port]>;tag=[call_number]
       To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
       Call-ID: [call_id]
-      CSeq: 3 BYE
+      CSeq: [cseq+1] BYE
       Contact: sip:sipp@[local_ip]:[local_port]
       Max-Forwards: 70
       Subject: Performance Test
@@ -159,9 +170,34 @@
     ]]>
   </send>
 
-  <recv response="200" crlf="true">
+  <recv response="200" crlf="true" next="10">
   </recv>
 
+  <label id="9"/>
+
+  <!-- Send ACK before repeating the scenario                           -->
+  <send>
+    <![CDATA[
+
+      ACK sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=z9hG4bKPj-1
+      From: sipp <sip:sipp@[local_ip]:[local_port]>;tag=[call_number]
+      To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
+      Call-ID: [call_id]
+      CSeq: [cseq] ACK
+      Contact: sip:sipp@[local_ip]:[local_port]
+      Max-Forwards: 70
+      Subject: Performance Test
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Wait for this tsx getting destroyed before restarting -->
+  <pause milliseconds="5100" next="1"/>
+  
+  
+  <label id="10"/>
 
   <!-- definition of the response time repartition table (unit is ms)   -->
   <ResponseTimeRepartition value="10, 20, 30, 40, 50, 100, 150, 200"/>

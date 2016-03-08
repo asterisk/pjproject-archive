@@ -1,4 +1,4 @@
-/* $Id: pjsua_internal.h 4986 2015-03-02 09:43:20Z ming $ */
+/* $Id: pjsua_internal.h 5128 2015-07-07 04:13:14Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -482,6 +482,12 @@ struct pjsua_data
     /* Video device */
     pjmedia_vid_dev_index vcap_dev;  /**< Capture device ID.		*/
     pjmedia_vid_dev_index vrdr_dev;  /**< Playback device ID.		*/
+
+    /* For keeping video device settings */
+#if PJSUA_HAS_VIDEO
+    pj_uint32_t		  vid_caps[PJMEDIA_VID_DEV_MAX_DEVS];
+    pjmedia_vid_dev_param vid_param[PJMEDIA_VID_DEV_MAX_DEVS];
+#endif
 
     /* File players: */
     unsigned		 player_cnt;/**< Number of file players.	*/

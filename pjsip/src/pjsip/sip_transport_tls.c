@@ -1,4 +1,4 @@
-/* $Id: sip_transport_tls.c 5000 2015-03-19 05:07:01Z riza $ */
+/* $Id: sip_transport_tls.c 5152 2015-08-07 09:00:52Z ming $ */
 /* 
  * Copyright (C) 2009-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -339,7 +339,7 @@ PJ_DEF(pj_status_t) pjsip_tls_transport_start2( pjsip_endpoint *endpt,
 	}
     }
 
-    pool = pjsip_endpt_create_pool(endpt, "tlslis", POOL_LIS_INIT, 
+    pool = pjsip_endpt_create_pool(endpt, "tlstp", POOL_LIS_INIT, 
 				   POOL_LIS_INC);
     PJ_ASSERT_RETURN(pool, PJ_ENOMEM);
 
@@ -354,7 +354,7 @@ PJ_DEF(pj_status_t) pjsip_tls_transport_start2( pjsip_endpoint *endpt,
     listener->factory.flag = 
 	pjsip_transport_get_flag_from_type(listener->factory.type);
 
-    pj_ansi_strcpy(listener->factory.obj_name, "tlslis");
+    pj_ansi_strcpy(listener->factory.obj_name, "tlstp");
     if (is_ipv6)
 	pj_ansi_strcat(listener->factory.obj_name, "6");
 
@@ -419,12 +419,17 @@ PJ_DEF(pj_status_t) pjsip_tls_transport_start2( pjsip_endpoint *endpt,
     pj_grp_lock_add_handler(listener->grp_lock, pool, listener,
 			    &lis_on_destroy);
 
+#if !(defined(PJSIP_TLS_TRANSPORT_DONT_CREATE_LISTENER) && \
+      PJSIP_TLS_TRANSPORT_DONT_CREATE_LISTENER != 0)
+
     ssock_param.grp_lock = listener->grp_lock;
 
     /* Create SSL socket */
     status = pj_ssl_sock_create(pool, &ssock_param, &listener->ssock);
     if (status != PJ_SUCCESS)
 	goto on_error;
+
+#endif
 
     /* Bind address may be different than factory.local_addr because
      * factory.local_addr will be resolved below.
@@ -438,6 +443,9 @@ PJ_DEF(pj_status_t) pjsip_tls_transport_start2( pjsip_endpoint *endpt,
 	pj_sockaddr_init(af, listener_addr, NULL, 0);
 	pj_sockaddr_init(af, &listener->bound_addr, NULL, 0);
     }
+
+#if !(defined(PJSIP_TLS_TRANSPORT_DONT_CREATE_LISTENER) && \
+      PJSIP_TLS_TRANSPORT_DONT_CREATE_LISTENER != 0)
 
     /* Check if certificate/CA list for SSL socket is set */
     if (listener->tls_setting.cert_file.slen ||
@@ -480,6 +488,8 @@ PJ_DEF(pj_status_t) pjsip_tls_transport_start2( pjsip_endpoint *endpt,
 	goto on_error;
     }
 
+#endif
+
     /* If published host/IP is specified, then use that address as the
      * listener advertised address.
      */
@@ -518,7 +528,7 @@ PJ_DEF(pj_status_t) pjsip_tls_transport_start2( pjsip_endpoint *endpt,
 
     pj_ansi_snprintf(listener->factory.obj_name, 
 		     sizeof(listener->factory.obj_name),
-		     "tlslis:%d",  listener->factory.addr_name.port);
+		     "tlstp:%d",  listener->factory.addr_name.port);
 
     /* Register to transport manager */
     listener->endpt = endpt;
@@ -569,7 +579,7 @@ static void lis_on_destroy(void *arg)
     if (listener->factory.pool) {
 	pj_pool_t *pool = listener->factory.pool;
 
-	PJ_LOG(4,(listener->factory.obj_name,  "SIP TLS listener destroyed"));
+	PJ_LOG(4,(listener->factory.obj_name,  "SIP TLS transport destroyed"));
 
 	listener->factory.pool = NULL;
 	pj_pool_release(pool);
@@ -1209,8 +1219,7 @@ static pj_bool_t on_accept_complete(pj_ssl_sock_t *ssock,
      * Create TLS transport for the new socket.
      */
     status = tls_create( listener, NULL, new_ssock, PJ_TRUE,
-			 &listener->factory.local_addr,
-			 &tmp_src_addr, NULL, &tls);
+			 &ssl_info.local_addr, &tmp_src_addr, NULL, &tls);
     
     if (status != PJ_SUCCESS)
 	return PJ_TRUE;
@@ -1281,8 +1290,8 @@ static pj_bool_t on_accept_complete(pj_ssl_sock_t *ssock,
 	tls_destroy(&tls->base, status);
     } else {
 	/* Start keep-alive timer */
-	if (PJSIP_TLS_KEEP_ALIVE_INTERVAL) {
-	    pj_time_val delay = {PJSIP_TLS_KEEP_ALIVE_INTERVAL, 0};
+	if (pjsip_cfg()->tls.keep_alive_interval) {
+	    pj_time_val delay = {pjsip_cfg()->tls.keep_alive_interval, 0};
 	    pjsip_endpt_schedule_timer(listener->endpt, 
 				       &tls->ka_timer, 
 				       &delay);
@@ -1747,8 +1756,8 @@ static pj_bool_t on_connect_complete(pj_ssl_sock_t *ssock,
     tls_flush_pending_tx(tls);
 
     /* Start keep-alive timer */
-    if (PJSIP_TLS_KEEP_ALIVE_INTERVAL) {
-	pj_time_val delay = { PJSIP_TLS_KEEP_ALIVE_INTERVAL, 0 };
+    if (pjsip_cfg()->tls.keep_alive_interval) {
+	pj_time_val delay = { pjsip_cfg()->tls.keep_alive_interval, 0 };
 	pjsip_endpt_schedule_timer(tls->base.endpt, &tls->ka_timer, 
 				   &delay);
 	tls->ka_timer.id = PJ_TRUE;
@@ -1780,9 +1789,9 @@ static void tls_keep_alive_timer(pj_timer_heap_t *th, pj_timer_entry *e)
     pj_gettimeofday(&now);
     PJ_TIME_VAL_SUB(now, tls->last_activity);
 
-    if (now.sec > 0 && now.sec < PJSIP_TLS_KEEP_ALIVE_INTERVAL) {
+    if (now.sec > 0 && now.sec < pjsip_cfg()->tls.keep_alive_interval) {
 	/* There has been activity, so don't send keep-alive */
-	delay.sec = PJSIP_TLS_KEEP_ALIVE_INTERVAL - now.sec;
+	delay.sec = pjsip_cfg()->tls.keep_alive_interval - now.sec;
 	delay.msec = 0;
 
 	pjsip_endpt_schedule_timer(tls->base.endpt, &tls->ka_timer, 
@@ -1810,7 +1819,7 @@ static void tls_keep_alive_timer(pj_timer_heap_t *th, pj_timer_entry *e)
     }
 
     /* Register next keep-alive */
-    delay.sec = PJSIP_TLS_KEEP_ALIVE_INTERVAL;
+    delay.sec = pjsip_cfg()->tls.keep_alive_interval;
     delay.msec = 0;
 
     pjsip_endpt_schedule_timer(tls->base.endpt, &tls->ka_timer, 

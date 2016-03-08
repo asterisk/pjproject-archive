@@ -1,4 +1,4 @@
-/* $Id: util.h 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: util.h 5141 2015-07-31 07:18:33Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -159,7 +159,7 @@ void dump_pool_usage( const char *app_name, pj_caching_pool *cp )
     pj_size_t    total_used = 0;
 
     /* Accumulate memory usage in active list. */
-    p = cp->used_list.next;
+    p = (pj_pool_t*)cp->used_list.next;
     while (p != (pj_pool_t*) &cp->used_list) {
 	total_alloc += pj_pool_get_capacity(p);
 	total_used += pj_pool_get_used_size(p);

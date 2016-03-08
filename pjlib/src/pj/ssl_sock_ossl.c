@@ -1,4 +1,4 @@
-/* $Id: ssl_sock_ossl.c 4973 2015-01-15 06:55:02Z nanang $ */
+/* $Id: ssl_sock_ossl.c 5087 2015-05-07 04:48:19Z nanang $ */
 /* 
  * Copyright (C) 2009-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -21,6 +21,7 @@
 #include <pj/compat/socket.h>
 #include <pj/assert.h>
 #include <pj/errno.h>
+#include <pj/file_access.h>
 #include <pj/list.h>
 #include <pj/lock.h>
 #include <pj/log.h>
@@ -38,9 +39,6 @@
 
 /* Workaround for ticket #985 */
 #define DELAYED_CLOSE_TIMEOUT	200
-
-/* Maximum ciphers */
-#define MAX_CIPHERS		100
 
 /* 
  * Include OpenSSL headers 
@@ -296,7 +294,7 @@ static unsigned openssl_cipher_num;
 static struct openssl_ciphers_t {
     pj_ssl_cipher    id;
     const char	    *name;
-} openssl_ciphers[MAX_CIPHERS];
+} openssl_ciphers[PJ_SSL_SOCK_MAX_CIPHERS];
 
 /* OpenSSL application data index */
 static int sslsock_idx;
@@ -321,7 +319,10 @@ static pj_status_t init_openssl(void)
     /* Init OpenSSL lib */
     SSL_library_init();
     SSL_load_error_strings();
+#if OPENSSL_VERSION_NUMBER < 0x009080ffL
+    /* This is now synonym of SSL_library_init() */
     OpenSSL_add_all_algorithms();
+#endif
 
     /* Init available ciphers */
     if (openssl_cipher_num == 0) {
@@ -334,8 +335,10 @@ static pj_status_t init_openssl(void)
 	meth = (SSL_METHOD*)SSLv23_server_method();
 	if (!meth)
 	    meth = (SSL_METHOD*)TLSv1_server_method();
+#ifndef OPENSSL_NO_SSL3_METHOD
 	if (!meth)
 	    meth = (SSL_METHOD*)SSLv3_server_method();
+#endif
 #ifndef OPENSSL_NO_SSL2
 	if (!meth)
 	    meth = (SSL_METHOD*)SSLv2_server_method();
@@ -343,7 +346,7 @@ static pj_status_t init_openssl(void)
 	pj_assert(meth);
 
 	ctx=SSL_CTX_new(meth);
-	SSL_CTX_set_cipher_list(ctx, "ALL");
+	SSL_CTX_set_cipher_list(ctx, "ALL:COMPLEMENTOFALL");
 
 	ssl = SSL_new(ctx);
 	sk_cipher = SSL_get_ciphers(ssl);
@@ -353,7 +356,7 @@ static pj_status_t init_openssl(void)
 	    n = PJ_ARRAY_SIZE(openssl_ciphers);
 
 	for (i = 0; i < n; ++i) {
-	    SSL_CIPHER *c;
+	    const SSL_CIPHER *c;
 	    c = sk_SSL_CIPHER_value(sk_cipher,i);
 	    openssl_ciphers[i].id = (pj_ssl_cipher)
 				    (pj_uint32_t)c->id & 0x00FFFFFF;
@@ -530,8 +533,10 @@ static pj_status_t create_ssl(pj_ssl_sock_t *ssock)
 	ssl_method = (SSL_METHOD*)SSLv2_method();
 	break;
 #endif
+#ifndef OPENSSL_NO_SSL3_METHOD
     case PJ_SSL_SOCK_PROTO_SSL3:
 	ssl_method = (SSL_METHOD*)SSLv3_method();
+#endif
 	break;
     }
 
@@ -667,6 +672,49 @@ static pj_status_t create_ssl(pj_ssl_sock_t *ssock)
     }
 
     if (ssock->is_server) {
+	char *p = NULL;
+
+	/* If certificate file name contains "_rsa.", let's check if there are
+	 * ecc and dsa certificates too.
+	 */
+	if (cert && cert->cert_file.slen) {
+	    const pj_str_t RSA = {"_rsa.", 5};
+	    p = pj_strstr(&cert->cert_file, &RSA);
+	    if (p) p++; /* Skip underscore */
+	}
+	if (p) {
+	    /* Certificate type string length must be exactly 3 */
+	    enum { CERT_TYPE_LEN = 3 };
+	    const char* cert_types[] = { "ecc", "dsa" };
+	    char *cf = cert->cert_file.ptr;
+	    int i;
+
+	    /* Check and load ECC & DSA certificates & private keys */
+	    for (i = 0; i < PJ_ARRAY_SIZE(cert_types); ++i) {
+		int err;
+
+		pj_memcpy(p, cert_types[i], CERT_TYPE_LEN);
+		if (!pj_file_exists(cf))
+		    continue;
+
+		err = SSL_CTX_use_certificate_chain_file(ctx, cf);
+		if (err == 1)
+		    err = SSL_CTX_use_PrivateKey_file(ctx, cf,
+						      SSL_FILETYPE_PEM);
+		if (err == 1) {
+		    PJ_LOG(4,(ssock->pool->obj_name,
+			      "Additional certificate '%s' loaded.", cf));
+		} else {
+		    pj_perror(1, ssock->pool->obj_name, GET_SSL_STATUS(ssock),
+			      "Error loading certificate file '%s'", cf);
+		    ERR_clear_error();
+		}
+	    }
+
+	    /* Put back original name */
+	    pj_memcpy(p, "rsa", CERT_TYPE_LEN);
+	}
+
     #ifndef SSL_CTRL_SET_ECDH_AUTO
 	#define SSL_CTRL_SET_ECDH_AUTO 94
     #endif
@@ -687,6 +735,18 @@ static pj_status_t create_ssl(pj_ssl_sock_t *ssock)
 		EC_KEY_free(ecdh);
 	    }
     #endif
+	}
+    } else {
+	X509_STORE *pkix_validation_store = SSL_CTX_get_cert_store(ctx);
+	if (NULL != pkix_validation_store) {
+#if defined(X509_V_FLAG_TRUSTED_FIRST)
+	    X509_STORE_set_flags(pkix_validation_store, 
+				 X509_V_FLAG_TRUSTED_FIRST);
+#endif
+#if defined(X509_V_FLAG_PARTIAL_CHAIN)
+	    X509_STORE_set_flags(pkix_validation_store, 
+				 X509_V_FLAG_PARTIAL_CHAIN);
+#endif
 	}
     }
 
@@ -782,19 +842,25 @@ static pj_status_t set_cipher_list(pj_ssl_sock_t *ssock)
     unsigned i;
     int j, ret;
 
-    if (ssock->param.ciphers_num == 0)
+    if (ssock->param.ciphers_num == 0) {
+	ret = SSL_set_cipher_list(ssock->ossl_ssl, PJ_SSL_SOCK_OSSL_CIPHERS);
+    	if (ret < 1) {
+	    return GET_SSL_STATUS(ssock);
+    	}    
+	
 	return PJ_SUCCESS;
+    }
 
     pj_strset(&cipher_list, buf, 0);
 
     /* Set SSL with ALL available ciphers */
-    SSL_set_cipher_list(ssock->ossl_ssl, "ALL");
+    SSL_set_cipher_list(ssock->ossl_ssl, "ALL:COMPLEMENTOFALL");
 
     /* Generate user specified cipher list in OpenSSL format */
     sk_cipher = SSL_get_ciphers(ssock->ossl_ssl);
     for (i = 0; i < ssock->param.ciphers_num; ++i) {
 	for (j = 0; j < sk_SSL_CIPHER_num(sk_cipher); ++j) {
-	    SSL_CIPHER *c;
+	    const SSL_CIPHER *c;
 	    c = sk_SSL_CIPHER_value(sk_cipher, j);
 	    if (ssock->param.ciphers[i] == (pj_ssl_cipher)
 					   ((pj_uint32_t)c->id & 0x00FFFFFF))
@@ -804,7 +870,9 @@ static pj_status_t set_cipher_list(pj_ssl_sock_t *ssock)
 		c_name = SSL_CIPHER_get_name(c);
 
 		/* Check buffer size */
-		if (cipher_list.slen + pj_ansi_strlen(c_name) + 2 > sizeof(buf)) {
+		if (cipher_list.slen + pj_ansi_strlen(c_name) + 2 >
+		    sizeof(buf))
+		{
 		    pj_assert(!"Insufficient temporary buffer for cipher");
 		    return PJ_ETOOMANY;
 		}

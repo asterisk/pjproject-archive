@@ -1,4 +1,4 @@
-/* $Id: config.h 5062 2015-04-13 02:45:03Z ming $ */
+/* $Id: config.h 5160 2015-08-12 02:39:26Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -161,7 +161,8 @@
 
 
 #elif defined (PJ_M_X86_64) || defined(__amd64__) || defined(__amd64) || \
-	defined(__x86_64__) || defined(__x86_64)
+	defined(__x86_64__) || defined(__x86_64) || \
+	defined(_M_X64) || defined(_M_AMD64)
     /*
      * AMD 64bit processor, little endian
      */
@@ -865,6 +866,28 @@
 
 
 /**
+ * Define the maximum number of ciphers supported by the secure socket.
+ *
+ * Default: 256
+ */
+#ifndef PJ_SSL_SOCK_MAX_CIPHERS
+#  define PJ_SSL_SOCK_MAX_CIPHERS   256
+#endif
+
+
+/**
+ * Specify what should be set as the available list of SSL_CIPHERs. For
+ * example, set this as "DEFAULT" to use the default cipher list (Note:
+ * PJSIP release 2.4 and before used this "DEFAULT" setting).
+ *
+ * Default: "HIGH:-COMPLEMENTOFDEFAULT"
+ */
+#ifndef PJ_SSL_SOCK_OSSL_CIPHERS
+#  define PJ_SSL_SOCK_OSSL_CIPHERS   "HIGH:-COMPLEMENTOFDEFAULT"
+#endif
+
+
+/**
  * Disable WSAECONNRESET error for UDP sockets on Win32 platforms. See
  * https://trac.pjsip.org/repos/ticket/1197.
  *
@@ -1197,7 +1220,7 @@ PJ_BEGIN_DECL
 #define PJ_VERSION_NUM_MINOR	4
 
 /** PJLIB version revision number. */
-#define PJ_VERSION_NUM_REV	0
+#define PJ_VERSION_NUM_REV	5
 
 /**
  * Extra suffix for the version (e.g. "-trunk"), or empty for

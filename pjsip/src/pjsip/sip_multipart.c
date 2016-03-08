@@ -1,4 +1,4 @@
-/* $Id: sip_multipart.c 4792 2014-03-13 09:33:32Z bennylp $ */
+/* $Id: sip_multipart.c 5107 2015-06-12 03:07:05Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -548,7 +548,11 @@ PJ_DEF(pjsip_msg_body*) pjsip_multipart_parse(pj_pool_t *pool,
 	 */
 	for (;;) {
 	    while (p!=end && *p!='-') ++p;
-	    if (p!=end && *(p+1)=='-' &&
+
+	    if (p == end)
+		break;
+
+	    if ((p+1<end) && *(p+1)=='-' &&
 		((p>buf && *(p-1)=='\n') || (p==buf)))
 	    {
 		p+=2;

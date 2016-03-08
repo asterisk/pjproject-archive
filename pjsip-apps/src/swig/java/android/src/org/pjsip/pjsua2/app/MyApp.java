@@ -1,4 +1,4 @@
-/* $Id: MyApp.java 5022 2015-03-25 03:41:21Z nanang $ */
+/* $Id: MyApp.java 5102 2015-05-28 07:14:24Z riza $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -49,6 +49,7 @@ class MyLogWriter extends LogWriter
 class MyCall extends Call
 {
     public VideoWindow vidWin;
+    public VideoPreview vidPrev;
 
     MyCall(MyAccount acc, int call_id)
     {
@@ -112,6 +113,7 @@ class MyCall extends Call
 		       cmi.getVideoIncomingWindowId() != pjsua2.INVALID_ID)
 	    {
 		vidWin = new VideoWindow(cmi.getVideoIncomingWindowId());
+		vidPrev = new VideoPreview(cmi.getVideoCapDev());
 	    }
 	}
 

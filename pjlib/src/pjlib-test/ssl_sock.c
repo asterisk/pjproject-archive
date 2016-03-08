@@ -1,4 +1,4 @@
-/* $Id: ssl_sock.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: ssl_sock.c 5076 2015-04-23 02:42:49Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -40,7 +40,7 @@ struct send_key {
 
 static int get_cipher_list(void) {
     pj_status_t status;
-    pj_ssl_cipher ciphers[100];
+    pj_ssl_cipher ciphers[PJ_SSL_SOCK_MAX_CIPHERS];
     unsigned cipher_num;
     unsigned i;
 

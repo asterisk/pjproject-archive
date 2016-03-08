@@ -1,4 +1,4 @@
-/* $Id: media.cpp 5045 2015-04-06 06:13:51Z nanang $ */
+/* $Id: media.cpp 5157 2015-08-10 09:11:39Z nanang $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -1019,6 +1019,7 @@ VideoWindow::VideoWindow(pjsua_vid_win_id win_id)
 VideoWindowInfo VideoWindow::getInfo() const throw(Error)
 {
     VideoWindowInfo vwi;
+    pj_bzero(&vwi, sizeof(vwi));
 #if PJSUA_HAS_VIDEO
     pjsua_vid_win_info pj_vwi;
     
@@ -1091,6 +1092,410 @@ void VideoWindow::setWindow(const VideoWindowHandle &win) throw(Error)
     PJSUA2_CHECK_EXPR( pjsua_vid_win_set_win(winId, &vhwnd) );
 #else
     PJ_UNUSED_ARG(win);
+#endif
+}
+///////////////////////////////////////////////////////////////////////////////
+VideoPreviewOpParam::VideoPreviewOpParam()
+{
+#if PJSUA_HAS_VIDEO
+    pjsua_vid_preview_param vid_prev_param;
+
+    pjsua_vid_preview_param_default(&vid_prev_param);
+    fromPj(vid_prev_param);
+#endif
+}
+
+void VideoPreviewOpParam::fromPj(const pjsua_vid_preview_param &prm)
+{
+#if PJSUA_HAS_VIDEO
+    this->rendId		    = prm.rend_id;
+    this->show			    = PJ2BOOL(prm.show);
+    this->windowFlags		    = prm.wnd_flags;
+    this->format.id		    = prm.format.id;
+    this->format.type		    = prm.format.type;
+    this->window.type		    = prm.wnd.type;
+    this->window.handle.window	    = prm.wnd.info.window;
+#else
+    PJ_UNUSED_ARG(prm);
+#endif
+}
+
+pjsua_vid_preview_param VideoPreviewOpParam::toPj() const
+{
+    pjsua_vid_preview_param param;
+    pj_bzero(&param, sizeof(param));
+#if PJSUA_HAS_VIDEO
+    param.rend_id	    = this->rendId;
+    param.show		    = this->show;
+    param.wnd_flags	    = this->windowFlags;
+    param.format.id	    = this->format.id;
+    param.format.type	    = this->format.type;
+    param.wnd.type	    = this->window.type;
+    param.wnd.info.window   = this->window.handle.window;
+#endif
+    return param;
+}
+
+VideoPreview::VideoPreview(int dev_id) 
+: devId(dev_id)
+{
+
+}
+
+bool VideoPreview::hasNative()
+{
+#if PJSUA_HAS_VIDEO
+    return(PJ2BOOL(pjsua_vid_preview_has_native(devId)));
+#else
+    return false;
+#endif
+}
+
+void VideoPreview::start(const VideoPreviewOpParam &param) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjsua_vid_preview_param prm = param.toPj();
+    PJSUA2_CHECK_EXPR(pjsua_vid_preview_start(devId, &prm));
+#else
+    PJ_UNUSED_ARG(param);
+    PJ_UNUSED_ARG(devId);
+#endif
+}
+
+void VideoPreview::stop() throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjsua_vid_preview_stop(devId);
+#endif
+}
+
+VideoWindow VideoPreview::getVideoWindow()
+{
+#if PJSUA_HAS_VIDEO
+    return (VideoWindow(pjsua_vid_preview_get_win(devId)));
+#else
+    return (VideoWindow(PJSUA_INVALID_ID));
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void MediaFormatVideo::fromPj(const pjmedia_format &format)
+{
+#if PJSUA_HAS_VIDEO
+    if ((format.type != PJMEDIA_TYPE_VIDEO) &&
+	(format.detail_type != PJMEDIA_FORMAT_DETAIL_VIDEO))
+    {
+	type = PJMEDIA_TYPE_UNKNOWN;
+	return;
+    }
+
+    id = format.id;
+    type = format.type;
+
+    /* Detail. */
+    width = format.det.vid.size.w;
+    height = format.det.vid.size.h;
+    fpsNum = format.det.vid.fps.num;
+    fpsDenum = format.det.vid.fps.denum;
+    avgBps = format.det.vid.avg_bps;
+    maxBps = format.det.vid.max_bps;
+#else
+    PJ_UNUSED_ARG(format);
+    type = PJMEDIA_TYPE_UNKNOWN;
+#endif
+}
+
+pjmedia_format MediaFormatVideo::toPj() const
+{
+    pjmedia_format pj_format;
+
+#if PJSUA_HAS_VIDEO
+    pj_format.id = id;
+    pj_format.type = type;
+
+    pj_format.detail_type = PJMEDIA_FORMAT_DETAIL_VIDEO;
+    pj_format.det.vid.size.w = width;
+    pj_format.det.vid.size.h = height;
+    pj_format.det.vid.fps.num = fpsNum;
+    pj_format.det.vid.fps.denum = fpsDenum;
+    pj_format.det.vid.avg_bps = avgBps;
+    pj_format.det.vid.max_bps = maxBps;
+#else
+    pj_format.type = PJMEDIA_TYPE_UNKNOWN;
+#endif
+    return pj_format;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void VideoDevInfo::fromPj(const pjmedia_vid_dev_info &dev_info)
+{
+#if PJSUA_HAS_VIDEO
+    id = dev_info.id;
+    name = dev_info.name;
+    driver = dev_info.driver;
+    dir = dev_info.dir;
+    caps = dev_info.caps;
+
+    for (unsigned i = 0; i<dev_info.fmt_cnt;++i) {
+	MediaFormatVideo *format = new MediaFormatVideo;
+
+	format->fromPj(dev_info.fmt[i]);
+	if (format->type == PJMEDIA_TYPE_VIDEO)
+	    fmt.push_back(format);
+    }
+#else
+    PJ_UNUSED_ARG(dev_info);
+#endif
+}
+
+VideoDevInfo::~VideoDevInfo()
+{
+#if PJSUA_HAS_VIDEO
+    for (unsigned i = 0;i<fmt.size();++i) {
+	delete fmt[i];
+    }
+    fmt.clear();
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void VidDevManager::refreshDevs() throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    PJSUA2_CHECK_EXPR(pjmedia_vid_dev_refresh());
+#endif
+}
+
+unsigned VidDevManager::getDevCount()
+{
+#if PJSUA_HAS_VIDEO
+    return pjsua_vid_dev_count();
+#else
+    return 0;
+#endif
+}
+
+VideoDevInfo VidDevManager::getDevInfo(int dev_id) const throw(Error)
+{
+    VideoDevInfo dev_info;
+#if PJSUA_HAS_VIDEO
+    pjmedia_vid_dev_info pj_info;
+
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_get_info(dev_id, &pj_info));
+
+    dev_info.fromPj(pj_info);
+#else
+    PJ_UNUSED_ARG(dev_id);
+#endif
+    return dev_info;
+}
+
+const VideoDevInfoVector &VidDevManager::enumDev() throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjmedia_vid_dev_info pj_info[MAX_DEV_COUNT];
+    unsigned count = MAX_DEV_COUNT;
+
+    PJSUA2_CHECK_EXPR(pjsua_vid_enum_devs(pj_info, &count));
+
+    pj_enter_critical_section();
+    clearVideoDevList();
+    for (unsigned i = 0; i<count;++i) {
+	VideoDevInfo *dev_info = new VideoDevInfo;
+	dev_info->fromPj(pj_info[i]);
+	videoDevList.push_back(dev_info);
+    }
+    pj_leave_critical_section();
+#endif
+    return videoDevList;
+}
+
+int VidDevManager::lookupDev(const string &drv_name,
+			     const string &dev_name) const throw(Error)
+{
+    pjmedia_vid_dev_index pj_idx = 0;
+#if PJSUA_HAS_VIDEO
+    PJSUA2_CHECK_EXPR(pjmedia_vid_dev_lookup(drv_name.c_str(), 
+					     dev_name.c_str(), 
+					     &pj_idx));
+#else
+    PJ_UNUSED_ARG(drv_name);
+    PJ_UNUSED_ARG(dev_name);
+#endif
+    return pj_idx;
+}
+
+string VidDevManager::capName(pjmedia_vid_dev_cap cap) const
+{    
+    string cap_name;
+#if PJSUA_HAS_VIDEO
+    cap_name = pjmedia_vid_dev_cap_name(cap, NULL);
+#else
+    PJ_UNUSED_ARG(cap);
+#endif
+    return cap_name;
+}
+
+void VidDevManager::setFormat(int dev_id,
+			      const MediaFormatVideo &format,
+			      bool keep) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjmedia_format pj_format = format.toPj();
+
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_set_setting(dev_id,
+						PJMEDIA_VID_DEV_CAP_FORMAT,
+						&pj_format,
+						keep));
+#else
+    PJ_UNUSED_ARG(dev_id);
+    PJ_UNUSED_ARG(format);
+    PJ_UNUSED_ARG(keep);
+#endif
+}
+
+MediaFormatVideo VidDevManager::getFormat(int dev_id) const throw(Error)
+{
+    MediaFormatVideo vid_format;
+    pj_bzero(&vid_format, sizeof(vid_format));
+#if PJSUA_HAS_VIDEO
+    pjmedia_format pj_format;
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_get_setting(dev_id,
+						PJMEDIA_VID_DEV_CAP_FORMAT, 
+						&pj_format));
+    vid_format.fromPj(pj_format);
+#else
+    PJ_UNUSED_ARG(dev_id);
+#endif
+    return vid_format;
+}
+
+void VidDevManager::setInputScale(int dev_id,
+				  const MediaSize &scale,
+				  bool keep) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjmedia_rect_size pj_size;
+    pj_size.w = scale.w;
+    pj_size.h = scale.h;
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_set_setting(dev_id,
+		      PJMEDIA_VID_DEV_CAP_INPUT_SCALE,
+		      &pj_size,
+		      keep));
+#else
+    PJ_UNUSED_ARG(dev_id);
+    PJ_UNUSED_ARG(scale);
+    PJ_UNUSED_ARG(keep);
+#endif
+}
+
+MediaSize VidDevManager::getInputScale(int dev_id) const throw(Error)
+{
+    MediaSize scale;
+    pj_bzero(&scale, sizeof(scale));
+#if PJSUA_HAS_VIDEO
+    pjmedia_rect_size pj_size;
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_get_setting(dev_id,
+					       PJMEDIA_VID_DEV_CAP_INPUT_SCALE,
+					       &pj_size));
+
+    scale.w = pj_size.w;
+    scale.h = pj_size.h;
+#else
+    PJ_UNUSED_ARG(dev_id);
+#endif
+    return scale;
+}
+
+void VidDevManager::setOutputWindowFlags(int dev_id, 
+					 int flags, 
+					 bool keep) throw(Error)
+{    
+#if PJSUA_HAS_VIDEO    
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_set_setting(dev_id,
+				       PJMEDIA_VID_DEV_CAP_OUTPUT_WINDOW_FLAGS,
+				       &flags,
+				       keep));
+#else
+    PJ_UNUSED_ARG(dev_id);
+    PJ_UNUSED_ARG(flags);
+    PJ_UNUSED_ARG(keep);
+#endif
+}
+
+int VidDevManager::getOutputWindowFlags(int dev_id) throw(Error)
+{
+    int flags = 0;
+
+#if PJSUA_HAS_VIDEO
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_get_setting(dev_id,
+				       PJMEDIA_VID_DEV_CAP_OUTPUT_WINDOW_FLAGS,
+				       &flags));
+#else
+    PJ_UNUSED_ARG(dev_id);
+#endif
+    return flags;
+}
+
+void VidDevManager::switchDev(int dev_id,
+			      const VideoSwitchParam &param) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pjmedia_vid_dev_switch_param pj_param;
+    pj_param.target_id = param.target_id;
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_set_setting(dev_id,
+						PJMEDIA_VID_DEV_CAP_SWITCH,
+						&pj_param,
+						PJ_FALSE));
+#else
+    PJ_UNUSED_ARG(dev_id);
+    PJ_UNUSED_ARG(param);    
+#endif
+}
+
+void VidDevManager::clearVideoDevList()
+{
+#if PJSUA_HAS_VIDEO
+    for (unsigned i = 0;i<videoDevList.size();++i) {
+	delete videoDevList[i];
+    }
+    videoDevList.clear();
+#endif
+}
+
+bool VidDevManager::isCaptureActive(int dev_id) const
+{
+#if PJSUA_HAS_VIDEO
+    return (pjsua_vid_dev_is_active(dev_id) == PJ_TRUE? true: false);
+#else
+    PJ_UNUSED_ARG(dev_id);
+    
+    return false;
+#endif
+}
+    
+void VidDevManager::setCaptureOrient(pjmedia_vid_dev_index dev_id,
+    			  	     pjmedia_orient orient,
+    			  	     bool keep) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    PJSUA2_CHECK_EXPR(pjsua_vid_dev_set_setting(dev_id,
+    			  PJMEDIA_VID_DEV_CAP_ORIENTATION, &orient, keep));
+#else
+    PJ_UNUSED_ARG(dev_id);
+    PJ_UNUSED_ARG(orient);
+    PJ_UNUSED_ARG(keep);
+#endif
+}
+
+VidDevManager::VidDevManager()
+{
+}
+
+VidDevManager::~VidDevManager()
+{
+#if PJSUA_HAS_VIDEO
+    clearVideoDevList();
 #endif
 }
 

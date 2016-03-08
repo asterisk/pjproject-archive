@@ -1,4 +1,4 @@
-/* $Id: pjsua_call.c 4986 2015-03-02 09:43:20Z ming $ */
+/* $Id: pjsua_call.c 5099 2015-05-20 08:46:11Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1480,20 +1480,27 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
 		 * on_incoming_call_med_tp_complete(), so we need to send
 		 * a response message and terminate the invite here.
 		 */
+		pjsip_dlg_inc_lock(dlg);
 		pjsip_dlg_respond(dlg, rdata, sip_err_code, NULL, NULL, NULL);
 		if (call->inv && call->inv->dlg) {
 		    pjsip_inv_terminate(call->inv, sip_err_code, PJ_FALSE);
 		}
+		pjsip_dlg_dec_lock(dlg);
+
 		call->inv = NULL;
 		call->async_call.dlg = NULL;
 		goto on_return;
 	    }
 	} else if (status != PJ_EPENDING) {
 	    pjsua_perror(THIS_FILE, "Error initializing media channel", status);
+	    
+	    pjsip_dlg_inc_lock(dlg);
 	    pjsip_dlg_respond(dlg, rdata, sip_err_code, NULL, NULL, NULL);
 	    if (call->inv && call->inv->dlg) {
 		pjsip_inv_terminate(call->inv, sip_err_code, PJ_FALSE);
 	    }
+	    pjsip_dlg_dec_lock(dlg);
+
 	    call->inv = NULL;
 	    call->async_call.dlg = NULL;
 	    goto on_return;
@@ -2411,6 +2418,13 @@ PJ_DEF(pj_status_t) pjsua_call_set_hold2(pjsua_call_id call_id,
 	PJ_LOG(3,(THIS_FILE, "Can not hold call that is not confirmed"));
 	status = PJSIP_ESESSIONSTATE;
 	goto on_return;
+    }
+
+    /* We may need to re-initialize media before creating SDP */
+    if (call->med_prov_cnt == 0) {
+    	status = apply_call_setting(call, &call->opt, NULL);
+    	if (status != PJ_SUCCESS)
+	    goto on_return;
     }
 
     status = create_sdp_of_call_hold(call, &sdp);
@@ -3875,6 +3889,17 @@ static void pjsua_call_on_media_update(pjsip_inv_session *inv,
 
     /* Update media channel with the new SDP */
     status = pjsua_media_channel_update(call->index, local_sdp, remote_sdp);
+
+    /* If this is not the initial INVITE, don't disconnect call due to
+     * no media after SDP negotiation.
+     */
+    if (status == PJMEDIA_SDPNEG_ENOMEDIA &&
+	call->inv->state == PJSIP_INV_STATE_CONFIRMED)
+    {
+	status = PJ_SUCCESS;
+    }
+
+    /* Disconnect call after failure in media channel update */
     if (status != PJ_SUCCESS) {
 	pjsua_perror(THIS_FILE, "Unable to create media session",
 		     status);
@@ -4155,6 +4180,13 @@ static void pjsua_call_on_create_offer(pjsip_inv_session *inv,
         PJ_LOG(4, (THIS_FILE, "Restarting ICE for media %d", mi));
     }
 #endif
+
+    /* We may need to re-initialize media before creating SDP */
+    if (call->med_prov_cnt == 0) {
+    	status = apply_call_setting(call, &call->opt, NULL);
+    	if (status != PJ_SUCCESS)
+	    goto on_return;
+    }
 
     /* See if we've put call on hold. */
     if (call->local_hold) {

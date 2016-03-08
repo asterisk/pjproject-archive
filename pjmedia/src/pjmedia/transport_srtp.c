@@ -1,4 +1,4 @@
-/* $Id: transport_srtp.c 4728 2014-02-04 10:13:56Z bennylp $ */
+/* $Id: transport_srtp.c 5136 2015-07-28 09:56:31Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -30,8 +30,21 @@
 
 #if defined(PJMEDIA_HAS_SRTP) && (PJMEDIA_HAS_SRTP != 0)
 
+#if defined(PJ_HAS_SSL_SOCK) && (PJ_HAS_SSL_SOCK != 0)
+#  include <openssl/rand.h>
+
+/* Suppress compile warning of OpenSSL deprecation (OpenSSL is deprecated
+ * since MacOSX 10.7).
+ */
+#if defined(PJ_DARWINOS) && PJ_DARWINOS==1
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+#endif
+
 #if defined(PJMEDIA_EXTERNAL_SRTP) && (PJMEDIA_EXTERNAL_SRTP != 0)
 #  include <srtp/srtp.h>
+#  include <srtp/crypto_kernel.h>
 #else
 #  include <srtp.h>
 #endif
@@ -1084,6 +1097,22 @@ static pj_status_t generate_crypto_attr_value(pj_pool_t *pool,
 	do {
 	    key_ok = PJ_TRUE;
 
+
+#if defined(PJ_HAS_SSL_SOCK) && (PJ_HAS_SSL_SOCK != 0)
+
+/* Include OpenSSL libraries for MSVC */
+#  ifdef _MSC_VER
+#    pragma comment( lib, "libeay32")
+#    pragma comment( lib, "ssleay32")
+#  endif
+
+	    err = RAND_bytes((unsigned char*)key,
+			     crypto_suites[cs_idx].cipher_key_len);
+	    if (err != 1) {
+		PJ_LOG(5,(THIS_FILE, "Failed generating random key"));
+		return PJMEDIA_ERRNO_FROM_LIBSRTP(1);
+	    }
+#else	    
 	    err = crypto_get_random((unsigned char*)key,
 				     crypto_suites[cs_idx].cipher_key_len);
 	    if (err != err_status_ok) {
@@ -1091,6 +1120,7 @@ static pj_status_t generate_crypto_attr_value(pj_pool_t *pool,
 			  get_libsrtp_errstr(err)));
 		return PJMEDIA_ERRNO_FROM_LIBSRTP(err);
 	    }
+#endif
 	    for (i=0; i<crypto_suites[cs_idx].cipher_key_len && key_ok; ++i)
 		if (key[i] == 0) key_ok = PJ_FALSE;
 
@@ -1340,8 +1370,17 @@ static pj_status_t transport_encode_sdp(pjmedia_transport *tp,
 
 	/* Generate crypto attribute if not yet */
 	if (pjmedia_sdp_media_find_attr(m_loc, &ID_CRYPTO, NULL) == NULL) {
+	    /* Offer only current active crypto if any, otherwise offer all
+	     * crypto-suites in the setting.
+	     */
 	    for (i=0; i<srtp->setting.crypto_count; ++i) {
-		/* Offer crypto-suites based on setting. */
+		if (srtp->tx_policy.name.slen &&
+		    pj_stricmp(&srtp->tx_policy.name,
+			       &srtp->setting.crypto[i].name) != 0)
+		{
+		    continue;
+		}
+
 		buffer_len = MAXLEN;
 		status = generate_crypto_attr_value(srtp->pool, buffer, &buffer_len,
 						    &srtp->setting.crypto[i],

@@ -38,11 +38,21 @@ using namespace pj;
   // Force the Error Java class to extend java.lang.Exception
   %typemap(javabase) pj::Error "java.lang.Exception";
 
-  // Override getMessage()
   %typemap(javacode) pj::Error %{
+
+  // Override getMessage()
   public String getMessage() {
     return getTitle();
   }
+  
+  // Disable serialization (check ticket #1868)
+  private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+    throw new java.io.NotSerializableException("Check ticket #1868!");
+  }
+  private void readObject(java.io.ObjectInputStream in) throws java.io.IOException {
+    throw new java.io.NotSerializableException("Check ticket #1868!");
+  }
+
 %}
 #endif
 
@@ -60,6 +70,7 @@ using namespace pj;
 %feature("director") Call;
 %feature("director") Buddy;
 %feature("director") FindBuddyMatch;
+%feature("director") AudioMediaPlayer;
 
 //
 // STL stuff.
@@ -100,6 +111,7 @@ using namespace pj;
 %template(MediaFormatVector)		std::vector<pj::MediaFormat*>;
 %template(AudioDevInfoVector)		std::vector<pj::AudioDevInfo*>;
 %template(CodecInfoVector)		std::vector<pj::CodecInfo*>;
+%template(VideoDevInfoVector)		std::vector<pj::VideoDevInfo*>;
 
 /* pj::WindowHandle::setWindow() receives Surface object */
 #if defined(SWIGJAVA) && defined(__ANDROID__)

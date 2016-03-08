@@ -1,4 +1,4 @@
-/* $Id: sip_transaction.c 4992 2015-03-06 06:09:22Z ming $ */
+/* $Id: sip_transaction.c 5147 2015-08-06 06:28:51Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1795,10 +1795,16 @@ static void send_msg_callback( pjsip_send_state *send_state,
 	tdata->mod_data[mod_tsx_layer.mod.id] == NULL)
     {
 	*cont = PJ_FALSE;
+
+	/* Decrease pending send counter */
+	pj_grp_lock_dec_ref(tsx->grp_lock);
 	return;
     }
 
     pj_grp_lock_acquire(tsx->grp_lock);
+
+    /* Decrease pending send counter */
+    pj_grp_lock_dec_ref(tsx->grp_lock);
 
     /* Reset */
     tdata->mod_data[mod_tsx_layer.mod.id] = NULL;
@@ -1842,8 +1848,14 @@ static void send_msg_callback( pjsip_send_state *send_state,
 	    tsx_send_msg(tsx, tsx->last_tx);
 	}
 
-	/* Need to reschedule retransmission? */
-	if (tsx->transport_flag & TSX_HAS_PENDING_RESCHED) {
+	/* Need to reschedule retransmission?
+	 * Note that when sending a pending message above, tsx_send_msg()
+	 * may set the flag TSX_HAS_PENDING_TRANSPORT.
+	 * Please refer to ticket #1875.
+	 */
+	if (tsx->transport_flag & TSX_HAS_PENDING_RESCHED &&
+	    !(tsx->transport_flag & TSX_HAS_PENDING_TRANSPORT))
+	{
 	    tsx->transport_flag &= ~(TSX_HAS_PENDING_RESCHED);
 
 	    /* Only update when transport turns out to be unreliable. */
@@ -1932,6 +1944,11 @@ static void send_msg_callback( pjsip_send_state *send_state,
 	    /* Put again pending tdata */
 	    tdata->mod_data[mod_tsx_layer.mod.id] = tsx;
 	    tsx->pending_tx = tdata;
+
+	    /* Increment group lock again for the next sending retry,
+	     * to prevent us from being destroyed prematurely (ticket #1859).
+	     */
+	    pj_grp_lock_add_ref(tsx->grp_lock);
 	}
     }
 
@@ -2122,6 +2139,11 @@ static pj_status_t tsx_send_msg( pjsip_transaction *tsx,
     tdata->mod_data[mod_tsx_layer.mod.id] = tsx;
     tsx->pending_tx = tdata;
 
+    /* Increment group lock while waiting for send operation to complete,
+     * to prevent us from being destroyed prematurely (ticket #1859).
+     */
+    pj_grp_lock_add_ref(tsx->grp_lock);
+
     /* Begin resolving destination etc to send the message. */
     if (tdata->msg->type == PJSIP_REQUEST_MSG) {
 
@@ -2131,6 +2153,7 @@ static pj_status_t tsx_send_msg( pjsip_transaction *tsx,
 	if (status == PJ_EPENDING)
 	    status = PJ_SUCCESS;
 	if (status != PJ_SUCCESS) {
+	    pj_grp_lock_dec_ref(tsx->grp_lock);
 	    pjsip_tx_data_dec_ref(tdata);
 	    tdata->mod_data[mod_tsx_layer.mod.id] = NULL;
 	    tsx->pending_tx = NULL;

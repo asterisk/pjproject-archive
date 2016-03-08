@@ -1,4 +1,4 @@
-/* $Id: sip_transport_tls.h 4973 2015-01-15 06:55:02Z nanang $ */
+/* $Id: sip_transport_tls.h 5089 2015-05-11 03:26:30Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -288,6 +288,7 @@ PJ_INLINE(void) pjsip_tls_setting_copy(pj_pool_t *pool,
 {
     pj_memcpy(dst, src, sizeof(*dst));
     pj_strdup_with_null(pool, &dst->ca_list_file, &src->ca_list_file);
+    pj_strdup_with_null(pool, &dst->ca_list_path, &src->ca_list_path);
     pj_strdup_with_null(pool, &dst->cert_file, &src->cert_file);
     pj_strdup_with_null(pool, &dst->privkey_file, &src->privkey_file);
     pj_strdup_with_null(pool, &dst->password, &src->password);

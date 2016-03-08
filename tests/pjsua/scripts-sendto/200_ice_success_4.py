@@ -1,4 +1,4 @@
-# $Id: 200_ice_success_4.py 2376 2008-12-11 17:25:50Z nanang $
+# $Id: 200_ice_success_4.py 5065 2015-04-13 12:14:02Z nanang $
 import inc_sip as sip
 import inc_sdp as sdp
 
@@ -30,6 +30,5 @@ exclude = [
 
 sendto_cfg = sip.SendtoCfg( "pjsua with --ice-no-rtcp ignores RTCP things in the SDP", 
 			    pjsua_args=args, sdp=sdp, resp_code=200, 
-			    resp_inc=include, resp_exc=exclude,
-			    enable_buffer = True)
+			    resp_inc=include, resp_exc=exclude)
 

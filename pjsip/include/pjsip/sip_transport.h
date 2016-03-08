@@ -1,4 +1,4 @@
-/* $Id: sip_transport.h 4775 2014-03-04 02:18:51Z nanang $ */
+/* $Id: sip_transport.h 5097 2015-05-18 04:42:42Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1510,6 +1510,67 @@ PJ_DECL(pj_status_t) pjsip_transport_remove_state_listener (
 				    pjsip_transport *tp,
 				    pjsip_tp_state_listener_key *key,
 				    const void *user_data);
+
+
+/**
+ * Structure of dropped received data.
+ */
+typedef struct pjsip_tp_dropped_data
+{
+    /**
+     * The transport receiving the data.
+     */
+    pjsip_transport *tp;
+
+    /**
+     * The data.
+     */
+    void	    *data;
+
+    /**
+     * The data length.
+     * If the status field below indicates an invalid SIP message
+     * (PJSIP_EINVALIDMSG) and application detects a SIP message
+     * at position p, it can pass the data back to PJSIP to be processed
+     * by setting the len to p. This can be useful for apps which
+     * wishes to use the same transport for SIP signalling and non-SIP
+     * purposes (such as SIP outbound using STUN message).
+     */
+    pj_size_t	     len;
+
+    /**
+     * The status or reason of drop. For example, a leading newlines (common
+     * keep-alive packet) will be dropped with status PJ_EIGNORED, an invalid
+     * SIP message will have status PJSIP_EINVALIDMSG, a SIP message overflow
+     * will have status PJSIP_ERXOVERFLOW.
+     */
+    pj_status_t	     status;
+
+} pjsip_tp_dropped_data;
+
+
+/**
+ * Type of callback to data dropping notifications.
+ *
+ * @param data		The dropped data.
+ */
+typedef void (*pjsip_tp_on_rx_dropped_cb)(pjsip_tp_dropped_data *data);
+
+
+/**
+ * Set callback of data dropping. The caller will be notified whenever any
+ * received data is dropped (due to leading newlines or keep-alive packet or
+ * invalid SIP message). This callback can be useful for application,
+ * for example, to implement custom keep-alive mechanism or connection
+ * availability detection.
+ *
+ * @param mgr	    Transport manager.
+ * @param cb	    The callback function, set to NULL to reset the callback.
+ *
+ * @return	    PJ_SUCCESS on success, or the appropriate error code.
+ */
+PJ_DECL(pj_status_t) pjsip_tpmgr_set_drop_data_cb(pjsip_tpmgr *mgr,
+						  pjsip_tp_on_rx_dropped_cb cb);
 
 
 /**
