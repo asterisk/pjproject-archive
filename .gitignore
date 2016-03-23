@@ -295,11 +295,6 @@ third_party/build/milenage/*.vcl
 third_party/build/milenage/*.vco
 third_party/build/milenage/output/*
 third_party/build/os-auto.mak
-third_party/build/portaudio/*.plg
-third_party/build/portaudio/*.user
-third_party/build/portaudio/.*
-third_party/build/portaudio/os-auto.mak
-third_party/build/portaudio/output/*
 third_party/build/resample/*.user
 third_party/build/resample/.*
 third_party/build/resample/output/*

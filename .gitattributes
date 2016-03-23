@@ -340,10 +340,6 @@ third_party/build/ilbc/libilbccodec.vcproj eol=crlf
 third_party/build/milenage/libmilenage.vcp -text
 third_party/build/milenage/libmilenage.vcproj -text
 third_party/build/os-auto.mak.in eol=lf
-third_party/build/portaudio/Makefile -text
-third_party/build/portaudio/libportaudio.vcp -text
-third_party/build/portaudio/libportaudio.vcproj eol=crlf
-third_party/build/portaudio/os-auto.mak.in eol=lf
 third_party/build/resample/libresample.vcp -text
 third_party/build/resample/libresample.vcproj eol=crlf
 third_party/build/resample/libresample_dll.vcproj eol=crlf
