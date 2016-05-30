@@ -1,4 +1,4 @@
-/* $Id: transport_srtp.c 5136 2015-07-28 09:56:31Z nanang $ */
+/* $Id: transport_srtp.c 5261 2016-03-15 03:57:39Z nanang $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -47,6 +47,7 @@
 #  include <srtp/crypto_kernel.h>
 #else
 #  include <srtp.h>
+#  include <crypto_kernel.h>
 #endif
 
 #define THIS_FILE   "transport_srtp.c"
@@ -87,6 +88,22 @@ typedef struct crypto_suite
 static crypto_suite crypto_suites[] = {
     /* plain RTP/RTCP (no cipher & no auth) */
     {"NULL", NULL_CIPHER, 0, NULL_AUTH, 0, 0, 0, sec_serv_none},
+
+    /* cipher AES_CM_256, auth HMAC_SHA1, auth tag len = 10 octets */
+    {"AES_CM_256_HMAC_SHA1_80", AES_ICM, 46, HMAC_SHA1, 20, 10, 10,
+	sec_serv_conf_and_auth},
+
+    /* cipher AES_CM_256, auth HMAC_SHA1, auth tag len = 10 octets */
+    {"AES_CM_256_HMAC_SHA1_32", AES_ICM, 46, HMAC_SHA1, 20, 4, 10,
+        sec_serv_conf_and_auth},
+
+    /* cipher AES_CM_192, auth HMAC_SHA1, auth tag len = 10 octets */
+    //{"AES_CM_192_HMAC_SHA1_80", AES_ICM, 38, HMAC_SHA1, 20, 10, 10,
+	//sec_serv_conf_and_auth},
+
+    /* cipher AES_CM_192, auth HMAC_SHA1, auth tag len = 4 octets */
+    //{"AES_CM_192_HMAC_SHA1_80", AES_ICM, 38, HMAC_SHA1, 20, 4, 10,
+	//sec_serv_conf_and_auth},
 
     /* cipher AES_CM, auth HMAC_SHA1, auth tag len = 10 octets */
     {"AES_CM_128_HMAC_SHA1_80", AES_128_ICM, 30, HMAC_SHA1, 20, 10, 10,
@@ -336,7 +353,9 @@ static void pjmedia_srtp_deinit_lib(pjmedia_endpt *endpt)
 
     PJ_UNUSED_ARG(endpt);
 
-#if defined(PJMEDIA_EXTERNAL_SRTP) && (PJMEDIA_EXTERNAL_SRTP != 0)
+#if !defined(PJMEDIA_SRTP_HAS_DEINIT) && !defined(PJMEDIA_SRTP_HAS_SHUTDOWN)
+# define PJMEDIA_SRTP_HAS_SHUTDOWN 1
+#endif
 
 # if defined(PJMEDIA_SRTP_HAS_DEINIT) && PJMEDIA_SRTP_HAS_DEINIT!=0
     err = srtp_deinit();
@@ -345,10 +364,6 @@ static void pjmedia_srtp_deinit_lib(pjmedia_endpt *endpt)
 # else
     err = err_status_ok;
 # endif
-
-#else
-    err = srtp_deinit();
-#endif
     if (err != err_status_ok) {
 	PJ_LOG(4, (THIS_FILE, "Failed to deinitialize libsrtp: %s",
 		   get_libsrtp_errstr(err)));
@@ -1169,10 +1184,9 @@ static pj_status_t parse_attr_crypto(pj_pool_t *pool,
 {
     pj_str_t input;
     char *token;
-    pj_size_t token_len;
     pj_str_t tmp;
     pj_status_t status;
-    int itmp;
+    int itmp, token_len;
 
     pj_bzero(crypto, sizeof(*crypto));
     pj_strdup_with_null(pool, &input, &attr->value);
@@ -1456,6 +1470,9 @@ static pj_status_t transport_encode_sdp(pjmedia_transport *tp,
 				       &srtp->setting.crypto[j].name) == 0)
 			{
 			    int cs_idx = get_crypto_idx(&tmp_rx_crypto.name);
+			    
+	    		    if (cs_idx == -1)
+	    		        return PJMEDIA_SRTP_ENOTSUPCRYPTO;
 
 			    /* Force to use test key */
 			    /* bad keys for snom: */

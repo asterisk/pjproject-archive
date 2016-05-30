@@ -1,4 +1,4 @@
-/* $Id: uri_test.c 4728 2014-02-04 10:13:56Z bennylp $ */
+/* $Id: uri_test.c 5280 2016-04-20 01:58:15Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -722,7 +722,7 @@ static pjsip_uri *create_uri35( pj_pool_t *pool )
     url = pjsip_sip_uri_create(pool, 0);
     url->user = pj_str("user");
     url->host = pj_str("::1");
-    url->maddr_param = pj_str("::01");
+    url->maddr_param = pj_str("[::01]");
     return (pjsip_uri*)url;
 }
 
@@ -732,7 +732,7 @@ static pjsip_uri *create_uri36( pj_pool_t *pool )
     pjsip_sip_uri *url;
     url = pjsip_sip_uri_create(pool, 0);
     url->host = pj_str("::1");
-    url->maddr_param = pj_str("::01");
+    url->maddr_param = pj_str("[::01]");
     return (pjsip_uri*)url;
 
 }

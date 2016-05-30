@@ -1,4 +1,4 @@
-/* $Id: stun_session.c 4983 2015-02-13 11:34:26Z ming $ */
+/* $Id: stun_session.c 5233 2016-01-05 14:34:22Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -209,15 +209,25 @@ static void on_cache_timeout(pj_timer_heap_t *timer_heap,
 			     struct pj_timer_entry *entry)
 {
     pj_stun_tx_data *tdata;
+    pj_stun_session *sess;
 
     PJ_UNUSED_ARG(timer_heap);
 
     entry->id = PJ_FALSE;
     tdata = (pj_stun_tx_data*) entry->user_data;
+    sess = tdata->sess;
+
+    pj_grp_lock_acquire(sess->grp_lock);
+    if (sess->is_destroying) {
+	pj_grp_lock_release(sess->grp_lock);
+	return;
+    }
 
     PJ_LOG(5,(SNAME(tdata->sess), "Response cache deleted"));
 
     pj_list_erase(tdata);
+    pj_grp_lock_release(sess->grp_lock);
+
     destroy_tdata(tdata, PJ_FALSE);
 }
 

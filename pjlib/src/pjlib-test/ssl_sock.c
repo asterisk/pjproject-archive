@@ -1,4 +1,4 @@
-/* $Id: ssl_sock.c 5076 2015-04-23 02:42:49Z ming $ */
+/* $Id: ssl_sock.c 5231 2015-12-31 10:28:19Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1318,9 +1318,11 @@ on_return:
     if (ssock_serv) 
 	pj_ssl_sock_close(ssock_serv);
 
-    for (i = 0; i < clients; ++i) {
-	if (ssock_cli[i] && !state_cli[i].err && !state_cli[i].done)
-	    pj_ssl_sock_close(ssock_cli[i]);
+    if (ssock_cli && state_cli) {
+        for (i = 0; i < clients; ++i) {
+	    if (ssock_cli[i] && !state_cli[i].err && !state_cli[i].done)
+	        pj_ssl_sock_close(ssock_cli[i]);
+	}
     }
     if (ioqueue)
 	pj_ioqueue_destroy(ioqueue);

@@ -1,4 +1,4 @@
-/* $Id: pjsua_core.c 5133 2015-07-14 01:18:19Z ming $ */
+/* $Id: pjsua_core.c 5283 2016-05-09 06:58:29Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -906,7 +906,7 @@ PJ_DEF(pj_status_t) pjsua_init( const pjsua_config *ua_cfg,
      */
     if (ua_cfg->nameserver_count) {
 #if PJSIP_HAS_RESOLVER
-	unsigned i;
+	unsigned ii;
 
 	/* Create DNS resolver */
 	status = pjsip_endpt_create_resolver(pjsua_var.endpt, 
@@ -933,10 +933,10 @@ PJ_DEF(pj_status_t) pjsua_init( const pjsua_config *ua_cfg,
 	}
 
 	/* Print nameservers */
-	for (i=0; i<ua_cfg->nameserver_count; ++i) {
+	for (ii=0; ii<ua_cfg->nameserver_count; ++ii) {
 	    PJ_LOG(4,(THIS_FILE, "Nameserver %.*s added",
-		      (int)ua_cfg->nameserver[i].slen,
-		      ua_cfg->nameserver[i].ptr));
+		      (int)ua_cfg->nameserver[ii].slen,
+		      ua_cfg->nameserver[ii].ptr));
 	}
 #else
 	PJ_LOG(2,(THIS_FILE, 
@@ -1099,14 +1099,16 @@ PJ_DEF(pj_status_t) pjsua_init( const pjsua_config *ua_cfg,
 
     /* Start worker thread if needed. */
     if (pjsua_var.ua_cfg.thread_cnt) {
-	unsigned i;
+	unsigned ii;
 
 	if (pjsua_var.ua_cfg.thread_cnt > PJ_ARRAY_SIZE(pjsua_var.thread))
 	    pjsua_var.ua_cfg.thread_cnt = PJ_ARRAY_SIZE(pjsua_var.thread);
 
-	for (i=0; i<pjsua_var.ua_cfg.thread_cnt; ++i) {
-	    status = pj_thread_create(pjsua_var.pool, "pjsua", &worker_thread,
-				      NULL, 0, 0, &pjsua_var.thread[i]);
+	for (ii=0; ii<pjsua_var.ua_cfg.thread_cnt; ++ii) {
+	    char thread_name[16];
+	    pj_ansi_snprintf(thread_name, 16, "pjsua_%d", ii);
+	    status = pj_thread_create(pjsua_var.pool, thread_name, &worker_thread,
+				      NULL, 0, 0, &pjsua_var.thread[ii]);
 	    if (status != PJ_SUCCESS)
 		goto on_error;
 	}
@@ -2050,7 +2052,7 @@ static pj_status_t create_sip_udp_sock(int af,
 			 pj_ntohs(pjsua_var.stun_srv.ipv4.sin_port);
 	status = pjstun_get_mapped_addr2(&pjsua_var.cp.factory, &stun_opt,
 					 1, &sock, &p_pub_addr->ipv4);
-	if (status != PJ_SUCCESS) {
+	if (status != PJ_SUCCESS && !pjsua_var.ua_cfg.stun_ignore_failure) {
 	    pjsua_perror(THIS_FILE, "Error contacting STUN server", status);
 	    pj_sock_close(sock);
 	    return status;

@@ -1,4 +1,4 @@
-/* $Id: opensl_dev.c 4960 2014-11-13 01:48:34Z ming $ */
+/* $Id: opensl_dev.c 5248 2016-02-29 01:10:21Z ming $ */
 /* 
  * Copyright (C) 2012-2012 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2010-2012 Regis Montoya (aka r3gis - www.r3gis.fr)
@@ -489,7 +489,7 @@ static pj_status_t opensl_create_stream(pjmedia_aud_dev_factory *f,
     stream = PJ_POOL_ZALLOC_T(pool, struct opensl_aud_stream);
     stream->pool = pool;
     pj_strdup2_with_null(pool, &stream->name, "OpenSL");
-    stream->dir = PJMEDIA_DIR_CAPTURE_PLAYBACK;
+    stream->dir = param->dir;
     pj_memcpy(&stream->param, param, sizeof(*param));
     stream->user_data = user_data;
     stream->rec_cb = rec_cb;

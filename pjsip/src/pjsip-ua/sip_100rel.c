@@ -1,4 +1,4 @@
-/* $Id: sip_100rel.c 4936 2014-10-01 06:45:02Z ming $ */
+/* $Id: sip_100rel.c 5250 2016-03-03 06:28:19Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -856,7 +856,7 @@ PJ_DEF(pj_status_t) pjsip_100rel_tx_response(pjsip_inv_session *inv,
 	    dd->uas_state = PJ_POOL_ZALLOC_T(inv->dlg->pool,
 					     uas_state_t);
 	    dd->uas_state->cseq = cseq_hdr->cseq;
-	    dd->uas_state->rseq = pj_rand() % 0x7FFF;
+	    dd->uas_state->rseq = (pj_rand() % 0x7FFF) + 1;
 	    pj_list_init(&dd->uas_state->tx_data_list);
 	    dd->uas_state->retransmit_timer.user_data = dd;
 	    dd->uas_state->retransmit_timer.cb = &on_retransmit;

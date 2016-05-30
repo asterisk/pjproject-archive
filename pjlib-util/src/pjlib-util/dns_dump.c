@@ -1,4 +1,4 @@
-/* $Id: dns_dump.c 4613 2013-10-08 09:08:13Z bennylp $ */
+/* $Id: dns_dump.c 5228 2015-12-31 04:06:02Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -170,7 +170,7 @@ PJ_DEF(void) pj_dns_dump_packet(const pj_dns_parsed_packet *res)
     }
 
     /* Dump NS sections */
-    if (res->hdr.anscount) {
+    if (res->hdr.nscount) {
 	PJ_LOG(3,(THIS_FILE, " NS Authority RR:"));
 
 	for (i=0; i<res->hdr.nscount; ++i) {

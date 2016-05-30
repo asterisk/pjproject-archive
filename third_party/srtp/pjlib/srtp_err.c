@@ -1,4 +1,4 @@
-/* $Id: srtp_err.c 1907 2008-04-03 22:03:14Z bennylp $ */
+/* $Id: srtp_err.c 5261 2016-03-15 03:57:39Z nanang $ */
 /* 
  * Copyright (C) 2003-2007 Benny Prijono <benny@prijono.org>
  *
@@ -24,12 +24,13 @@
 err_reporting_level_t err_level = err_level_none;
 
 err_status_t
-err_reporting_init(char *ident) {
+err_reporting_init(const char *ident) {
+    PJ_UNUSED_ARG(ident);
     return err_status_ok;
 }
 
 void
-err_report(int priority, char *format, ...) {
+err_report(int priority, const char *format, ...) {
   va_list args;
 
 #if PJ_LOG_MAX_LEVEL >= 1

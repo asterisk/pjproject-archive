@@ -1,4 +1,4 @@
-/* $Id: session.c 4890 2014-08-19 00:54:34Z bennylp $ */
+/* $Id: session.c 5226 2015-12-31 02:04:52Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -129,7 +129,7 @@ PJ_DEF(pj_status_t) pjmedia_session_create( pjmedia_endpt *endpt,
 
 	if (status != PJ_SUCCESS) {
 
-	    for ( --i; i>=0; ++i) {
+	    for ( --i; i>=0; --i) {
 		pjmedia_stream_destroy(session->stream[i]);
 	    }
 

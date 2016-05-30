@@ -1,4 +1,4 @@
-/* $Id: os_core_unix.c 5012 2015-03-22 07:50:28Z ming $ */
+/* $Id: os_core_unix.c 5277 2016-04-13 06:24:48Z riza $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -1125,7 +1125,7 @@ static pj_status_t init_mutex(pj_mutex_t *mutex, const char *name, int type)
     if (type == PJ_MUTEX_SIMPLE) {
 #if (defined(PJ_LINUX) && PJ_LINUX!=0) || \
     defined(PJ_HAS_PTHREAD_MUTEXATTR_SETTYPE)
-	rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_FAST_NP);
+	rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
 #elif (defined(PJ_RTEMS) && PJ_RTEMS!=0) || \
        defined(PJ_PTHREAD_MUTEXATTR_T_HAS_RECURSIVE)
 	/* Nothing to do, default is simple */
@@ -1135,7 +1135,7 @@ static pj_status_t init_mutex(pj_mutex_t *mutex, const char *name, int type)
     } else {
 #if (defined(PJ_LINUX) && PJ_LINUX!=0) || \
      defined(PJ_HAS_PTHREAD_MUTEXATTR_SETTYPE)
-	rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+	rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 #elif (defined(PJ_RTEMS) && PJ_RTEMS!=0) || \
        defined(PJ_PTHREAD_MUTEXATTR_T_HAS_RECURSIVE)
 	// Phil Torre <ptorre@zetron.com>:
