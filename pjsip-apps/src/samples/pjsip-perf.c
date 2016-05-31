@@ -1,4 +1,4 @@
-/* $Id: pjsip-perf.c 5035 2015-03-27 06:17:27Z nanang $ */
+/* $Id: pjsip-perf.c 5241 2016-02-05 04:29:17Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -475,8 +475,8 @@ static pj_bool_t mod_call_on_rx_request(pjsip_rx_data *rdata)
     }
 
     /* Create UAS dialog */
-    status = pjsip_dlg_create_uas( pjsip_ua_instance(), rdata,
-				   &app.local_contact, &dlg);
+    status = pjsip_dlg_create_uas_and_inc_lock( pjsip_ua_instance(), rdata,
+						&app.local_contact, &dlg);
     if (status != PJ_SUCCESS) {
 	const pj_str_t reason = pj_str("Unable to create dialog");
 	pjsip_endpt_respond_stateless( app.sip_endpt, rdata, 
@@ -502,9 +502,13 @@ static pj_bool_t mod_call_on_rx_request(pjsip_rx_data *rdata)
     if (status != PJ_SUCCESS) {
 	pjsip_dlg_create_response(dlg, rdata, 500, NULL, &tdata);
 	pjsip_dlg_send_response(dlg, pjsip_rdata_get_tsx(rdata), tdata);
+	pjsip_dlg_dec_lock(dlg);
 	return PJ_TRUE;
     }
     
+    /* Invite session has been created, decrement & release dialog lock. */
+    pjsip_dlg_dec_lock(dlg);
+
     /* Send 100/Trying if needed */
     if (app.server.send_trying) {
 	status = send_response(call->inv, rdata, 100, &has_initial);
@@ -967,12 +971,12 @@ static void call_on_media_update( pjsip_inv_session *inv,
 {
     if (status != PJ_SUCCESS) {
 	pjsip_tx_data *tdata;
-	pj_status_t status;
+	pj_status_t status2;
 
-	status = pjsip_inv_end_session(inv, PJSIP_SC_UNSUPPORTED_MEDIA_TYPE, 
+	status2 = pjsip_inv_end_session(inv, PJSIP_SC_UNSUPPORTED_MEDIA_TYPE,
 				       NULL, &tdata);
-	if (status == PJ_SUCCESS && tdata)
-	    status = pjsip_inv_send_msg(inv, tdata);
+	if (status2 == PJ_SUCCESS && tdata)
+	    status2 = pjsip_inv_send_msg(inv, tdata);
     }
 }
 

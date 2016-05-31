@@ -1,4 +1,4 @@
-/* $Id: ffmpeg_util.h 4808 2014-04-01 09:47:15Z nanang $ */
+/* $Id: ffmpeg_util.h 5271 2016-03-24 13:16:25Z nanang $ */
 /*
  * Copyright (C) 2010-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -37,13 +37,23 @@
 #include <libavutil/avutil.h>
 #include <libavcodec/avcodec.h>
 
+
+#ifdef PJMEDIA_USE_OLD_FFMPEG
+#   define AVPixelFormat	PixelFormat
+#   define AV(str)		str
+#   define PIX_FMT_GBRP 	PIX_FMT_GBR24P
+#else
+#   define AV(str)		AV_ ## str
+#endif
+					 
+
 void pjmedia_ffmpeg_add_ref();
 void pjmedia_ffmpeg_dec_ref();
 
 pj_status_t pjmedia_format_id_to_PixelFormat(pjmedia_format_id fmt_id,
-					     enum PixelFormat *pixel_format);
+					     enum AVPixelFormat *pixel_format);
 
-pj_status_t PixelFormat_to_pjmedia_format_id(enum PixelFormat pf,
+pj_status_t PixelFormat_to_pjmedia_format_id(enum AVPixelFormat pf,
 					     pjmedia_format_id *fmt_id);
 
 pj_status_t pjmedia_format_id_to_CodecID(pjmedia_format_id fmt_id,

@@ -1,4 +1,4 @@
-/* $Id: siptypes.cpp 4968 2014-12-18 04:40:35Z riza $ */
+/* $Id: siptypes.cpp 5207 2015-12-08 11:25:45Z ming $ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -304,24 +304,24 @@ void TransportConfig::writeObject(ContainerNode &node) const throw(Error)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void TransportInfo::fromPj(const pjsua_transport_info &info)
+void TransportInfo::fromPj(const pjsua_transport_info &tinfo)
 {
-    this->id = info.id;
-    this->type = info.type;
-    this->typeName = pj2Str(info.type_name);
-    this->info = pj2Str(info.info);
-    this->flags = info.flag;
+    this->id = tinfo.id;
+    this->type = tinfo.type;
+    this->typeName = pj2Str(tinfo.type_name);
+    this->info = pj2Str(tinfo.info);
+    this->flags = tinfo.flag;
 
     char straddr[PJ_INET6_ADDRSTRLEN+10];
-    pj_sockaddr_print(&info.local_addr, straddr, sizeof(straddr), 3);
+    pj_sockaddr_print(&tinfo.local_addr, straddr, sizeof(straddr), 3);
     this->localAddress = straddr;
 
     pj_ansi_snprintf(straddr, sizeof(straddr), "%.*s:%d",
-                     (int)info.local_name.host.slen,
-                     info.local_name.host.ptr,
-                     info.local_name.port);
+                     (int)tinfo.local_name.host.slen,
+                     tinfo.local_name.host.ptr,
+                     tinfo.local_name.port);
     this->localName = straddr;
-    this->usageCount = info.usage_count;
+    this->usageCount = tinfo.usage_count;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -516,6 +516,7 @@ void SipTransaction::fromPj(pjsip_transaction &tsx)
     this->method        = pj2Str(tsx.method.name);
     this->statusCode    = tsx.status_code;
     this->statusText    = pj2Str(tsx.status_text);
+    this->state		= tsx.state;
     if (tsx.last_tx)
 	this->lastTx.fromPj(*tsx.last_tx);
     else

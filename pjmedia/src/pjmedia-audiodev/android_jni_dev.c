@@ -1,4 +1,4 @@
-/* $Id: android_jni_dev.c 5157 2015-08-10 09:11:39Z nanang $ */
+/* $Id: android_jni_dev.c 5248 2016-02-29 01:10:21Z ming $ */
 /* 
  * Copyright (C) 2012-2012 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2010-2012 Regis Montoya (aka r3gis - www.r3gis.fr)
@@ -565,7 +565,7 @@ static pj_status_t android_create_stream(pjmedia_aud_dev_factory *f,
     stream = PJ_POOL_ZALLOC_T(pool, struct android_aud_stream);
     stream->pool = pool;
     pj_strdup2_with_null(pool, &stream->name, "JNI stream");
-    stream->dir = PJMEDIA_DIR_CAPTURE_PLAYBACK;
+    stream->dir = param->dir;
     pj_memcpy(&stream->param, param, sizeof(*param));
     stream->user_data = user_data;
     stream->rec_cb = rec_cb;

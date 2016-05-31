@@ -1,4 +1,4 @@
-/* $Id: pjsua_call.c 5099 2015-05-20 08:46:11Z nanang $ */
+/* $Id: pjsua_call.c 5288 2016-05-10 14:58:41Z riza $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -982,10 +982,19 @@ on_incoming_call_med_tp_complete(pjsua_call_id call_id,
     pjmedia_sdp_session *answer;
     pjsip_tx_data *response = NULL;
     unsigned options = 0;
+    pjsip_dialog *dlg = call->async_call.dlg;
     int sip_err_code = (info? info->sip_err_code: 0);
     pj_status_t status = (info? info->status: PJ_SUCCESS);
 
     PJSUA_LOCK();
+    
+    /* Increment the dialog's lock to prevent it to be destroyed prematurely,
+     * such as in case of transport error.
+     */
+    pjsip_dlg_inc_lock(dlg);
+
+    /* Decrement dialog session. */
+    pjsip_dlg_dec_session(dlg, &pjsua_var.mod);    
 
     if (status != PJ_SUCCESS) {
 	pjsua_perror(THIS_FILE, "Error initializing media channel", status);
@@ -996,6 +1005,7 @@ on_incoming_call_med_tp_complete(pjsua_call_id call_id,
     if (call->async_call.med_ch_deinit) {
         pjsua_media_channel_deinit(call->index);
         call->med_ch_cb = NULL;
+        pjsip_dlg_dec_lock(dlg);
         PJSUA_UNLOCK();
         return PJ_SUCCESS;
     }
@@ -1067,7 +1077,9 @@ on_return:
 	    process_pending_call_answer(call);
 	}
     }
-
+    
+    pjsip_dlg_dec_lock(dlg);
+    
     PJSUA_UNLOCK();
     return status;
 }
@@ -1088,7 +1100,7 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
     unsigned options = 0;
     pjsip_inv_session *inv = NULL;
     int acc_id;
-    pjsua_call *call;
+    pjsua_call *call = NULL;
     int call_id = -1;
     int sip_err_code = PJSIP_SC_INTERNAL_SERVER_ERROR;
     pjmedia_sdp_session *offer=NULL;
@@ -1209,6 +1221,11 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
 				st_code, &st_text, NULL, NULL, NULL);
 	    goto on_return;
 	}
+    }
+
+    if (!replaced_dlg) {
+	/* Clone rdata. */
+	pjsip_rx_data_clone(rdata, 0, &call->incoming_data);
     }
 
     /*
@@ -1351,8 +1368,8 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
     }
 
     /* Create dialog: */
-    status = pjsip_dlg_create_uas( pjsip_ua_instance(), rdata,
-				   &contact, &dlg);
+    status = pjsip_dlg_create_uas_and_inc_lock( pjsip_ua_instance(), rdata,
+				   		&contact, &dlg);
     if (status != PJ_SUCCESS) {
 	pjsip_endpt_respond_stateless(pjsua_var.endpt, rdata, 500, NULL,
 				      NULL, NULL);
@@ -1460,6 +1477,8 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
     call->async_call.dlg = dlg;
     pj_list_init(&call->async_call.call_var.inc_call.answers);
 
+    pjsip_dlg_inc_session(dlg, &pjsua_var.mod);
+
     /* Init media channel, only when there is offer or call replace request.
      * For incoming call without SDP offer, media channel init will be done
      * in pjsua_call_answer(), see ticket #1526.
@@ -1500,6 +1519,8 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
 		pjsip_inv_terminate(call->inv, sip_err_code, PJ_FALSE);
 	    }
 	    pjsip_dlg_dec_lock(dlg);
+
+	    pjsip_dlg_dec_session(dlg, &pjsua_var.mod);
 
 	    call->inv = NULL;
 	    call->async_call.dlg = NULL;
@@ -1618,6 +1639,15 @@ pj_bool_t pjsua_call_on_incoming(pjsip_rx_data *rdata)
 
     /* This INVITE request has been handled. */
 on_return:
+    if (dlg) {
+        pjsip_dlg_dec_lock(dlg);
+    }
+
+    if (call && call->incoming_data) {
+	pjsip_rx_data_free_cloned(call->incoming_data);
+	call->incoming_data = NULL;
+    }
+    
     pj_log_pop_indent();
     PJSUA_UNLOCK();
     return PJ_TRUE;
@@ -2203,6 +2233,7 @@ PJ_DEF(pj_status_t) pjsua_call_answer2(pjsua_call_id call_id,
 	    *answer->opt = *opt;
 	}
         if (reason) {
+	    answer->reason = PJ_POOL_ZALLOC_T(call->inv->pool_prov, pj_str_t);
             pj_strdup(call->inv->pool_prov, answer->reason, reason);
         }
         if (msg_data) {
@@ -4181,8 +4212,14 @@ static void pjsua_call_on_create_offer(pjsip_inv_session *inv,
     }
 #endif
 
+    if (pjsua_var.ua_cfg.cb.on_call_tx_offer) {
+	cleanup_call_setting_flag(&call->opt);
+	(*pjsua_var.ua_cfg.cb.on_call_tx_offer)(call->index, NULL,
+						&call->opt);
+    }
+
     /* We may need to re-initialize media before creating SDP */
-    if (call->med_prov_cnt == 0) {
+    if (call->med_prov_cnt == 0 || pjsua_var.ua_cfg.cb.on_call_tx_offer) {
     	status = apply_call_setting(call, &call->opt, NULL);
     	if (status != PJ_SUCCESS)
 	    goto on_return;
@@ -4510,12 +4547,12 @@ static void on_call_transferred( pjsip_inv_session *inv,
 	/*
 	 * Always answer with 2xx.
 	 */
-	pjsip_tx_data *tdata;
+	pjsip_tx_data *tdata2;
 	const pj_str_t str_false = { "false", 5};
 	pjsip_hdr *hdr;
 
 	status = pjsip_dlg_create_response(inv->dlg, rdata, code, NULL,
-					   &tdata);
+					   &tdata2);
 	if (status != PJ_SUCCESS) {
 	    pjsua_perror(THIS_FILE, "Unable to create 2xx response to REFER",
 			 status);
@@ -4524,14 +4561,14 @@ static void on_call_transferred( pjsip_inv_session *inv,
 
 	/* Add Refer-Sub header */
 	hdr = (pjsip_hdr*)
-	       pjsip_generic_string_hdr_create(tdata->pool, &str_refer_sub,
+	       pjsip_generic_string_hdr_create(tdata2->pool, &str_refer_sub,
 					      &str_false);
-	pjsip_msg_add_hdr(tdata->msg, hdr);
+	pjsip_msg_add_hdr(tdata2->msg, hdr);
 
 
 	/* Send answer */
 	status = pjsip_dlg_send_response(inv->dlg, pjsip_rdata_get_tsx(rdata),
-					 tdata);
+					 tdata2);
 	if (status != PJ_SUCCESS) {
 	    pjsua_perror(THIS_FILE, "Unable to create 2xx response to REFER",
 			 status);
@@ -4770,7 +4807,8 @@ static void pjsua_call_on_tsx_state_changed(pjsip_inv_session *inv,
                pjsip_method_cmp(&tsx->method, &pjsip_invite_method)==0 &&
                tsx->state >= PJSIP_TSX_STATE_COMPLETED &&
 	       e->body.tsx_state.prev_state < PJSIP_TSX_STATE_COMPLETED &&
-               (tsx->status_code!=401 && tsx->status_code!=407 &&
+               (!PJSIP_IS_STATUS_IN_CLASS(tsx->status_code, 300) &&
+                tsx->status_code!=401 && tsx->status_code!=407 &&
                 tsx->status_code!=422))
     {
         if (tsx->status_code/100 == 2) {
@@ -4815,7 +4853,8 @@ static void pjsua_call_on_tsx_state_changed(pjsip_inv_session *inv,
                pjsip_method_cmp(&tsx->method, &pjsip_update_method)==0 &&
                tsx->state >= PJSIP_TSX_STATE_COMPLETED &&
 	       e->body.tsx_state.prev_state < PJSIP_TSX_STATE_COMPLETED &&
-               (tsx->status_code!=401 && tsx->status_code!=407 &&
+               (!PJSIP_IS_STATUS_IN_CLASS(tsx->status_code, 300) &&
+                tsx->status_code!=401 && tsx->status_code!=407 &&
                 tsx->status_code!=422))
     {
         if (tsx->status_code/100 != 2 ||

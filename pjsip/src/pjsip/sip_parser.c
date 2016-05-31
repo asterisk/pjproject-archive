@@ -1,4 +1,4 @@
-/* $Id: sip_parser.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: sip_parser.c 5280 2016-04-20 01:58:15Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -327,7 +327,7 @@ static pj_status_t init_parser()
 
     status = pj_cis_dup(&pconst.pjsip_VIA_PARAM_SPEC_ESC, &pconst.pjsip_TOKEN_SPEC_ESC);
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, status);
-    pj_cis_add_str(&pconst.pjsip_VIA_PARAM_SPEC, ":");
+    pj_cis_add_str(&pconst.pjsip_VIA_PARAM_SPEC_ESC, ":");
 
     status = pj_cis_dup(&pconst.pjsip_HOST_SPEC, &pconst.pjsip_ALNUM_SPEC);
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, status);
@@ -674,7 +674,7 @@ static pjsip_parse_hdr_func* find_handler(const pj_str_t *hname)
     pj_uint32_t hash;
     char hname_copy[PJSIP_MAX_HNAME_LEN];
     pj_str_t tmp;
-    pjsip_parse_hdr_func *handler;
+    pjsip_parse_hdr_func *func;
 
     if (hname->slen >= PJSIP_MAX_HNAME_LEN) {
 	/* Guaranteed not to be able to find handler. */
@@ -683,9 +683,9 @@ static pjsip_parse_hdr_func* find_handler(const pj_str_t *hname)
 
     /* First, common case, try to find handler with exact name */
     hash = pj_hash_calc(0, hname->ptr, (unsigned)hname->slen);
-    handler = find_handler_imp(hash, hname);
-    if (handler)
-	return handler;
+    func = find_handler_imp(hash, hname);
+    if (func)
+	return func;
 
 
     /* If not found, try converting the header name to lowercase and
@@ -980,7 +980,7 @@ retry_parse:
 parse_headers:
 	/* Parse headers. */
 	do {
-	    pjsip_parse_hdr_func * handler;
+	    pjsip_parse_hdr_func * func;
 	    pjsip_hdr *hdr = NULL;
 
 	    /* Init hname just in case parsing fails.
@@ -995,14 +995,14 @@ parse_headers:
 	    }
 	    
 	    /* Find handler. */
-	    handler = find_handler(&hname);
+	    func = find_handler(&hname);
 	    
 	    /* Call the handler if found.
 	     * If no handler is found, then treat the header as generic
 	     * hname/hvalue pair.
 	     */
-	    if (handler) {
-		hdr = (*handler)(ctx);
+	    if (func) {
+		hdr = (*func)(ctx);
 
 		/* Note:
 		 *  hdr MAY BE NULL, if parsing does not yield a new header
@@ -1149,14 +1149,18 @@ static void parse_param_imp( pj_scanner *scanner, pj_pool_t *pool,
 		    pvalue->ptr++;
 		    pvalue->slen -= 2;
 		}
-	    } else if (*scanner->curptr == '[') {
+	    // } else if (*scanner->curptr == '[') {
 		/* pvalue can be a quoted IPv6; in this case, the
 		 * '[' and ']' quote characters are to be removed
-		 * from the pvalue. 
+		 * from the pvalue.
+		 *
+		 * Update: this seems to be unnecessary and may cause
+		 * parsing error for cases such as IPv6 reference with
+		 * port number.
 		 */
-		pj_scan_get_char(scanner);
-		pj_scan_get_until_ch(scanner, ']', pvalue);
-		pj_scan_get_char(scanner);
+		// pj_scan_get_char(scanner);
+		// pj_scan_get_until_ch(scanner, ']', pvalue);
+		// pj_scan_get_char(scanner);
 	    } else if(pj_cis_match(spec, *scanner->curptr)) {
 		parser_get_and_unescape(scanner, pool, spec, esc_spec, pvalue);
 	    }
@@ -1671,14 +1675,13 @@ static void parse_generic_array_hdr( pjsip_generic_array_hdr *hdr,
 		 &hdr->values[hdr->count]);
     hdr->count++;
 
-    while (*scanner->curptr == ',') {
+    while ((hdr->count < PJSIP_GENERIC_ARRAY_MAX_COUNT) &&
+    	   (*scanner->curptr == ','))
+    {
 	pj_scan_get_char(scanner);
 	pj_scan_get( scanner, &pconst.pjsip_NOT_COMMA_OR_NEWLINE, 
 		     &hdr->values[hdr->count]);
 	hdr->count++;
-
-	if (hdr->count >= PJSIP_GENERIC_ARRAY_MAX_COUNT)
-	    break;
     }
 
 end:
@@ -1995,6 +1998,8 @@ static pjsip_hdr* parse_hdr_retry_after(pjsip_parse_ctx *ctx)
 	    pjsip_param *prm = PJ_POOL_ALLOC_T(ctx->pool, pjsip_param);
 	    int_parse_param(scanner, ctx->pool, &prm->name, &prm->value, 0);
 	    pj_list_push_back(&hdr->param, prm);
+	} else {
+	    on_syntax_error(scanner);
 	}
     }
 
@@ -2262,9 +2267,9 @@ PJ_DEF(void*) pjsip_parse_hdr( pj_pool_t *pool, const pj_str_t *hname,
     context.rdata = NULL;
 
     PJ_TRY {
-	pjsip_parse_hdr_func *handler = find_handler(hname);
-	if (handler) {
-	    hdr = (*handler)(&context);
+	pjsip_parse_hdr_func *func = find_handler(hname);
+	if (func) {
+	    hdr = (*func)(&context);
 	} else {
 	    hdr = parse_hdr_generic_string(&context);
 	    hdr->type = PJSIP_H_OTHER;
@@ -2310,7 +2315,7 @@ retry_parse:
     {
 	/* Parse headers. */
 	do {
-	    pjsip_parse_hdr_func * handler;
+	    pjsip_parse_hdr_func * func;
 	    pjsip_hdr *hdr = NULL;
 
 	    /* Init hname just in case parsing fails.
@@ -2325,14 +2330,14 @@ retry_parse:
 	    }
 
 	    /* Find handler. */
-	    handler = find_handler(&hname);
+	    func = find_handler(&hname);
 
 	    /* Call the handler if found.
 	     * If no handler is found, then treat the header as generic
 	     * hname/hvalue pair.
 	     */
-	    if (handler) {
-		hdr = (*handler)(&ctx);
+	    if (func) {
+		hdr = (*func)(&ctx);
 	    } else {
 		hdr = parse_hdr_generic_string(&ctx);
 		hdr->name = hdr->sname = hname;

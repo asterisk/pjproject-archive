@@ -1,4 +1,4 @@
-/* $Id: audio_codecs.c 4335 2013-01-29 08:09:15Z ming $ */
+/* $Id: audio_codecs.c 5239 2016-02-04 06:11:58Z ming $ */
 /* 
  * Copyright (C) 2011-2011 Teluu Inc. (http://www.teluu.com)
  *
@@ -117,6 +117,13 @@ pjmedia_codec_register_audio_codecs(pjmedia_endpt *endpt,
 #if PJMEDIA_HAS_SILK_CODEC
     /* Register SILK */
     status = pjmedia_codec_silk_init(endpt);
+    if (status != PJ_SUCCESS)
+	return status;
+#endif
+
+#if PJMEDIA_HAS_OPUS_CODEC
+    /* Register OPUS */
+    status = pjmedia_codec_opus_init(endpt);
     if (status != PJ_SUCCESS)
 	return status;
 #endif

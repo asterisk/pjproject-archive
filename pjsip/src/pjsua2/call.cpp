@@ -1,4 +1,4 @@
-/* $Id: call.cpp 4996 2015-03-18 08:25:24Z ming $ */
+/* $Id: call.cpp 5240 2016-02-04 09:31:01Z nanang $ */
 /*
  * Copyright (C) 2012-2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -152,9 +152,9 @@ public:
 };
 
 
-void CallAudioMedia::setPortId(int id)
+void CallAudioMedia::setPortId(int pid)
 {
-    this->id = id;
+    this->id = pid;
 }
 
 CallOpParam::CallOpParam(bool useDefaultCallSetting)
@@ -390,8 +390,13 @@ Call::~Call()
      * PJSUA library.
      */
     if (pjsua_get_state() < PJSUA_STATE_CLOSING && isActive()) {
-        CallOpParam prm;
-        hangup(prm);
+	try {
+	    CallOpParam prm;
+	    hangup(prm);
+	} catch (Error &err) {
+	    // Ignore
+	    PJ_UNUSED_ARG(err);
+	}
     }
 }
 

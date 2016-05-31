@@ -1,4 +1,4 @@
-/* $Id: evsub.c 4969 2014-12-19 14:22:35Z nanang $ */
+/* $Id: evsub.c 5245 2016-02-23 06:10:03Z nanang $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -154,7 +154,7 @@ static const char *timer_names[] =
 {
     "None",
     "UAC_REFRESH",
-    "UAS_TIMEOUT"
+    "UAS_TIMEOUT",
     "UAC_TERMINATE",
     "UAC_WAIT_NOTIFY",
     "INVALID_TIMER"
@@ -2191,7 +2191,7 @@ static void on_tsx_state_uas( pjsip_evsub *sub, pjsip_transaction *tsx,
 		    should_terminate_sub = PJ_TRUE;
 		} else {
 		    pjsip_retry_after_hdr *retry_after;
-		    pjsip_rx_data *rdata = event->body.tsx_state.src.rdata;;
+		    pjsip_rx_data *rdata = event->body.tsx_state.src.rdata;
 		    pjsip_msg *msg = rdata->msg_info.msg;		    
 
 		    retry_after = (pjsip_retry_after_hdr*)

@@ -1,4 +1,4 @@
-/* $Id: endpoint.hpp 5131 2015-07-13 07:56:19Z ming $ */
+/* $Id: endpoint.hpp 5278 2016-04-19 07:29:54Z ming $ */
 /* 
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -1150,18 +1150,25 @@ public:
      *			will be thrown.
      *
      */
-    CodecParam videoCodecGetParam(const string &codec_id) const throw(Error);
+    VidCodecParam getVideoCodecParam(const string &codec_id) const throw(Error);
 
     /**
      * Set video codec parameters.
      *
      * @param codec_id	Codec ID.
-     * @param param	Codec parameter to set. Set to NULL to reset
-     *			codec parameter to library default settings.
+     * @param param	Codec parameter to set.
      *
      */
-    void videoCodecSetParam(const string &codec_id,
-			    const CodecParam param) throw(Error);
+    void setVideoCodecParam(const string &codec_id,
+			    const VidCodecParam &param) throw(Error);
+			    
+    /**
+     * Reset video codec parameters to library default settings.
+     *
+     * @param codec_id	Codec ID.
+     *
+     */
+    void resetVideoCodecParam(const string &codec_id) throw(Error);
 
 public:
     /*
@@ -1303,7 +1310,8 @@ private:
                            pjsua_acc_id acc_id);
     static void on_mwi_info(pjsua_acc_id acc_id,
                             pjsua_mwi_info *mwi_info);
-
+    static void on_acc_find_for_incoming(const pjsip_rx_data *rdata,
+				     	 pjsua_acc_id* acc_id);
     static void on_buddy_state(pjsua_buddy_id buddy_id);
     // Call callbacks
     static void on_call_state(pjsua_call_id call_id, pjsip_event *e);
@@ -1351,6 +1359,9 @@ private:
                                  void *reserved,
                                  pjsip_status_code *code,
                                  pjsua_call_setting *opt);
+    static void on_call_tx_offer(pjsua_call_id call_id,
+				 void *reserved,
+				 pjsua_call_setting *opt);
     static pjsip_redirect_op on_call_redirected(pjsua_call_id call_id,
                                                 const pjsip_uri *target,
                                                 const pjsip_event *e);

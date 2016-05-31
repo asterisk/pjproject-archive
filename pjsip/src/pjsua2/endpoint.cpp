@@ -1,4 +1,4 @@
-/* $Id: endpoint.cpp 5139 2015-07-30 13:42:51Z riza $ */
+/* $Id: endpoint.cpp 5288 2016-05-10 14:58:41Z riza $ */
 /* 
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -45,6 +45,7 @@ Endpoint *Endpoint::instance_;
 ///////////////////////////////////////////////////////////////////////////////
 
 UaConfig::UaConfig()
+: mainThreadOnly(false)
 {
     pjsua_config ua_cfg;
 
@@ -601,12 +602,25 @@ void Endpoint::on_incoming_call(pjsua_acc_id acc_id, pjsua_call_id call_id,
 	return;
     }
 
+    pjsua_call *call = &pjsua_var.calls[call_id];
+    if (!call->incoming_data) {
+	/* This happens when the incoming call callback has been called from 
+	 * inside the on_create_media_transport() callback. So we simply 
+	 * return here to avoid calling	the callback twice. 
+	 */
+	return;
+    }
+
     /* call callback */
     OnIncomingCallParam prm;
     prm.callId = call_id;
     prm.rdata.fromPj(*rdata);
 
     acc->onIncomingCall(prm);
+
+    /* Free cloned rdata. */
+    pjsip_rx_data_free_cloned(call->incoming_data);
+    call->incoming_data = NULL;
 
     /* disconnect if callback doesn't handle the call */
     pjsua_call_info ci;
@@ -815,6 +829,20 @@ void Endpoint::on_mwi_info(pjsua_acc_id acc_id,
     acc->onMwiInfo(prm);
 }
 
+void Endpoint::on_acc_find_for_incoming(const pjsip_rx_data *rdata,
+				        pjsua_acc_id* acc_id)
+{
+    OnSelectAccountParam prm;
+
+    pj_assert(rdata && acc_id);
+    prm.rdata.fromPj(*((pjsip_rx_data *)rdata));
+    prm.accountIndex = *acc_id;
+    
+    instance_->onSelectAccount(prm);
+    
+    *acc_id = prm.accountIndex;
+}
+
 void Endpoint::on_buddy_state(pjsua_buddy_id buddy_id)
 {
     Buddy *buddy = (Buddy*)pjsua_buddy_get_user_data(buddy_id);
@@ -893,8 +921,15 @@ void Endpoint::on_call_sdp_created(pjsua_call_id call_id,
     
     /* Check if application modifies the SDP */
     if (orig_sdp != prm.sdp.wholeSdp) {
-        pjmedia_sdp_parse(pool, (char*)prm.sdp.wholeSdp.c_str(),
-                          prm.sdp.wholeSdp.size(), &sdp);
+        pjmedia_sdp_session *new_sdp;
+        pj_str_t dup_new_sdp;
+        pj_str_t new_sdp_str = {(char*)prm.sdp.wholeSdp.c_str(),
+        			(pj_ssize_t)prm.sdp.wholeSdp.size()};
+
+        pj_strdup(pool, &dup_new_sdp, &new_sdp_str);        
+        pjmedia_sdp_parse(pool, dup_new_sdp.ptr,
+                          dup_new_sdp.slen, &new_sdp);
+        pj_memcpy(sdp, new_sdp, sizeof(*sdp));
     }
 }
 
@@ -1073,6 +1108,25 @@ void Endpoint::on_call_rx_offer(pjsua_call_id call_id,
     *opt = prm.opt.toPj();
 }
 
+void Endpoint::on_call_tx_offer(pjsua_call_id call_id,
+				void *reserved,
+				pjsua_call_setting *opt)
+{
+    PJ_UNUSED_ARG(reserved);
+
+    Call *call = Call::lookup(call_id);
+    if (!call) {
+	return;
+    }
+
+    OnCallTxOfferParam prm;
+    prm.opt.fromPj(*opt);
+
+    call->onCallTxOffer(prm);
+
+    *opt = prm.opt.toPj();
+}
+
 pjsip_redirect_op Endpoint::on_call_redirected(pjsua_call_id call_id,
                                                const pjsip_uri *target,
                                                const pjsip_event *e)
@@ -1184,7 +1238,22 @@ Endpoint::on_create_media_transport(pjsua_call_id call_id,
 {
     Call *call = Call::lookup(call_id);
     if (!call) {
-	return base_tp;
+	pjsua_call *in_call = &pjsua_var.calls[call_id];
+	if (in_call->incoming_data) {
+	    /* This can happen when there is an incoming call but the
+	     * on_incoming_call() callback hasn't been called. So we need to 
+	     * call the callback here.
+	     */
+	    on_incoming_call(in_call->acc_id, call_id, in_call->incoming_data);
+
+	    /* New call should already be created by app. */
+	    call = Call::lookup(call_id);
+	    if (!call) {
+		return base_tp;
+	    }
+	} else {
+	    return base_tp;
+	}
     }
     
     OnCreateMediaTransportParam prm;
@@ -1258,6 +1327,7 @@ void Endpoint::libInit(const EpConfig &prmEpConfig) throw(Error)
     ua_cfg.cb.on_typing2	= &Endpoint::on_typing2;
     ua_cfg.cb.on_mwi_info	= &Endpoint::on_mwi_info;
     ua_cfg.cb.on_buddy_state	= &Endpoint::on_buddy_state;
+    ua_cfg.cb.on_acc_find_for_incoming  = &Endpoint::on_acc_find_for_incoming;
 
     /* Call callbacks */
     ua_cfg.cb.on_call_state             = &Endpoint::on_call_state;
@@ -1272,6 +1342,7 @@ void Endpoint::libInit(const EpConfig &prmEpConfig) throw(Error)
     ua_cfg.cb.on_call_replace_request2  = &Endpoint::on_call_replace_request2;
     ua_cfg.cb.on_call_replaced          = &Endpoint::on_call_replaced;
     ua_cfg.cb.on_call_rx_offer          = &Endpoint::on_call_rx_offer;
+    ua_cfg.cb.on_call_tx_offer          = &Endpoint::on_call_tx_offer;
     ua_cfg.cb.on_call_redirected        = &Endpoint::on_call_redirected;
     ua_cfg.cb.on_call_media_transport_state =
         &Endpoint::on_call_media_transport_state;
@@ -1316,6 +1387,8 @@ void Endpoint::libRegisterThread(const string &name) throw(Error)
     if (!desc) {
 	PJSUA2_RAISE_ERROR(PJ_ENOMEM);
     }
+
+    pj_bzero(desc, sizeof(pj_thread_desc));
 
     status = pj_thread_register(name.c_str(), *desc, &thread);
     if (status == PJ_SUCCESS) {
@@ -1683,7 +1756,7 @@ void Endpoint::updateCodecInfoList(pjsua_codec_info pj_codec[], unsigned count,
 	CodecInfo *codec_info = new CodecInfo;
 
 	codec_info->fromPj(pj_codec[i]);
-	codecInfoList.push_back(codec_info);
+	codec_list.push_back(codec_info);
     }
     pj_leave_critical_section();
 }
@@ -1698,7 +1771,7 @@ const CodecInfoVector &Endpoint::videoCodecEnum() throw(Error)
 
     updateCodecInfoList(pj_codec, count, videoCodecInfoList);
 #endif
-    return codecInfoList;
+    return videoCodecInfoList;
 }
 
 void Endpoint::videoCodecSetPriority(const string &codec_id,
@@ -1713,31 +1786,43 @@ void Endpoint::videoCodecSetPriority(const string &codec_id,
 #endif
 }
 
-CodecParam Endpoint::videoCodecGetParam(const string &codec_id) const
-	   throw(Error)
-{
-    pjmedia_vid_codec_param *pj_param = NULL;
+VidCodecParam Endpoint::getVideoCodecParam(const string &codec_id) const 
+								   throw(Error)
+{    
+    VidCodecParam codec_param;
 #if PJSUA_HAS_VIDEO
-    pj_str_t codec_str = str2Pj(codec_id);
+    pjmedia_vid_codec_param pj_param;
+    pj_str_t codec_str = str2Pj(codec_id);    
 
-    PJSUA2_CHECK_EXPR(pjsua_vid_codec_get_param(&codec_str, pj_param));
+    PJSUA2_CHECK_EXPR(pjsua_vid_codec_get_param(&codec_str, &pj_param));
+    codec_param.fromPj(pj_param);
 #else
     PJ_UNUSED_ARG(codec_id);
 #endif
-    return pj_param;
+    return codec_param;
 }
 
-void Endpoint::videoCodecSetParam(const string &codec_id,
-				  const CodecParam param) throw(Error)
+void Endpoint::setVideoCodecParam(const string &codec_id,
+				  const VidCodecParam &param) throw(Error)
 {
 #if PJSUA_HAS_VIDEO
     pj_str_t codec_str = str2Pj(codec_id);
-    pjmedia_vid_codec_param *pj_param = (pjmedia_vid_codec_param*)param;
-
-    PJSUA2_CHECK_EXPR(pjsua_vid_codec_set_param(&codec_str, pj_param));
+    pjmedia_vid_codec_param pj_param = param.toPj();
+    
+    PJSUA2_CHECK_EXPR(pjsua_vid_codec_set_param(&codec_str, &pj_param));
 #else
     PJ_UNUSED_ARG(codec_id);
     PJ_UNUSED_ARG(param);
 #endif
 }
 
+void Endpoint::resetVideoCodecParam(const string &codec_id) throw(Error)
+{
+#if PJSUA_HAS_VIDEO
+    pj_str_t codec_str = str2Pj(codec_id);    
+    
+    PJSUA2_CHECK_EXPR(pjsua_vid_codec_set_param(&codec_str, NULL));
+#else
+    PJ_UNUSED_ARG(codec_id);    
+#endif	
+}

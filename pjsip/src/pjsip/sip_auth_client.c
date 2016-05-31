@@ -1,4 +1,4 @@
-/* $Id: sip_auth_client.c 4728 2014-02-04 10:13:56Z bennylp $ */
+/* $Id: sip_auth_client.c 5227 2015-12-31 04:03:37Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -339,7 +339,7 @@ static pj_status_t respond_digest( pj_pool_t *pool,
 	}
 	else {
 	    pjsip_auth_create_digest( &cred->response, &cred->nonce,
-				      &cred->nc, cnonce, &pjsip_AUTH_STR,
+				      &cred->nc, &cred->cnonce, &pjsip_AUTH_STR,
 				      uri, &chal->realm, cred_info, method );
 	}
 

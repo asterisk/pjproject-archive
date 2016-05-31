@@ -1,4 +1,4 @@
-/* $Id: pjsua.h 5131 2015-07-13 07:56:19Z ming $ */
+/* $Id: pjsua.h 5283 2016-05-09 06:58:29Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -910,6 +910,31 @@ typedef struct pjsua_callback
 			     pjsip_status_code *code,
 			     pjsua_call_setting *opt);
 
+
+    /**
+    * Notify application when call has received INVITE with no SDP offer.
+    * Application can update the call setting (e.g: add audio/video), or
+    * enable/disable codecs, or update other media session settings from
+    * within the callback, however, as mandated by the standard (RFC3261
+    * section 14.2), it must ensure that the update overlaps with the
+    * existing media session (in codecs, transports, or other parameters)
+    * that require support from the peer, this is to avoid the need for
+    * the peer to reject the offer.
+    *
+    * When this callback is not defined, the default behavior is to send
+    * SDP offer using current active media session (with all enabled codecs
+    * on each media type).
+    *
+    * @param call_id	The call index.
+    * @param reserved	Reserved param, currently not used.
+    * @param opt	The current call setting, application can update
+    *			this setting for generating the offer.
+    */
+    void (*on_call_tx_offer)(pjsua_call_id call_id,
+			     void *reserved,
+			     pjsua_call_setting *opt);
+
+
     /**
      * Notify application when registration or unregistration has been
      * initiated. Note that this only notifies the initial registration
@@ -1552,7 +1577,7 @@ typedef struct pjsua_config
     pj_str_t	    stun_srv[8];
 
     /**
-     * This specifies if the library startup should ignore failure with the
+     * This specifies if the library should ignore failure with the
      * STUN servers. If this is set to PJ_FALSE, the library will refuse to
      * start if it fails to resolve or contact any of the STUN servers.
      *
@@ -4786,11 +4811,12 @@ PJ_DECL(pj_status_t) pjsua_call_xfer_replaces(pjsua_call_id call_id,
 					      const pjsua_msg_data *msg_data);
 
 /**
- * Send DTMF digits to remote using RFC 2833 payload formats. 
+ * Send DTMF digits to remote using RFC 2833 payload formats.
  *
  * @param call_id	Call identification.
  * @param digits	DTMF string digits to be sent as described on RFC 2833 
- *			section 3.10. Character 'R' is used to represent the 
+ *			section 3.10. If PJMEDIA_HAS_DTMF_FLASH is enabled, 
+ *			character 'R' is used to represent the 
  *			event type 16 (flash) as stated in RFC 4730.
  *
  * @return		PJ_SUCCESS on success, or the appropriate error code.
@@ -5971,6 +5997,62 @@ typedef struct pjsua_media_transport
 
 } pjsua_media_transport;
 
+/**
+ * This enumeration specifies the sound device mode.
+ */
+typedef enum pjsua_snd_dev_mode
+{
+    /**
+     * Open sound device without mic (speaker only).
+     */
+    PJSUA_SND_DEV_SPEAKER_ONLY = 1,
+
+    /**
+     * Do not open sound device, after setting the sound device.
+     */
+    PJSUA_SND_DEV_NO_IMMEDIATE_OPEN  = 2
+
+} pjsua_snd_dev_mode;
+
+
+/**
+ * This structure specifies the parameters to set the sound device.
+ * Use pjsua_snd_dev_param_default() to initialize this structure with
+ * default values.
+ */
+typedef struct pjsua_snd_dev_param
+{
+    /*
+     * Capture dev id.
+     *
+     * Default: PJMEDIA_AUD_DEFAULT_CAPTURE_DEV
+     */
+    int			capture_dev;
+
+    /*
+     * Playback dev id.
+     *
+     * Default: PJMEDIA_AUD_DEFAULT_PLAYBACK_DEV
+     */
+    int			playback_dev;
+
+    /*
+     * Sound device mode, refer to #pjsua_snd_dev_mode.
+     *
+     * Default: 0
+     */
+    unsigned		mode;
+
+} pjsua_snd_dev_param;
+
+
+/**
+ * Initialize pjsua_snd_dev_param with default values.
+ *
+ * @param prm		The parameter.
+ */
+PJ_DECL(void) pjsua_snd_dev_param_default(pjsua_snd_dev_param *prm);
+
 
 /**
  * Get maxinum number of conference ports.
@@ -6357,6 +6439,15 @@ PJ_DECL(pj_status_t) pjsua_get_snd_dev(int *capture_dev,
  */
 PJ_DECL(pj_status_t) pjsua_set_snd_dev(int capture_dev,
 				       int playback_dev);
+
+/**
+ * Select or change sound device according to the specified param.
+ *
+ * @param snd_param	Sound device param. 
+ *
+ * @return		PJ_SUCCESS on success, or the appropriate error code.
+ */
+PJ_DECL(pj_status_t) pjsua_set_snd_dev2(pjsua_snd_dev_param *snd_param);
 
 
 /**

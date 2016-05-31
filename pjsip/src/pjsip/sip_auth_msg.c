@@ -1,4 +1,4 @@
-/* $Id: sip_auth_msg.c 4537 2013-06-19 06:47:43Z riza $ */
+/* $Id: sip_auth_msg.c 5237 2016-01-27 05:42:20Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -71,7 +71,8 @@ static int print_digest_credential(pjsip_digest_credential *cred, char *buf, pj_
     const pjsip_parser_const_t *pc = pjsip_parser_const();
     
     copy_advance_pair_quote_cond(buf, "username=", 9, cred->username, '"', '"');
-    copy_advance_pair_quote_cond(buf, ", realm=", 8, cred->realm, '"', '"');
+    copy_advance_pair_quote_cond_always(buf, ", realm=", 8, cred->realm, '"', 
+					'"');
     copy_advance_pair_quote(buf, ", nonce=", 8, cred->nonce, '"', '"');
     copy_advance_pair_quote_cond(buf, ", uri=", 6, cred->uri, '"', '"');
     copy_advance_pair_quote(buf, ", response=", 11, cred->response, '"', '"');

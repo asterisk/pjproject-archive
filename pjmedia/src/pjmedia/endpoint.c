@@ -1,4 +1,4 @@
-/* $Id: endpoint.c 4890 2014-08-19 00:54:34Z bennylp $ */
+/* $Id: endpoint.c 5255 2016-03-10 05:02:07Z ming $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -105,10 +105,10 @@ struct pjmedia_endpt
 /**
  * Initialize and get the instance of media endpoint.
  */
-PJ_DEF(pj_status_t) pjmedia_endpt_create(pj_pool_factory *pf,
-					 pj_ioqueue_t *ioqueue,
-					 unsigned worker_cnt,
-					 pjmedia_endpt **p_endpt)
+PJ_DEF(pj_status_t) pjmedia_endpt_create2(pj_pool_factory *pf,
+					  pj_ioqueue_t *ioqueue,
+					  unsigned worker_cnt,
+					  pjmedia_endpt **p_endpt)
 {
     pj_pool_t *pool;
     pjmedia_endpt *endpt;
@@ -133,10 +133,15 @@ PJ_DEF(pj_status_t) pjmedia_endpt_create(pj_pool_factory *pf,
     endpt->thread_cnt = worker_cnt;
     endpt->has_telephone_event = PJ_TRUE;
 
-    /* Sound */
-    status = pjmedia_aud_subsys_init(pf);
-    if (status != PJ_SUCCESS)
-	goto on_error;
+    /* Initialize audio subsystem.
+     * To avoid pjmedia's dependendy on pjmedia-audiodev, the initialization
+     * (and shutdown) of audio subsystem will be done in the application
+     * level instead, when it calls inline functions pjmedia_endpt_create()
+     * and pjmedia_endpt_destroy().
+     */
+    //status = pjmedia_aud_subsys_init(pf);
+    //if (status != PJ_SUCCESS)
+    //	goto on_error;
 
     /* Init codec manager. */
     status = pjmedia_codec_mgr_init(&endpt->codec_mgr, endpt->pf);
@@ -188,7 +193,7 @@ on_error:
 	pj_ioqueue_destroy(endpt->ioqueue);
 
     pjmedia_codec_mgr_destroy(&endpt->codec_mgr);
-    pjmedia_aud_subsys_shutdown();
+    //pjmedia_aud_subsys_shutdown();
     pj_pool_release(pool);
     return status;
 }
@@ -204,7 +209,7 @@ PJ_DEF(pjmedia_codec_mgr*) pjmedia_endpt_get_codec_mgr(pjmedia_endpt *endpt)
 /**
  * Deinitialize media endpoint.
  */
-PJ_DEF(pj_status_t) pjmedia_endpt_destroy (pjmedia_endpt *endpt)
+PJ_DEF(pj_status_t) pjmedia_endpt_destroy2 (pjmedia_endpt *endpt)
 {
     exit_cb *ecb;
 
@@ -219,7 +224,7 @@ PJ_DEF(pj_status_t) pjmedia_endpt_destroy (pjmedia_endpt *endpt)
     endpt->pf = NULL;
 
     pjmedia_codec_mgr_destroy(&endpt->codec_mgr);
-    pjmedia_aud_subsys_shutdown();
+    //pjmedia_aud_subsys_shutdown();
 
     /* Call all registered exit callbacks */
     ecb = endpt->exit_cb_list.next;
@@ -484,7 +489,7 @@ PJ_DEF(pj_status_t) pjmedia_endpt_create_audio_sdp(pjmedia_endpt *endpt,
 	if (codec_param.setting.dec_fmtp.cnt > 0) {
 	    enum { MAX_FMTP_STR_LEN = 160 };
 	    char buf[MAX_FMTP_STR_LEN];
-	    unsigned buf_len = 0, i;
+	    unsigned buf_len = 0, ii;
 	    pjmedia_codec_fmtp *dec_fmtp = &codec_param.setting.dec_fmtp;
 
 	    /* Print codec PT */
@@ -493,36 +498,36 @@ PJ_DEF(pj_status_t) pjmedia_endpt_create_audio_sdp(pjmedia_endpt *endpt,
 					"%d",
 					codec_info->pt);
 
-	    for (i = 0; i < dec_fmtp->cnt; ++i) {
+	    for (ii = 0; ii < dec_fmtp->cnt; ++ii) {
 		pj_size_t test_len = 2;
 
 		/* Check if buf still available */
-		test_len = dec_fmtp->param[i].val.slen + 
-			   dec_fmtp->param[i].name.slen + 2;
+		test_len = dec_fmtp->param[ii].val.slen + 
+			   dec_fmtp->param[ii].name.slen + 2;
 		if (test_len + buf_len >= MAX_FMTP_STR_LEN)
 		    return PJ_ETOOBIG;
 
 		/* Print delimiter */
 		buf_len += pj_ansi_snprintf(&buf[buf_len], 
 					    MAX_FMTP_STR_LEN - buf_len,
-					    (i == 0?" ":";"));
+					    (ii == 0?" ":";"));
 
 		/* Print an fmtp param */
-		if (dec_fmtp->param[i].name.slen)
+		if (dec_fmtp->param[ii].name.slen)
 		    buf_len += pj_ansi_snprintf(
 					    &buf[buf_len],
 					    MAX_FMTP_STR_LEN - buf_len,
 					    "%.*s=%.*s",
-					    (int)dec_fmtp->param[i].name.slen,
-					    dec_fmtp->param[i].name.ptr,
-					    (int)dec_fmtp->param[i].val.slen,
-					    dec_fmtp->param[i].val.ptr);
+					    (int)dec_fmtp->param[ii].name.slen,
+					    dec_fmtp->param[ii].name.ptr,
+					    (int)dec_fmtp->param[ii].val.slen,
+					    dec_fmtp->param[ii].val.ptr);
 		else
 		    buf_len += pj_ansi_snprintf(&buf[buf_len], 
 					    MAX_FMTP_STR_LEN - buf_len,
 					    "%.*s", 
-					    (int)dec_fmtp->param[i].val.slen,
-					    dec_fmtp->param[i].val.ptr);
+					    (int)dec_fmtp->param[ii].val.slen,
+					    dec_fmtp->param[ii].val.ptr);
 	    }
 
 	    attr = PJ_POOL_ZALLOC_T(pool, pjmedia_sdp_attr);
@@ -556,7 +561,11 @@ PJ_DEF(pj_status_t) pjmedia_endpt_create_audio_sdp(pjmedia_endpt *endpt,
 	/* Add fmtp */
 	attr = PJ_POOL_ZALLOC_T(pool, pjmedia_sdp_attr);
 	attr->name = pj_str("fmtp");
+#if defined(PJMEDIA_HAS_DTMF_FLASH) && PJMEDIA_HAS_DTMF_FLASH!= 0
 	attr->value = pj_str(PJMEDIA_RTP_PT_TELEPHONE_EVENTS_STR " 0-16");
+#else
+	attr->value = pj_str(PJMEDIA_RTP_PT_TELEPHONE_EVENTS_STR " 0-15");
+#endif
 	m->attr[m->attr_count++] = attr;
     }
 #endif

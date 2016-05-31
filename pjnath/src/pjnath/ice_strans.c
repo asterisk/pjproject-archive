@@ -1,4 +1,4 @@
-/* $Id: ice_strans.c 5151 2015-08-07 05:44:40Z ming $ */
+/* $Id: ice_strans.c 5282 2016-05-09 03:29:28Z ming $ */
 /*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -347,6 +347,30 @@ static pj_status_t add_update_turn(pj_ice_strans *ice_st,
     return PJ_SUCCESS;
 }
 
+static pj_bool_t ice_cand_equals(pj_ice_sess_cand *lcand, 
+		    	         pj_ice_sess_cand *rcand)
+{
+    if (lcand == NULL && rcand == NULL){
+        return PJ_TRUE;
+    }
+    if (lcand == NULL || rcand == NULL){
+        return PJ_FALSE;
+    }
+    
+    if (lcand->type != rcand->type
+        || lcand->status != rcand->status
+        || lcand->comp_id != rcand->comp_id
+        || lcand->transport_id != rcand->transport_id
+        || lcand->local_pref != rcand->local_pref
+        || lcand->prio != rcand->prio
+        || pj_sockaddr_cmp(&lcand->addr, &rcand->addr) != 0
+        || pj_sockaddr_cmp(&lcand->base_addr, &rcand->base_addr) != 0)
+    {
+        return PJ_FALSE;
+    }
+    
+    return PJ_TRUE;
+}
 
 /*
  * Create the component.
@@ -478,6 +502,8 @@ static pj_status_t create_comp(pj_ice_strans *ice_st, unsigned comp_id)
 	    for (i=0; i<stun_sock_info.alias_cnt &&
 		      i<ice_st->cfg.stun.max_host_cands; ++i)
 	    {
+		unsigned j;
+		pj_bool_t cand_duplicate = PJ_FALSE;
 		char addrinfo[PJ_INET6_ADDRSTRLEN+10];
 		const pj_sockaddr *addr = &stun_sock_info.aliases[i];
 
@@ -495,7 +521,7 @@ static pj_status_t create_comp(pj_ice_strans *ice_st, unsigned comp_id)
 			continue;
 		}
 
-		cand = &comp->cand_list[comp->cand_cnt++];
+		cand = &comp->cand_list[comp->cand_cnt];
 
 		cand->type = PJ_ICE_CAND_TYPE_HOST;
 		cand->status = PJ_SUCCESS;
@@ -505,6 +531,28 @@ static pj_status_t create_comp(pj_ice_strans *ice_st, unsigned comp_id)
 		pj_sockaddr_cp(&cand->addr, addr);
 		pj_sockaddr_cp(&cand->base_addr, addr);
 		pj_bzero(&cand->rel_addr, sizeof(cand->rel_addr));
+            
+		/* Check if not already in list */
+		for (j=0; j<comp->cand_cnt; j++) {
+		    if (ice_cand_equals(cand, &comp->cand_list[j])) {
+			cand_duplicate = PJ_TRUE;
+			break;
+		    }
+		}
+
+		if (cand_duplicate) {
+		    PJ_LOG(4, (ice_st->obj_name,
+			   "Comp %d: host candidate %s is a duplicate",
+			   comp_id, pj_sockaddr_print(&cand->addr, addrinfo,
+			   sizeof(addrinfo), 3)));
+
+		    pj_bzero(&cand->addr, sizeof(cand->addr));
+		    pj_bzero(&cand->base_addr, sizeof(cand->base_addr));
+		    continue;
+		} else {
+		    comp->cand_cnt+=1;
+		}
+            
 		pj_ice_calc_foundation(ice_st->pool, &cand->foundation,
 				       cand->type, &cand->base_addr);
 
@@ -1592,6 +1640,14 @@ static pj_bool_t stun_on_status(pj_stun_sock *stun_sock,
 					     sizeof(ipaddr), 3)));
 
 		sess_init_update(ice_st);
+		
+		if (op == PJ_STUN_SOCK_MAPPED_ADDR_CHANGE &&
+		    ice_st->cb.on_ice_complete)
+		{
+		    (*ice_st->cb.on_ice_complete)(ice_st, 
+		    				  PJ_ICE_STRANS_OP_ADDR_CHANGE,
+		    				  status);
+		}
 	    }
 	}
 

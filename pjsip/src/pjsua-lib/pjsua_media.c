@@ -1,4 +1,4 @@
-/* $Id: pjsua_media.c 5135 2015-07-14 08:38:29Z nanang $ */
+/* $Id: pjsua_media.c 5283 2016-05-09 06:58:29Z riza $ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -253,7 +253,7 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
     af = use_ipv6 ? pj_AF_INET6() : pj_AF_INET();
 
     /* Make sure STUN server resolution has completed */
-    if (!use_ipv6 && pjsua_sip_acc_is_using_stun(call_med->call->acc_id)) {
+    if (!use_ipv6 && pjsua_media_acc_is_using_stun(call_med->call->acc_id)) {
 	status = resolve_stun_server(PJ_TRUE);
 	if (status != PJ_SUCCESS) {
 	    pjsua_perror(THIS_FILE, "Error resolving STUN server", status);
@@ -350,7 +350,8 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 	 * If we're configured to use STUN, then find out the mapped address,
 	 * and make sure that the mapped RTCP port is adjacent with the RTP.
 	 */
-	if (!use_ipv6 && pjsua_sip_acc_is_using_stun(call_med->call->acc_id) &&
+	if (!use_ipv6 &&
+	    pjsua_media_acc_is_using_stun(call_med->call->acc_id) &&
 	    pjsua_var.stun_srv.addr.sa_family != 0)
 	{
 	    char ip_addr[32];
@@ -389,8 +390,32 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 	    else
 #endif
 	    if (status != PJ_SUCCESS) {
-		pjsua_perror(THIS_FILE, "STUN resolve error", status);
-		goto on_error;
+		if (!pjsua_var.ua_cfg.stun_ignore_failure) {
+		    pjsua_perror(THIS_FILE, "STUN resolve error", status);
+		    goto on_error;
+		}
+
+		PJ_LOG(4,(THIS_FILE, "Ignoring STUN resolve error %d", 
+		          status));
+
+		if (!pj_sockaddr_has_addr(&bound_addr)) {
+		    pj_sockaddr addr;
+
+		    /* Get local IP address. */
+		    status = pj_gethostip(af, &addr);
+		    if (status != PJ_SUCCESS)
+			goto on_error;
+
+		    pj_sockaddr_copy_addr(&bound_addr, &addr);
+		}
+
+		for (i=0; i<2; ++i) {
+		    pj_sockaddr_init(af, &mapped_addr[i], NULL, 0);
+		    pj_sockaddr_copy_addr(&mapped_addr[i], &bound_addr);
+		    pj_sockaddr_set_port(&mapped_addr[i],
+					 (pj_uint16_t)(acc->next_rtp_port+i));
+		}
+		break;
 	    }
 
 	    pj_sockaddr_cp(&mapped_addr[0], &resolved_addr[0]);
@@ -439,12 +464,12 @@ static pj_status_t create_rtp_rtcp_sock(pjsua_call_media *call_med,
 
 	} else {
 	    if (acc->cfg.allow_sdp_nat_rewrite && acc->reg_mapped_addr.slen) {
-		pj_status_t status;
+		pj_status_t status2;
 
 		/* Take the address from mapped addr as seen by registrar */
-		status = pj_sockaddr_set_str_addr(af, &bound_addr,
-		                                  &acc->reg_mapped_addr);
-		if (status != PJ_SUCCESS) {
+		status2 = pj_sockaddr_set_str_addr(af, &bound_addr,
+		                                   &acc->reg_mapped_addr);
+		if (status2 != PJ_SUCCESS) {
 		    /* just leave bound_addr with whatever it was
 		    pj_bzero(pj_sockaddr_get_addr(&bound_addr),
 		             pj_sockaddr_get_addr_len(&bound_addr));
@@ -678,6 +703,7 @@ static void on_ice_complete(pjmedia_transport *tp,
 	pjsua_call_schedule_reinvite_check(call, 0);
 	break;
     case PJ_ICE_STRANS_OP_KEEP_ALIVE:
+    case PJ_ICE_STRANS_OP_ADDR_CHANGE:
 	if (result != PJ_SUCCESS) {
 	    PJ_PERROR(4,(THIS_FILE, result,
 		         "ICE keep alive failure for transport %d:%d",
@@ -694,7 +720,9 @@ static void on_ice_complete(pjmedia_transport *tp,
 	    (*pjsua_var.ua_cfg.cb.on_call_media_transport_state)(
                 call->index, &info);
         }
-	if (pjsua_var.ua_cfg.cb.on_ice_transport_error) {
+	if (pjsua_var.ua_cfg.cb.on_ice_transport_error &&
+	    op == PJ_ICE_STRANS_OP_KEEP_ALIVE)
+	{
 	    pjsua_call_id id = call->index;
 	    (*pjsua_var.ua_cfg.cb.on_ice_transport_error)(id, op, result,
 							  NULL);
@@ -747,10 +775,12 @@ static pj_status_t create_ice_media_transport(
     acc_cfg = &pjsua_var.acc[call_med->call->acc_id].cfg;
 
     /* Make sure STUN server resolution has completed */
-    status = resolve_stun_server(PJ_TRUE);
-    if (status != PJ_SUCCESS) {
-	pjsua_perror(THIS_FILE, "Error resolving STUN server", status);
-	return status;
+    if (pjsua_media_acc_is_using_stun(call_med->call->acc_id)) {
+	status = resolve_stun_server(PJ_TRUE);
+	if (status != PJ_SUCCESS) {
+	    pjsua_perror(THIS_FILE, "Error resolving STUN server", status);
+	    return status;
+	}
     }
 
     /* Create ICE stream transport configuration */
@@ -765,7 +795,9 @@ static pj_status_t create_ice_media_transport(
     ice_cfg.opt = acc_cfg->ice_cfg.ice_opt;
 
     /* Configure STUN settings */
-    if (pj_sockaddr_has_addr(&pjsua_var.stun_srv)) {
+    if (pj_sockaddr_has_addr(&pjsua_var.stun_srv) &&
+	pjsua_media_acc_is_using_stun(call_med->call->acc_id))
+    {
 	pj_sockaddr_print(&pjsua_var.stun_srv, stunip, sizeof(stunip), 0);
 	ice_cfg.stun.server = pj_str(stunip);
 	ice_cfg.stun.port = pj_sockaddr_get_port(&pjsua_var.stun_srv);
@@ -2757,7 +2789,7 @@ pj_status_t pjsua_media_channel_update(pjsua_call_id call_id,
 	    }
 
 	    /* Check if no media is active */
-	    if (si->dir == PJMEDIA_DIR_NONE) {
+	    if (local_sdp->media[mi]->desc.port == 0) {
 
 		/* Update call media state and direction */
 		call_med->state = PJSUA_CALL_MEDIA_NONE;

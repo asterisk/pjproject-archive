@@ -19,7 +19,6 @@ AC_CONFIG_FILES([build.mak
 		 pjmedia/build/os-auto.mak
 		 pjsip/build/os-auto.mak
 		 third_party/build/os-auto.mak
-		 third_party/build/portaudio/os-auto.mak 
 		 ])
 
 
@@ -410,6 +409,7 @@ dnl ######################
 dnl # ioqueue selection
 dnl # 
 AC_SUBST(ac_os_objs)
+AC_SUBST(ac_linux_poll)
 AC_MSG_CHECKING([ioqueue backend])
 AC_ARG_ENABLE(epoll,
 	      AC_HELP_STRING([--enable-epoll],
@@ -417,10 +417,13 @@ AC_ARG_ENABLE(epoll,
 	      [
 		ac_os_objs=ioqueue_epoll.o
 		AC_MSG_RESULT([/dev/epoll])
+		AC_DEFINE(PJ_HAS_LINUX_EPOLL,1)
+		ac_linux_poll=epoll
 	      ],
 	      [
 		ac_os_objs=ioqueue_select.o
-	        AC_MSG_RESULT([select()]) 
+		AC_MSG_RESULT([select()])
+		ac_linux_poll=select
 	      ])
 
 AC_SUBST(ac_shared_libraries)
@@ -451,11 +454,18 @@ case $target in
 		;;
 	esac
 	# UUID
-	if test "$ac_has_uuid_lib" = "1" -a "$ac_has_uuid_h" = "1"; then
-		ac_os_objs="$ac_os_objs guid_uuid.o"
-	else
-		ac_os_objs="$ac_os_objs guid_simple.o"
-	fi
+	case $target in
+	  *android*)
+	  	ac_os_objs="$ac_os_objs guid_android.o"
+	  	;;
+	  *)
+		if test "$ac_has_uuid_lib" = "1" -a "$ac_has_uuid_h" = "1"; then
+			ac_os_objs="$ac_os_objs guid_uuid.o"
+		else
+			ac_os_objs="$ac_os_objs guid_simple.o"
+		fi
+		;;
+	esac
 	;;
 esac
 
@@ -637,12 +647,12 @@ else
 		ac_pjmedia_snd=pa_old_darwinos
 		AC_MSG_RESULT([Checking sound device backend... old coreaudio])
 	else
-		ac_pjmedia_snd=pa_darwinos
+		ac_pjmedia_snd=coreaudio
 		AC_MSG_RESULT([Checking sound device backend... coreaudio])
 	fi
 	;;
   *cygwin* | *mingw*)
-	ac_pjmedia_snd=pa_win32
+	ac_pjmedia_snd=win32
 	AC_MSG_RESULT([Checking sound device backend... win32 sound])
 	;;
   *rtems*)
@@ -651,12 +661,11 @@ else
 	;;
   *)
 	dnl # Check if ALSA is available
-	ac_pjmedia_snd=pa_unix
+	ac_pjmedia_snd=alsa
+	AC_SUBST(ac_pa_use_alsa,1)
 	AC_CHECK_HEADER(alsa/version.h,
-			[AC_SUBST(ac_pa_use_alsa,1)
-			 LIBS="$LIBS -lasound"
-			],
-		        [AC_SUBST(ac_pa_use_alsa,0)])
+			[LIBS="$LIBS -lasound"],
+		        [ac_pa_use_alsa=0])
 	AC_MSG_RESULT([Checking sound device backend... unix])
 
 	dnl # Check if OSS is disabled
@@ -1088,6 +1097,12 @@ AC_ARG_ENABLE(ffmpeg,
 			
 		fi
 		
+		AC_CHECK_TYPES(enum AVPixelFormat,
+			       [],
+			       [ac_ffmpeg_cflags="$ac_ffmpeg_cflags -DPJMEDIA_USE_OLD_FFMPEG=1"],
+			       [[#include <libavformat/avformat.h>]]
+			     )
+				     
 		LIBS="$LIBS $ac_ffmpeg_ldflags"
 		export PKG_CONFIG_PATH=$SAVED_PKG_CONFIG_PATH
 	      ]
@@ -1255,6 +1270,82 @@ AC_ARG_ENABLE(libyuv,
 			       )
 	      ])
 
+
+dnl # WebRtc alt prefix
+AC_ARG_WITH(webrtc,
+            AC_HELP_STRING([--with-webrtc=DIR],
+		           [Specify alternate WebRtc prefix]),
+            [],
+            [with_webrtc=no]
+            )
+
+dnl # Do not use default webrtc installation if we are cross-compiling
+if test "x$ac_cross_compile" != "x" -a "x$with_webrtc" = "xno"; then
+    enable_webrtc=no
+fi	      
+	      
+dnl # WebRtc
+AC_SUBST(ac_webrtc_cflags)
+AC_SUBST(ac_webrtc_ldflags)
+AC_ARG_ENABLE(webrtc,
+	      AC_HELP_STRING([--disable-webrtc],
+			     [Exclude webrtc in the build]),
+	      [if test "$enable_webrtc" = "no"; then
+		AC_MSG_RESULT([Checking if webrtc is disabled...yes])
+	       fi],
+	      [
+		  if test "x$with_webrtc" != "xno" -a "x$with_webrtc" != "x"; then
+		        WEBRTC_PREFIX=$with_webrtc
+		  	WEBRTC_CFLAGS="-I$WEBRTC_PREFIX/src"
+		  	
+			case $target in
+			    *-apple-darwin_ios*)
+				case $ARCH in
+				    *arm*)
+				    WEBRTC_CFLAGS="-DPJMEDIA_WEBRTC_AEC_USE_MOBILE=1 $WEBRTC_CFLAGS"
+				    WEBRTC_LDFLAGS="-L$WEBRTC_PREFIX/src/out_ios/Release-iphoneos"
+				    WEBRTC_LIBS="-laudio_processing_neon -lcommon_audio_neon"
+				    ;;
+				*)
+				    ;;
+				esac
+				;;			
+			    *mingw* | *cygw* | *win32* | *w32* | *darwin* | *linux* | *android*)
+			        WEBRTC_LDFLAGS="-L$WEBRTC_PREFIX/src/out/Release"
+			        WEBRTC_LIBS="-laudio_processing_sse2" 
+				;;
+			    *)
+				;;
+			esac		  	
+		  	
+			AC_MSG_RESULT([Using webrtc prefix... $with_webrtc])
+		  else
+		  	WEBRTC_CFLAGS=""
+			WEBRTC_LDFLAGS="" 
+		  fi
+		  		  
+		  WEBRTC_LIBS="$WEBRTC_LIBS -laudio_processing -lcommon_audio -lsystem_wrappers"
+		  
+		  SAVED_LIBS="$LIBS"
+		  SAVED_LDFLAGS="$LDFLAGS"
+		  SAVED_CFLAGS="$CFLAGS"
+		  
+		  LIBS="$WEBRTC_LIBS $LIBS"
+		  LDFLAGS="$WEBRTC_LDFLAGS $LDFLAGS"
+		  CFLAGS="$WEBRTC_CFLAGS $CFLAGS"
+		  
+		  AC_CHECK_LIB(audio_processing,
+			       WebRtcAec_Process,
+			       [ ac_webrtc_cflags="-DPJMEDIA_HAS_WEBRTC_AEC=1 $WEBRTC_CFLAGS"
+		  		 ac_webrtc_ldflags="$WEBRTC_LDFLAGS $WEBRTC_LIBS"
+			       ],
+			       [ LIBS="$SAVED_LIBS"
+				 LDFLAGS="$SAVED_LDFLAGS"
+				 CFLAGS="$SAVED_CFLAGS"
+			       ],
+			       []
+			       )
+	      ])
 
 dnl ########################################################
 dnl # Intel IPP support
@@ -1550,7 +1641,7 @@ AC_ARG_WITH(opencore-amrnb,
     AC_HELP_STRING([--with-opencore-amrnb=DIR],
 		   [This option is obsolete and replaced by --with-opencore-amr=DIR]),
     [AC_MSG_ERROR(This option is obsolete and replaced by --with-opencore-amr=DIR)],
-    []
+    [true;]
     )
 
 dnl # opencore-amr alt prefix
@@ -1684,6 +1775,54 @@ AC_ARG_ENABLE(silk,
 		fi
 	      ])
 
+dnl # Do not use default OPUS installation if we are cross-compiling
+if test "x$ac_cross_compile" != "x" -a "x$with_opus" = "xno"; then
+    enable_opus=no
+fi
+
+dnl # OPUS prefix
+AC_ARG_WITH(opus,
+    AC_HELP_STRING([--with-opus=DIR],
+		   [Specify alternate OPUS prefix]),
+    [],
+    [with_opus=no]
+    )
+
+dnl # Include OPUS support
+AC_SUBST(ac_no_opus)
+AC_ARG_ENABLE(opus,
+	      AC_HELP_STRING([--disable-opus],
+			     [Exclude OPUS support from the build (default: autodetect)])
+	      ,
+	      [
+		if test "$enable_opus" = "no"; then
+		 [ac_no_opus=1]
+		 AC_DEFINE(PJMEDIA_HAS_OPUS_CODEC,0)
+		 AC_MSG_RESULT([Checking if OPUS support is disabled... yes])
+	        fi
+	      ],
+	      [
+		AC_MSG_RESULT([checking for OPUS installations..])
+                if test "x$with_opus" != "xno" -a "x$with_opus" != "x"; then
+                    CFLAGS="$CFLAGS -I$with_opus/include"
+		    CPPFLAGS="$CPPFLAGS -I$with_opus/include"
+                    LDFLAGS="$LDFLAGS -L$with_opus/lib"
+                    AC_MSG_RESULT([Using OPUS prefix... $with_opus])
+                fi
+		AC_SUBST(opus_h_present)
+		AC_SUBST(opus_present)
+		AC_CHECK_HEADER(opus/opus.h,[opus_h_present=1])
+		AC_CHECK_LIB(opus,opus_repacketizer_get_size,[opus_present=1 && LIBS="$LIBS -lopus"])
+		if test "x$opus_h_present" = "x1" -a "x$opus_present" = "x1"; then
+	        	AC_MSG_RESULT([OPUS library found, OPUS support enabled])
+	        	AC_DEFINE(PJMEDIA_HAS_OPUS_CODEC,1)
+		else
+			[ac_no_opus=1]
+	        	AC_MSG_RESULT([OPUS library not found, OPUS support disabled])
+			AC_DEFINE(PJMEDIA_HAS_OPUS_CODEC,0)
+		fi
+	      ])
+
 
 dnl ##########################################
 dnl #
@@ -1754,7 +1893,6 @@ esac
 
 
 AC_SUBST(target)
-AC_SUBST(ac_linux_poll,select)
 AC_SUBST(ac_host,unix)
 AC_SUBST(ac_main_obj)
 case $target in
