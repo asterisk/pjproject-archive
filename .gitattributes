@@ -337,6 +337,7 @@ third_party/build/gsm/libgsmcodec.vcp -text
 third_party/build/gsm/libgsmcodec.vcproj eol=crlf
 third_party/build/ilbc/libilbccodec.vcp -text
 third_party/build/ilbc/libilbccodec.vcproj eol=crlf
+third_party/build/libyuv/Notes.txt -text
 third_party/build/milenage/libmilenage.vcp -text
 third_party/build/milenage/libmilenage.vcproj -text
 third_party/build/os-auto.mak.in eol=lf
@@ -360,6 +361,12 @@ third_party/gsm/tls/bitter.dta -text
 third_party/gsm/tls/sour1.dta -text
 third_party/gsm/tls/sour2.dta -text
 third_party/gsm/tst/run -text
+third_party/libyuv/AUTHORS -text
+third_party/libyuv/LICENSE -text
+third_party/libyuv/LICENSE_THIRD_PARTY -text
+third_party/libyuv/OWNERS -text
+third_party/libyuv/PATENTS -text
+third_party/libyuv/README.md -text
 third_party/srtp/CHANGES -text
 third_party/srtp/LICENSE -text
 third_party/srtp/Makefile.in -text
