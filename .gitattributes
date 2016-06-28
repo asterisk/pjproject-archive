@@ -349,6 +349,7 @@ third_party/build/speex/libspeex.vcp -text
 third_party/build/speex/libspeex.vcproj eol=crlf
 third_party/build/srtp/libsrtp.vcp -text
 third_party/build/srtp/libsrtp.vcproj -text
+third_party/build/yuv/Makefile -text
 third_party/gsm/add-test/add_test.dta -text
 third_party/gsm/man/bitter.1 -text
 third_party/gsm/man/gsm.3 -text
