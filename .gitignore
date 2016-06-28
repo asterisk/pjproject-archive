@@ -288,8 +288,6 @@ third_party/build/gsm/output/*
 third_party/build/ilbc/*.user
 third_party/build/ilbc/.*
 third_party/build/ilbc/output/*
-third_party/build/libyuv/*.user
-third_party/build/libyuv/.*
 third_party/build/milenage/*.depend
 third_party/build/milenage/*.plg
 third_party/build/milenage/*.user
@@ -310,5 +308,8 @@ third_party/build/srtp/*.plg
 third_party/build/srtp/*.user
 third_party/build/srtp/.*depend
 third_party/build/srtp/output/*
+third_party/build/yuv/*.user
+third_party/build/yuv/.*
+third_party/build/yuv/output
 third_party/lib/*
 /user.mak
