@@ -210,6 +210,9 @@ pjsip-apps/src/pjsua/symbian/gfx/qgn_menu_pjsua.svg -text
 pjsip-apps/src/pjsua/wm/pjsua.bmp -text
 pjsip-apps/src/pjsystest/pjsystest_wince.rc -text
 pjsip-apps/src/pjsystest/pjsystest_wince.rc2 -text
+pjsip-apps/src/samples/android_sample/jni/Android.mk -text
+pjsip-apps/src/samples/android_sample/jni/Application.mk -text
+pjsip-apps/src/samples/android_sample/jni/dummy.c -text
 pjsip-apps/src/samples/clidemo.c -text
 pjsip-apps/src/swig/java/android/.classpath -text
 pjsip-apps/src/swig/java/android/.project -text
