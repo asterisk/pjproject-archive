@@ -308,6 +308,9 @@ third_party/build/srtp/*.plg
 third_party/build/srtp/*.user
 third_party/build/srtp/.*depend
 third_party/build/srtp/output/*
+third_party/build/webrtc/*.user
+third_party/build/webrtc/.*
+third_party/build/webrtc/output
 third_party/build/yuv/*.user
 third_party/build/yuv/.*
 third_party/build/yuv/output
