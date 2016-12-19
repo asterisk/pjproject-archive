@@ -216,8 +216,6 @@ pjsip-apps/src/samples/android_sample/jni/dummy.c -text
 pjsip-apps/src/samples/clidemo.c -text
 pjsip-apps/src/swig/java/android/app/build.gradle -text
 pjsip-apps/src/swig/java/android/app/src/main/AndroidManifest.xml -text
-pjsip-apps/src/swig/java/android/app/src/main/java/org/pjsip/PjCamera.java -text
-pjsip-apps/src/swig/java/android/app/src/main/java/org/pjsip/PjCameraInfo.java -text
 pjsip-apps/src/swig/java/android/app/src/main/java/org/pjsip/pjsua2/app/CallActivity.java -text
 pjsip-apps/src/swig/java/android/app/src/main/java/org/pjsip/pjsua2/app/MainActivity.java -text
 pjsip-apps/src/swig/java/android/app/src/main/java/org/pjsip/pjsua2/app/MyApp.java -text
