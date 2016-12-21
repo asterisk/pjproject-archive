@@ -198,6 +198,7 @@ pjsip-apps/src/swig/java/android/.idea
 pjsip-apps/src/swig/java/android/android.iml
 pjsip-apps/src/swig/java/android/app/*.iml
 pjsip-apps/src/swig/java/android/app/build
+pjsip-apps/src/swig/java/android/app/src/main/java/org/pjsip/PjCamera*
 pjsip-apps/src/swig/java/android/app/src/main/java/org/pjsip/pjsua2/*.java
 pjsip-apps/src/swig/java/android/build
 pjsip-apps/src/swig/java/android/local.properties
