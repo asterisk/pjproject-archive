@@ -151,7 +151,7 @@ pjsip-apps/src/ipjsystest/ipjsystest.xcodeproj/project.pbxproj -text
 pjsip-apps/src/ipjsystest/ipjsystest_Prefix.pch -text
 pjsip-apps/src/pjsua/android/app/build.gradle -text
 pjsip-apps/src/pjsua/android/app/src/main/AndroidManifest.xml -text
-pjsip-apps/src/pjsua/android/app/src/main/java/org/pjsip/pjsua/MainActivity.java -text
+pjsip-apps/src/pjsua/android/app/src/main/java/MainActivity.java -text
 pjsip-apps/src/pjsua/android/app/src/main/res/drawable-hdpi/main_image.png -text
 pjsip-apps/src/pjsua/android/app/src/main/res/drawable-ldpi/main_image.png -text
 pjsip-apps/src/pjsua/android/app/src/main/res/drawable-mdpi/main_image.png -text
