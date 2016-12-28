@@ -212,13 +212,6 @@ pjsip-apps/src/pjsua/winrt/cli/comp/pjsua_cli_uwp_comp.vcxproj -text
 pjsip-apps/src/pjsua/winrt/cli/comp/pjsua_cli_uwp_comp.vcxproj.filters -text
 pjsip-apps/src/pjsua/winrt/cli/comp/pjsua_cli_wp8_comp.vcxproj -text
 pjsip-apps/src/pjsua/winrt/cli/comp/pjsua_cli_wp8_comp.vcxproj.filters -text
-pjsip-apps/src/pjsua/winrt/cli/comp/src/cli/Globals.cpp -text
-pjsip-apps/src/pjsua/winrt/cli/comp/src/cli/Globals.h -text
-pjsip-apps/src/pjsua/winrt/cli/comp/src/cli/Globals1.cpp -text
-pjsip-apps/src/pjsua/winrt/cli/comp/src/cli/Globals1.h -text
-pjsip-apps/src/pjsua/winrt/cli/comp/src/cli/IPjsuaCallback.h -text
-pjsip-apps/src/pjsua/winrt/cli/comp/src/cli/PjsuaCallback.cpp -text
-pjsip-apps/src/pjsua/winrt/cli/comp/src/cli/PjsuaCallback.h -text
 pjsip-apps/src/pjsua/winrt/cli/uwp/App.xaml -text
 pjsip-apps/src/pjsua/winrt/cli/uwp/App.xaml.cs -text
 pjsip-apps/src/pjsua/winrt/cli/uwp/ApplicationInsights.config -text
