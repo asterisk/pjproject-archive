@@ -183,6 +183,7 @@ pjsip-apps/src/pjsua/ios/lib*.a
 pjsip-apps/src/pjsua/symbian/.cproject
 pjsip-apps/src/pjsua/symbian/.project
 pjsip-apps/src/pjsua/symbian/sis/*.sis*
+pjsip-apps/src/pjsua/winrt/cli/comp/.vs
 pjsip-apps/src/pjsystest/*.aps
 pjsip-apps/src/py_pjsua/build
 pjsip-apps/src/pygui/pygui.dat
