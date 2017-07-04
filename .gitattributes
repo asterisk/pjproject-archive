@@ -501,9 +501,6 @@ third_party/srtp/include/srtp_priv.h -text
 third_party/srtp/include/ut_sim.h -text
 third_party/srtp/srtp/ekt.c -text
 third_party/srtp/srtp/srtp.c -text
-third_party/srtp/timing -text
-third_party/srtp/undos.sh -text
-third_party/srtp/update.sh -text
 third_party/threademulation/Microsoft[!!-~]Permissive[!!-~]License.txt -text
 third_party/threademulation/include/ThreadEmulation.h -text
 third_party/threademulation/src/ThreadEmulation.cpp -text
