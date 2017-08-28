@@ -360,15 +360,17 @@ static void build_server_entries(pj_dns_srv_async_query *query_job,
      */
     for (i=0; i<query_job->srv_cnt; ++i) {
 	pj_in_addr addr;
+	unsigned cnt = query_job->srv[i].addr_cnt;
 
-	if (query_job->srv[i].addr_cnt != 0) {
+	if (cnt != 0) {
 	    /* IP address already resolved */
 	    continue;
 	}
 
 	if (pj_inet_aton(&query_job->srv[i].target_name, &addr) != 0) {
-	    query_job->srv[i].addr[query_job->srv[i].addr_cnt++] = addr;
-	    ++query_job->host_resolved;
+            query_job->srv[i].addr[cnt] = addr;
+            ++query_job->srv[i].addr_cnt;
+            ++query_job->host_resolved;
 	}
     }
 
@@ -411,6 +413,15 @@ static pj_status_t resolve_hostnames(pj_dns_srv_async_query *query_job)
     query_job->dns_state = PJ_DNS_TYPE_A;
     for (i=0; i<query_job->srv_cnt; ++i) {
 	struct srv_target *srv = &query_job->srv[i];
+
+	if (srv->addr_cnt != 0) {
+	    /*
+	     * This query is already counted as resolved because of the
+	     * additional records in the SRV response or the target name
+	     * is an IP address exception in build_server_entries().
+	     */
+	    continue;
+	}
 
 	PJ_LOG(5, (query_job->objname, 
 		   "Starting async DNS A query_job for %.*s",

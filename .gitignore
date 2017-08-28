@@ -1,0 +1,15 @@
+user.mak
+autom4te.cache
+**.depend
+build.mak
+build/cc-auto.mak
+build/os-auto.mak
+config.log
+config.status
+**/output/
+**/lib/
+**auto.mak
+**auto.h
+pjlib/include/pj/config_site.h
+pjsip/include/pjsip/sip_autoconf.h
+pjsip-apps/src/python/build
