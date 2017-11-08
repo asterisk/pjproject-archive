@@ -82,8 +82,10 @@ pjlib/docs/doxygen.cfg -text
 pjlib/docs/doxygen.css -text
 pjlib/docs/footer.html -text
 pjlib/docs/header.html -text
+pjlib/include/pj/compat/limits.h svneol=native#text/plain
 pjlib/include/pj/compat/m_auto.h.in eol=lf
 pjlib/include/pj/compat/os_auto.h.in eol=lf
+pjlib/include/pj/limits.h svneol=native#text/plain
 pjlib/src/pjlib-test/pjlib_test_reg.rss -text
 pjmedia/build/os-auto.mak.in eol=lf
 pjmedia/build/pjmedia.vcproj -text
