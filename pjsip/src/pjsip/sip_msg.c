@@ -26,6 +26,7 @@
 #include <pj/string.h>
 #include <pj/pool.h>
 #include <pj/assert.h>
+#include <pj/log.h>
 #include <pjlib-util/string.h>
 
 PJ_DEF_DATA(const pjsip_method) pjsip_invite_method =
@@ -471,6 +472,8 @@ PJ_DEF(pj_ssize_t) pjsip_msg_print( const pjsip_msg *msg,
 
 	    *p++ = '\r';
 	    *p++ = '\n';
+	} else {
+	    PJ_LOG(1, ("sip_msg", "Header with no vptr encountered!!  Current buffer: %.*s", (int)(p-buf), buf));
 	}
     }
 
@@ -578,6 +581,9 @@ PJ_DEF(void*) pjsip_hdr_shallow_clone( pj_pool_t *pool, const void *hdr_ptr )
 PJ_DEF(int) pjsip_hdr_print_on( void *hdr_ptr, char *buf, pj_size_t len)
 {
     pjsip_hdr *hdr = (pjsip_hdr*) hdr_ptr;
+    if (!hdr->vptr) {
+        return 0;
+    }
     return (*hdr->vptr->print_on)(hdr_ptr, buf, len);
 }
 
