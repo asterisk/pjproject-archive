@@ -23,6 +23,8 @@
 #include <pj/ctype.h>
 #include <pj/rand.h>
 #include <pj/os.h>
+#include <pj/errno.h>
+#include <pj/limits.h>
 
 #if PJ_FUNCTIONS_ARE_INLINED==0
 #  include <pj/string_i.h>
@@ -173,6 +175,71 @@ PJ_DEF(unsigned long) pj_strtoul2(const pj_str_t *str, pj_str_t *endptr,
     }
 
     return value;
+}
+
+PJ_DEF(pj_status_t) pj_strtoul3(const pj_str_t *str, unsigned long *value,
+				unsigned base)
+{
+    pj_str_t s;
+    unsigned i;
+
+    PJ_CHECK_STACK();
+
+    if (!str || !value) {
+        return PJ_EINVAL;
+    }
+
+    s = *str;
+    pj_strltrim(&s);
+
+    if (s.slen == 0 || s.ptr[0] < '0' ||
+	(base <= 10 && (unsigned)s.ptr[0] > ('0' - 1) + base) ||
+	(base == 16 && !pj_isxdigit(s.ptr[0])))
+    {
+        return PJ_EINVAL;
+    }
+
+    *value = 0;
+    if (base <= 10) {
+	for (i=0; i<(unsigned)s.slen; ++i) {
+	    unsigned c = s.ptr[i] - '0';
+	    if (s.ptr[i] < '0' || (unsigned)s.ptr[i] > ('0' - 1) + base) {
+		break;
+	    }
+	    if (*value > PJ_MAXULONG / base) {
+		*value = PJ_MAXULONG;
+		return PJ_ETOOBIG;
+	    }
+
+	    *value *= base;
+	    if ((PJ_MAXULONG - *value) < c) {
+		*value = PJ_MAXULONG;
+		return PJ_ETOOBIG;
+	    }
+	    *value += c;
+	}
+    } else if (base == 16) {
+	for (i=0; i<(unsigned)s.slen; ++i) {
+	    unsigned c = pj_hex_digit_to_val(s.ptr[i]);
+	    if (!pj_isxdigit(s.ptr[i]))
+		break;
+
+	    if (*value > PJ_MAXULONG / base) {
+		*value = PJ_MAXULONG;
+		return PJ_ETOOBIG;
+	    }
+	    *value *= base;
+	    if ((PJ_MAXULONG - *value) < c) {
+		*value = PJ_MAXULONG;
+		return PJ_ETOOBIG;
+	    }
+	    *value += c;
+	}
+    } else {
+	pj_assert(!"Unsupported base");
+	return PJ_EINVAL;
+    }
+    return PJ_SUCCESS;
 }
 
 PJ_DEF(float) pj_strtof(const pj_str_t *str)

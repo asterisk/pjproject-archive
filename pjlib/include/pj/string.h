@@ -575,6 +575,27 @@ PJ_DECL(unsigned long) pj_strtoul2(const pj_str_t *str, pj_str_t *endptr,
 				   unsigned base);
 
 /**
+ * Convert string to unsigned long integer. The conversion will stop as
+ * soon as non-digit character is found or all the characters have
+ * been processed.
+ *
+ * @param str       The input string.
+ * @param value     Pointer to an unsigned long to receive the value.
+ * @param base	    Number base to use.
+ *
+ * @return PJ_SUCCESS if successful.  Otherwise:
+ *         PJ_ETOOBIG if the value was an impossibly long positive number.
+ *         In this case, *value will be set to ULONG_MAX.
+ *         \n
+ *         PJ_EINVAL if the input string was NULL, the value pointer was NULL 
+ *         or the input string could not be parsed at all such as starting 
+ *         with a character outside the base character range.  In this case,
+ *         *value will be left untouched.
+ */
+PJ_DECL(pj_status_t) pj_strtoul3(const pj_str_t *str, unsigned long *value,
+				 unsigned base);
+
+/**
  * Convert string to float.
  *
  * @param str	the string.
